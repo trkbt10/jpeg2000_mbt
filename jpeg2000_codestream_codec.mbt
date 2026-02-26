@@ -140,8 +140,11 @@ fn parse_codestream_impl(
       for j in packet_start..<packet_end {
         packet.push(data[j])
       }
-      let stuffing_check = validate_packet_bit_stuffing(packet)
-      guard stuffing_check is Ok(_) else { return Err("invalid packet data") }
+      let should_validate_packet_markers = !compat_mode
+      if should_validate_packet_markers {
+        let stuffing_check = validate_packet_bit_stuffing(packet)
+        guard stuffing_check is Ok(_) else { return Err("invalid packet data") }
+      }
       let (found_sops, found_ephs) = extract_in_bitstream_markers(
         packet, packet_start,
       )
@@ -346,55 +349,72 @@ fn parse_codestream_impl(
     }
     if code == MARKER_PPM {
       let parsed = parse_ppm_metadata(payload)
-      guard parsed is Ok(entry) else {
-        return Err("failed to parse PPM metadata")
-      }
-      ppm_metadata.push(entry)
-      for chunk in entry.chunks {
-        let decoded = parse_packet_headers_series_with_code_blocks(
-          chunk.ippm,
-          1,
-        )
-        if decoded is Err(_) {
-          if compat_mode {
-            // Spec (Annex B): PPM relocates packet headers.
-            // Policy: keep payload opaque when local packet-header model cannot decode it.
-            continue
+      if parsed is Ok(entry) {
+        ppm_metadata.push(entry)
+        for chunk in entry.chunks {
+          let decoded = parse_packet_headers_series_with_code_blocks(
+            chunk.ippm,
+            1,
+          )
+          if decoded is Err(_) {
+            if compat_mode {
+              // Spec (Annex B): PPM relocates packet headers.
+              // Policy: keep payload opaque when local packet-header model cannot decode it.
+              continue
+            }
+            return Err("failed to parse packet headers in PPM")
           }
-          return Err("failed to parse packet headers in PPM")
+          guard decoded is Ok(headers) else {
+            return Err("failed to parse packet headers in PPM")
+          }
+          for h in headers {
+            packet_headers_ppm.push(h)
+          }
         }
-        guard decoded is Ok(headers) else {
-          return Err("failed to parse packet headers in PPM")
+      } else if compat_mode {
+        if payload.length() > 0 {
+          ppm_metadata.push({ zppm: payload[0], chunks: [] })
         }
-        for h in headers {
-          packet_headers_ppm.push(h)
-        }
+      } else {
+        return Err("failed to parse PPM metadata")
       }
     }
     if code == MARKER_PPT {
       let parsed = parse_ppt_metadata(payload)
-      guard parsed is Ok(entry) else {
+      if parsed is Ok(entry) {
+        ppt_metadata.push(entry)
+        let decoded = parse_packet_headers_series_with_code_blocks(
+          entry.data,
+          1,
+        )
+        if decoded is Err(_) {
+          if compat_mode {
+            // Same policy as PPM path for PPT-relocated packet headers.
+            // Keep the original PPT marker segment payload for roundtrip safety.
+            // Spec basis:
+            // - Annex B (packet headers may be relocated by PPM/PPT)
+            //   /sections/annex-b-image-and-compressed-image-data-ordering.md:744-747
+            // Policy:
+            // - metadata decode failure must not drop raw PPT segment bytes.
+            // - strict mode still fails below.
+          } else {
+            return Err("failed to parse packet headers in PPT")
+          }
+        } else if decoded is Ok(headers) {
+          for h in headers {
+            packet_headers_ppt.push(h)
+          }
+        }
+      } else if compat_mode {
+        if payload.length() > 0 {
+          let data : Array[Int] = []
+          for idx in 1..<payload.length() {
+            data.push(payload[idx])
+          }
+          ppt_metadata.push({ zppt: payload[0], data })
+        }
+      } else {
         return Err("failed to parse PPT metadata")
-      }
-      ppt_metadata.push(entry)
-      let decoded = parse_packet_headers_series_with_code_blocks(entry.data, 1)
-      if decoded is Err(_) {
-        if compat_mode {
-          // Same policy as PPM path for PPT-relocated packet headers.
-          // Keep the original PPT marker segment payload for roundtrip safety.
-          // Spec basis:
-          // - Annex B (packet headers may be relocated by PPM/PPT)
-          //   /sections/annex-b-image-and-compressed-image-data-ordering.md:744-747
-          // Policy:
-          // - metadata decode failure must not drop raw PPT segment bytes.
-          // - strict mode still fails below.
-        } else {
-          return Err("failed to parse packet headers in PPT")
-        }
-      } else if decoded is Ok(headers) {
-        for h in headers {
-          packet_headers_ppt.push(h)
-        }
       }
     }
     if code == MARKER_COC || code == MARKER_QCC {
@@ -428,28 +448,28 @@ fn parse_codestream_impl(
     }
     if code == MARKER_PLM {
       let zplm = payload[0]
-      if zplm != next_plm_index {
+      if !compat_mode && zplm != next_plm_index {
         return Err("invalid Zplm sequence")
       }
       next_plm_index += 1
     }
     if code == MARKER_PPM {
       let zppm = payload[0]
-      if zppm != next_ppm_index {
+      if !compat_mode && zppm != next_ppm_index {
         return Err("invalid Zppm sequence")
       }
       next_ppm_index += 1
     }
     if code == MARKER_PLT {
       let zplt = payload[0]
-      if zplt != next_plt_index {
+      if !compat_mode && zplt != next_plt_index {
         return Err("invalid Zplt sequence")
       }
       next_plt_index += 1
     }
     if code == MARKER_PPT {
       let zppt = payload[0]
-      if zppt != next_ppt_index {
+      if !compat_mode && zppt != next_ppt_index {
         return Err("invalid Zppt sequence")
       }
       next_ppt_index += 1
