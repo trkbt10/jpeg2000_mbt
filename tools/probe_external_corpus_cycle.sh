@@ -74,7 +74,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-for in_bin in "$CORPUS_DIR"/*.j2k; do
+for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
   [ -e "$in_bin" ] || continue
   found=1
   base="$(basename "$in_bin")"
@@ -112,7 +112,7 @@ for in_bin in "$CORPUS_DIR"/*.j2k; do
 done
 
 if [ "$found" -eq 0 ]; then
-  echo "no .j2k files found in $CORPUS_DIR" >&2
+  echo "no .j2k/.j2c files found in $CORPUS_DIR" >&2
   exit 1
 fi
 

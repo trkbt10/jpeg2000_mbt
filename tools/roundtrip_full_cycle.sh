@@ -20,13 +20,13 @@ cd "$ROOT_DIR"
 ./tools/build_sample_corpus.sh "$BUILTIN_CORPUS_DIR"
 ./tools/roundtrip_corpus_cycle.sh "$BUILTIN_CORPUS_DIR"
 
-if ls "$EXTERNAL_CORPUS_DIR"/*.j2k >/dev/null 2>&1; then
+if ls "$EXTERNAL_CORPUS_DIR"/*.j2k "$EXTERNAL_CORPUS_DIR"/*.j2c >/dev/null 2>&1; then
   ./tools/probe_external_corpus_cycle.sh "$EXTERNAL_CORPUS_DIR"
   if [ "${STRICT_EXTERNAL_CORPUS:-0}" = "1" ]; then
     ./tools/roundtrip_corpus_cycle.sh "$EXTERNAL_CORPUS_DIR"
   fi
 else
-  echo "skip external corpus: no .j2k files in $EXTERNAL_CORPUS_DIR"
+  echo "skip external corpus: no .j2k/.j2c files in $EXTERNAL_CORPUS_DIR"
 fi
 
 echo "full roundtrip cycle: OK"
