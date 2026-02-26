@@ -603,6 +603,31 @@ test "default parser tolerates malformed PPM packet headers" {
 }
 
 ///|
+test "default parser tolerates malformed PPT packet headers and preserves bytes" {
+  let broken = @jpeg2000.sample_codestream_with_ppt_sop_eph()
+  guard marker_index_nth(broken, 0xFF, 0x61, 0) is Some(ppt_at) else {
+    fail("PPT marker should exist")
+  }
+  // Corrupt first PPT data byte to break local packet-header metadata decode.
+  broken[ppt_at + 5] = 0xFF
+
+  let strict_result = @jpeg2000.parse_codestream_strict(broken)
+  guard strict_result is Err(msg) else {
+    fail("strict parser should fail on malformed PPT packet headers")
+  }
+  inspect(msg, content="failed to parse packet headers in PPT")
+
+  let parsed = @jpeg2000.parse_codestream(broken)
+  guard parsed is Ok(_) else {
+    fail("default parser should tolerate malformed PPT packet headers")
+  }
+
+  let rt = @jpeg2000.roundtrip_bytes(broken)
+  guard rt is Ok(out) else { fail("roundtrip should succeed") }
+  assert_eq(out, broken)
+}
+
+///|
 test "parse minimal codestream skeleton" {
   let result = @jpeg2000.parse_codestream(minimal_codestream_bytes())
   guard result is Ok(stream) else { fail("expected parser success") }
