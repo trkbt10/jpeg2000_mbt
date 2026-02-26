@@ -27,13 +27,6 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
   found=1
   base="$(basename "$in_bin")"
 
-  out_default="$(moon run cmd/main -- parse-file "$in_bin" | tr -d '\r\n')"
-  if [ "$out_default" != "ok" ]; then
-    echo "[$base] fail(default): $out_default"
-    fail=$((fail + 1))
-    continue
-  fi
-
   if [ "$STRICT_EXTERNAL_PROBE" = "1" ]; then
     out_strict="$(moon run cmd/main -- parse-file-strict "$in_bin" | tr -d '\r\n')"
     if [ "$out_strict" != "ok" ]; then
@@ -49,6 +42,13 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
     if [ "$out_rt" != "ok" ]; then
       echo "[$base] fail(roundtrip): $out_rt"
       roundtrip_fail=$((roundtrip_fail + 1))
+      fail=$((fail + 1))
+      continue
+    fi
+  else
+    out_default="$(moon run cmd/main -- parse-file "$in_bin" | tr -d '\r\n')"
+    if [ "$out_default" != "ok" ]; then
+      echo "[$base] fail(default): $out_default"
       fail=$((fail + 1))
       continue
     fi

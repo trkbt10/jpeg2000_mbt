@@ -101,3 +101,6 @@
 | 2026-02-26 | Codex | 仕様差分監査を実施し strict/compat を分離。`parse_codestream` は仕様準拠、`parse_codestream_compat` は互換許容、追加2テストで合計93 tests へ拡張 |
 | 2026-02-26 | Codex | API方針を修正: `parse_codestream` を実運用一本化し、監査用 strict は `parse_codestream_strict` として分離。外部 corpus は default parser で 10/10 通過（large-path含む） |
 | 2026-02-26 | Codex | 失敗要因切り分けを実施: strict失敗4件のうち `p1_03/p1_05` は PPM packet-header 復号実装制約、`p0_02` は reserved marker、`p0_03` は CEpoc判定実装（Csiz基準）由来であることを確認 |
+| 2026-02-26 | Codex | 外部コーパス検証を高速化: `probe_external_corpus_cycle.sh` の重複 `moon run` を削減（実測 2.75s→1.51s） |
+| 2026-02-26 | Codex | `roundtrip_corpus_cycle.sh` を1ファイル1回実行へ最適化し、生成`.mbt`経路を廃止した固定実行方式へ統一 |
+| 2026-02-26 | Codex | 仕様網羅監査導線を追加: `tools/report_requirements_coverage.sh`（Must進捗）と `tools/corpus_matrix_cycle.sh`（default/strict/roundtrip行列）を追加、実測で default/roundtrip 27/27・strict 22/27 を確認 |
