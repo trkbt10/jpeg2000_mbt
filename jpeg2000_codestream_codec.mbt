@@ -1,4 +1,17 @@
 ///|
+fn trailing_bytes_are_fill(data : Array[Int], start : Int) -> Bool {
+  if start >= data.length() {
+    return true
+  }
+  for i in start..<data.length() {
+    if data[i] != 0x00 {
+      return false
+    }
+  }
+  true
+}
+
+///|
 fn parse_codestream_impl(
   data : Array[Int],
   compat_mode : Bool,
@@ -68,7 +81,7 @@ fn parse_codestream_impl(
     let marker = read_u16_be(data, i)
     guard marker is Ok(code) else { return Err("failed to read marker") }
     if code >> 8 != 0xFF {
-      return Err("invalid marker prefix")
+      return Err("invalid marker prefix at byte \{i}")
     }
     let placement = validate_marker_placement(
       code, in_main_header, in_tile_part_header, seen_siz,
@@ -84,7 +97,12 @@ fn parse_codestream_impl(
       segments.push({ code, payload: [], position: i })
       i += 2
       if i != data.length() {
-        return Err("EOC must be the last marker")
+        if !trailing_bytes_are_fill(data, i) {
+          return Err(
+            "EOC must be the last marker (trailing \{data.length() - i} bytes)",
+          )
+        }
+        i = data.length()
       }
       if !seen_sot || !seen_sod {
         return Err("at least one SOT/SOD pair is required")
@@ -133,7 +151,14 @@ fn parse_codestream_impl(
         if declared_end > data.length() {
           return Err("Psot exceeds codestream size")
         }
-        declared_end
+        // Some real-world codestreams carry a Psot that is shorter than the
+        // actual tile-part payload. If the declared boundary does not point to a
+        // marker prefix, resynchronize by scanning for the next SOT/EOC marker.
+        if declared_end < data.length() && data[declared_end] != 0xFF {
+          find_next_sot_or_eoc(data, packet_start)
+        } else {
+          declared_end
+        }
       } else {
         find_next_sot_or_eoc(data, packet_start)
       }
