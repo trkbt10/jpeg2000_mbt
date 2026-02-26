@@ -14,6 +14,7 @@ if [ ! -f "$MBTI" ]; then
 fi
 
 pub_fns="$(rg '^pub fn ' "$MBTI" | sed -E 's/^pub fn ([^(]+).*/\1/' | sort)"
+pub_fn_defs="$(rg -n '^pub fn ' "$ROOT_DIR"/*.mbt || true)"
 
 required_core=(
   parse_codestream
@@ -49,6 +50,16 @@ for pat in "${disallowed_patterns[@]}"; do
     exit 1
   fi
 done
+
+# Public function entrypoint discipline: keep pub fn definitions in one file.
+if [ "$pub_fn_defs" != "" ]; then
+  non_entry="$(printf '%s\n' "$pub_fn_defs" | rg -v '^.*/jpeg2000_public_api\.mbt:' || true)"
+  if [ "$non_entry" != "" ]; then
+    echo "public function definitions must stay in jpeg2000_public_api.mbt" >&2
+    echo "$non_entry" >&2
+    exit 1
+  fi
+fi
 
 echo "public api check: ok"
 echo "core APIs present: ${required_core[*]}"

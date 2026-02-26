@@ -1,5 +1,5 @@
 ///|
-pub fn roundtrip_bytes(data : Array[Int]) -> Result[Array[Int], String] {
+fn roundtrip_bytes_impl(data : Array[Int]) -> Result[Array[Int], String] {
   let parsed = parse_codestream(data)
   if parsed is Ok(stream) {
     return encode_codestream(stream)

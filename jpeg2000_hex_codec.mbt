@@ -21,7 +21,7 @@ fn char_to_nibble(c : Char) -> Int? {
 }
 
 ///|
-pub fn bytes_to_hex(data : Array[Int]) -> String {
+fn bytes_to_hex_impl(data : Array[Int]) -> String {
   let sb = StringBuilder::new()
   for b in data {
     let hi = (b >> 4) & 0x0F
@@ -33,7 +33,7 @@ pub fn bytes_to_hex(data : Array[Int]) -> String {
 }
 
 ///|
-pub fn hex_to_bytes(hex : String) -> Result[Array[Int], String] {
+fn hex_to_bytes_impl(hex : String) -> Result[Array[Int], String] {
   let out : Array[Int] = []
   let mut high : Int? = None
   for c in hex {

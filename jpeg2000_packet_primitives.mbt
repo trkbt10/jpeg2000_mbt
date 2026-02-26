@@ -180,7 +180,7 @@ fn build_tag_tree_levels(
 }
 
 ///|
-pub fn decode_tag_tree_inclusion_flags(
+fn decode_tag_tree_inclusion_flags_impl(
   data : Array[Int],
   width : Int,
   height : Int,
