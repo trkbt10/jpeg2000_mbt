@@ -1,0 +1,559 @@
+///|
+fn parse_codestream_impl(
+  data : Array[Int],
+  compat_mode : Bool,
+) -> Result[Codestream, String] {
+  if data.length() < 4 {
+    return Err("codestream too short")
+  }
+  let first = read_u16_be(data, 0)
+  guard first is Ok(first_code) else {
+    return Err("failed to read first marker")
+  }
+  if first_code != MARKER_SOC {
+    return Err("SOC must appear at codestream start")
+  }
+
+  let segments : Array[MarkerSegment] = []
+  segments.push({ code: MARKER_SOC, payload: [], position: 0 })
+
+  let mut i = 2
+  let mut seen_sot = false
+  let mut seen_sod = false
+  let mut seen_siz = false
+  let mut seen_cod = false
+  let mut seen_qcd = false
+  let mut first_marker_after_soc = true
+  let mut in_main_header = true
+  let mut in_tile_part_header = false
+  let mut siz_components : Int? = None
+  let mut main_seen_poc = false
+  let mut tile_seen_poc = false
+  let mut main_seen_crg = false
+  let mut tile_seen_cod = false
+  let mut tile_seen_qcd = false
+  let mut header_coc_components : Array[Int] = []
+  let mut header_qcc_components : Array[Int] = []
+  let mut has_ppm = false
+  let mut has_ppt = false
+  let mut current_sot_pos = -1
+  let mut current_psot = 0
+  let tile_ids : Array[Int] = []
+  let tile_last_tpsot : Array[Int] = []
+  let tile_declared_tnsot : Array[Int] = []
+  let mut tile_count : Int? = None
+  let mut next_plm_index = 0
+  let mut next_ppm_index = 0
+  let mut next_plt_index = 0
+  let mut next_ppt_index = 0
+  let mut siz_metadata : SizMetadata? = None
+  let mut cod_metadata : CodMetadata? = None
+  let mut qcd_metadata : QcdMetadata? = None
+  let coc_metadata : Array[CocMetadata] = []
+  let rgn_metadata : Array[RgnMetadata] = []
+  let qcc_metadata : Array[QccMetadata] = []
+  let poc_metadata : Array[PocMetadata] = []
+  let tlm_metadata : Array[TlmMetadata] = []
+  let plm_metadata : Array[PlmMetadata] = []
+  let plt_metadata : Array[PltMetadata] = []
+  let ppm_metadata : Array[PpmMetadata] = []
+  let ppt_metadata : Array[PptMetadata] = []
+  let packet_headers_ppm : Array[PacketHeaderMetadata] = []
+  let packet_headers_ppt : Array[PacketHeaderMetadata] = []
+  let sop_metadata : Array[SopMetadata] = []
+  let eph_positions : Array[Int] = []
+  let mut crg_metadata : CrgMetadata? = None
+  let com_metadata : Array[ComMetadata] = []
+  let mut ordering_metadata : OrderingMetadata? = None
+  let mut ordering_coding_metadata : OrderingCodingMetadata? = None
+  let mut progression_metadata : ProgressionMetadata? = None
+
+  while i < data.length() {
+    let marker = read_u16_be(data, i)
+    guard marker is Ok(code) else { return Err("failed to read marker") }
+    if code >> 8 != 0xFF {
+      return Err("invalid marker prefix")
+    }
+    let placement = validate_marker_placement(
+      code, in_main_header, in_tile_part_header, seen_siz, compat_mode,
+    )
+    guard placement is Ok(_) else { return Err("invalid marker placement") }
+
+    if code == MARKER_EOC {
+      segments.push({ code, payload: [], position: i })
+      i += 2
+      if i != data.length() {
+        return Err("EOC must be the last marker")
+      }
+      if !seen_sot || !seen_sod {
+        return Err("at least one SOT/SOD pair is required")
+      }
+      if !seen_siz || !seen_cod || !seen_qcd {
+        return Err("missing required main header markers")
+      }
+      return Ok({
+        segments,
+        metadata: {
+          siz: siz_metadata,
+          cod: cod_metadata,
+          qcd: qcd_metadata,
+          coc: coc_metadata,
+          rgn: rgn_metadata,
+          qcc: qcc_metadata,
+          poc: poc_metadata,
+          tlm: tlm_metadata,
+          plm: plm_metadata,
+          plt: plt_metadata,
+          ppm: ppm_metadata,
+          ppt: ppt_metadata,
+          sop: sop_metadata,
+          eph_positions,
+          crg: crg_metadata,
+          com: com_metadata,
+          ordering: ordering_metadata,
+          ordering_coding: ordering_coding_metadata,
+          progression: progression_metadata,
+          packet_headers_ppm,
+          packet_headers_ppt,
+        },
+      })
+    }
+
+    if code == MARKER_SOD {
+      if !seen_sot {
+        return Err("SOD requires preceding SOT")
+      }
+      let packet_start = i + 2
+      let packet_end = if current_psot > 0 {
+        let declared_end = current_sot_pos + current_psot
+        if declared_end < packet_start {
+          return Err("invalid Psot in SOT")
+        }
+        if declared_end > data.length() {
+          return Err("Psot exceeds codestream size")
+        }
+        declared_end
+      } else {
+        find_next_sot_or_eoc(data, packet_start)
+      }
+      let packet : Array[Int] = []
+      for j in packet_start..<packet_end {
+        packet.push(data[j])
+      }
+      let stuffing_check = validate_packet_bit_stuffing(packet)
+      guard stuffing_check is Ok(_) else { return Err("invalid packet data") }
+      let (found_sops, found_ephs) = extract_in_bitstream_markers(
+        packet, packet_start,
+      )
+      for sop_entry in found_sops {
+        sop_metadata.push(sop_entry)
+      }
+      for eph_pos in found_ephs {
+        eph_positions.push(eph_pos)
+      }
+      in_tile_part_header = false
+      seen_sod = true
+      segments.push({ code, payload: packet, position: i })
+      i = packet_end
+      continue
+    }
+
+    if !has_explicit_length(code) {
+      // Spec (Annex A.1.3): reserved markers are marker-only and decoder-skippable.
+      if compat_mode && is_reserved_jpeg_marker(code) {
+        segments.push({ code, payload: [], position: i })
+        i += 2
+        continue
+      }
+      return Err("unexpected marker without length")
+    }
+
+    let l = read_u16_be(data, i + 2)
+    guard l is Ok(length) else {
+      return Err("failed to read marker segment length")
+    }
+    if length < 2 {
+      return Err("invalid marker segment length")
+    }
+    let payload_len = length - 2
+    let payload_start = i + 4
+    let payload_end = payload_start + payload_len
+    if payload_end > data.length() {
+      return Err("marker segment exceeds codestream size")
+    }
+
+    let payload : Array[Int] = []
+    for j in payload_start..<payload_end {
+      payload.push(data[j])
+    }
+
+    if first_marker_after_soc {
+      if code != MARKER_SIZ {
+        return Err("SIZ must be the second marker segment")
+      }
+      first_marker_after_soc = false
+    }
+
+    let payload_validation = validate_marker_payload(
+      code, length, payload, in_main_header, siz_components, main_seen_poc, tile_seen_poc,
+      header_coc_components, header_qcc_components, main_seen_crg, has_ppm, has_ppt,
+      compat_mode,
+    )
+    guard payload_validation is Ok(next_siz_components) else {
+      return Err("invalid marker payload")
+    }
+    siz_components = next_siz_components
+
+    if code == MARKER_SIZ {
+      seen_siz = true
+      let tc = compute_tile_count_from_siz(payload)
+      guard tc is Ok(n_tiles) else {
+        return Err("failed to compute tile count")
+      }
+      tile_count = Some(n_tiles)
+      let sm = parse_siz_metadata(payload)
+      guard sm is Ok(meta) else { return Err("failed to parse SIZ metadata") }
+      let om = build_ordering_metadata(meta)
+      guard om is Ok(ordered) else {
+        return Err("failed to build ordering metadata")
+      }
+      siz_metadata = Some(meta)
+      ordering_metadata = Some(ordered)
+    }
+    if code == MARKER_COD {
+      if in_main_header {
+        if seen_cod {
+          return Err("COD must appear at most once in main header")
+        }
+        seen_cod = true
+        let cm = parse_cod_metadata(payload)
+        guard cm is Ok(meta) else { return Err("failed to parse COD metadata") }
+        cod_metadata = Some(meta)
+        if ordering_metadata is Some(ordering) {
+          let coding = build_ordering_coding_metadata(meta, ordering)
+          ordering_coding_metadata = Some(coding)
+          progression_metadata = refresh_progression_metadata(
+            cod_metadata, ordering_metadata, ordering_coding_metadata, poc_metadata,
+          )
+        }
+      } else {
+        if tile_seen_cod {
+          return Err("COD must appear at most once in tile-part header")
+        }
+        tile_seen_cod = true
+      }
+    }
+    if code == MARKER_QCD {
+      if in_main_header {
+        if seen_qcd {
+          return Err("QCD must appear at most once in main header")
+        }
+        seen_qcd = true
+        let qm = parse_qcd_metadata(payload)
+        guard qm is Ok(meta) else { return Err("failed to parse QCD metadata") }
+        qcd_metadata = Some(meta)
+      } else {
+        if tile_seen_qcd {
+          return Err("QCD must appear at most once in tile-part header")
+        }
+        tile_seen_qcd = true
+      }
+    }
+    if code == MARKER_POC {
+      guard siz_components is Some(csiz) else {
+        return Err("missing SIZ component count")
+      }
+      let parsed = parse_poc_entries(payload, csiz, in_main_header)
+      guard parsed is Ok(entries) else {
+        return Err("failed to parse POC metadata")
+      }
+      for entry in entries {
+        poc_metadata.push(entry)
+      }
+      if in_main_header {
+        main_seen_poc = true
+      } else {
+        tile_seen_poc = true
+      }
+      progression_metadata = refresh_progression_metadata(
+        cod_metadata, ordering_metadata, ordering_coding_metadata, poc_metadata,
+      )
+    }
+    if code == MARKER_RGN {
+      guard siz_components is Some(csiz) else {
+        return Err("missing SIZ component count")
+      }
+      let parsed = parse_rgn_metadata(payload, csiz, in_main_header)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse RGN metadata")
+      }
+      rgn_metadata.push(entry)
+    }
+    if code == MARKER_CRG {
+      main_seen_crg = true
+      guard siz_components is Some(csiz) else {
+        return Err("missing SIZ component count")
+      }
+      let parsed = parse_crg_metadata(payload, csiz)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse CRG metadata")
+      }
+      crg_metadata = Some(entry)
+    }
+    if code == MARKER_COM {
+      let parsed = parse_com_metadata(payload)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse COM metadata")
+      }
+      com_metadata.push(entry)
+    }
+    if code == MARKER_SOP {
+      let parsed = parse_sop_metadata(payload, i)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse SOP metadata")
+      }
+      sop_metadata.push(entry)
+    }
+    if code == MARKER_EPH {
+      eph_positions.push(i)
+    }
+    if code == MARKER_PPM {
+      has_ppm = true
+    }
+    if code == MARKER_PPT {
+      has_ppt = true
+    }
+    if code == MARKER_TLM {
+      let parsed = parse_tlm_metadata(payload)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse TLM metadata")
+      }
+      tlm_metadata.push(entry)
+    }
+    if code == MARKER_PLM {
+      let parsed = parse_plm_metadata(payload)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse PLM metadata")
+      }
+      plm_metadata.push(entry)
+    }
+    if code == MARKER_PLT {
+      let parsed = parse_plt_metadata(payload)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse PLT metadata")
+      }
+      plt_metadata.push(entry)
+    }
+    if code == MARKER_PPM {
+      let parsed = parse_ppm_metadata(payload)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse PPM metadata")
+      }
+      ppm_metadata.push(entry)
+      for chunk in entry.chunks {
+        let decoded = parse_packet_headers_series_with_code_blocks(
+          chunk.ippm,
+          1,
+        )
+        if decoded is Err(_) {
+          if compat_mode {
+            // Spec (Annex B): PPM relocates packet headers.
+            // Policy: keep payload opaque when local packet-header model cannot decode it.
+            continue
+          }
+          return Err("failed to parse packet headers in PPM")
+        }
+        guard decoded is Ok(headers) else {
+          return Err("failed to parse packet headers in PPM")
+        }
+        for h in headers {
+          packet_headers_ppm.push(h)
+        }
+      }
+    }
+    if code == MARKER_PPT {
+      let parsed = parse_ppt_metadata(payload)
+      guard parsed is Ok(entry) else {
+        return Err("failed to parse PPT metadata")
+      }
+      ppt_metadata.push(entry)
+      let decoded = parse_packet_headers_series_with_code_blocks(entry.data, 1)
+      if decoded is Err(_) {
+        if compat_mode {
+          // Same policy as PPM path for PPT-relocated packet headers.
+          // Keep the original PPT marker segment payload for roundtrip safety.
+          // Spec basis:
+          // - Annex B (packet headers may be relocated by PPM/PPT)
+          //   /sections/annex-b-image-and-compressed-image-data-ordering.md:744-747
+          // Policy:
+          // - metadata decode failure must not drop raw PPT segment bytes.
+          // - strict mode still fails below.
+        } else {
+          return Err("failed to parse packet headers in PPT")
+        }
+      } else if decoded is Ok(headers) {
+        for h in headers {
+          packet_headers_ppt.push(h)
+        }
+      }
+    }
+    if code == MARKER_COC || code == MARKER_QCC {
+      guard siz_components is Some(csiz) else {
+        return Err("missing SIZ component count")
+      }
+      let comp = if csiz < 257 {
+        payload[0]
+      } else {
+        let cvalue = read_u16_from_payload(payload, 0)
+        guard cvalue is Ok(component_idx) else {
+          return Err("failed to parse component index")
+        }
+        component_idx
+      }
+      if code == MARKER_COC {
+        header_coc_components.push(comp)
+        let parsed = parse_coc_metadata(payload, csiz, in_main_header)
+        guard parsed is Ok(entry) else {
+          return Err("failed to parse COC metadata")
+        }
+        coc_metadata.push(entry)
+      } else {
+        header_qcc_components.push(comp)
+        let parsed = parse_qcc_metadata(payload, csiz, in_main_header)
+        guard parsed is Ok(entry) else {
+          return Err("failed to parse QCC metadata")
+        }
+        qcc_metadata.push(entry)
+      }
+    }
+    if code == MARKER_PLM {
+      let zplm = payload[0]
+      if zplm != next_plm_index {
+        return Err("invalid Zplm sequence")
+      }
+      next_plm_index += 1
+    }
+    if code == MARKER_PPM {
+      let zppm = payload[0]
+      if zppm != next_ppm_index {
+        return Err("invalid Zppm sequence")
+      }
+      next_ppm_index += 1
+    }
+    if code == MARKER_PLT {
+      let zplt = payload[0]
+      if zplt != next_plt_index {
+        return Err("invalid Zplt sequence")
+      }
+      next_plt_index += 1
+    }
+    if code == MARKER_PPT {
+      let zppt = payload[0]
+      if zppt != next_ppt_index {
+        return Err("invalid Zppt sequence")
+      }
+      next_ppt_index += 1
+    }
+
+    segments.push({ code, payload, position: i })
+    if code == MARKER_SOT {
+      seen_sot = true
+      in_main_header = false
+      in_tile_part_header = true
+      current_sot_pos = i
+      let isot_value = read_u16_from_payload(payload, 0)
+      let psot_value = read_u32_be(payload, 2)
+      guard isot_value is Ok(isot) else { return Err("failed to parse Isot") }
+      guard psot_value is Ok(psot) else { return Err("failed to parse Psot") }
+      let tpsot = payload[6]
+      let tnsot = payload[7]
+      if tnsot != 0 && tpsot >= tnsot {
+        return Err("invalid TPsot/TNsot relation")
+      }
+      if tile_count is Some(n_tiles) {
+        if isot < 0 || isot >= n_tiles {
+          return Err("Isot out of range")
+        }
+      }
+      if find_tile_state_index(tile_ids, isot) is Some(idx) {
+        if tpsot != tile_last_tpsot[idx] + 1 {
+          return Err("invalid tile-part index sequence")
+        }
+        if tile_declared_tnsot[idx] != 0 &&
+          tnsot != 0 &&
+          tnsot != tile_declared_tnsot[idx] {
+          return Err("inconsistent TNsot for tile")
+        }
+        tile_last_tpsot[idx] = tpsot
+        if tile_declared_tnsot[idx] == 0 {
+          tile_declared_tnsot[idx] = tnsot
+        }
+      } else {
+        if tpsot != 0 {
+          return Err("first tile-part index must be zero")
+        }
+        tile_ids.push(isot)
+        tile_last_tpsot.push(tpsot)
+        tile_declared_tnsot.push(tnsot)
+      }
+      current_psot = psot
+      tile_seen_poc = false
+      tile_seen_cod = false
+      tile_seen_qcd = false
+      header_coc_components = []
+      header_qcc_components = []
+      next_plt_index = 0
+      next_ppt_index = 0
+    }
+    i = payload_end
+  }
+
+  Err("EOC marker missing")
+}
+
+///|
+pub fn parse_codestream(data : Array[Int]) -> Result[Codestream, String] {
+  // Runtime/default API: interoperability-first parser behavior.
+  parse_codestream_impl(data, true)
+}
+
+///|
+pub fn parse_codestream_strict(data : Array[Int]) -> Result[Codestream, String] {
+  // Audit API: strict conformance checks for investigation workflows.
+  parse_codestream_impl(data, false)
+}
+
+///|
+pub fn encode_codestream(stream : Codestream) -> Result[Array[Int], String] {
+  let out : Array[Int] = []
+  for segment in stream.segments {
+    if segment.code >> 8 != 0xFF {
+      return Err("invalid marker value")
+    }
+    out.push((segment.code >> 8) & 0xFF)
+    out.push(segment.code & 0xFF)
+
+    if segment.code == MARKER_SOD {
+      for b in segment.payload {
+        if b < 0 || b > 0xFF {
+          return Err("payload byte out of range")
+        }
+        out.push(b)
+      }
+    } else if has_explicit_length(segment.code) {
+      let length = segment.payload.length() + 2
+      if length > 0xFFFF {
+        return Err("segment payload too long")
+      }
+      out.push((length >> 8) & 0xFF)
+      out.push(length & 0xFF)
+      for b in segment.payload {
+        if b < 0 || b > 0xFF {
+          return Err("payload byte out of range")
+        }
+        out.push(b)
+      }
+    }
+  }
+  Ok(out)
+}
