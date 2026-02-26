@@ -28,8 +28,8 @@ fn main {
 
 ## Public API
 
-Public functions are exported from [jpeg2000.mbt](jpeg2000.mbt).  
-Public types are exported from [jpeg2000_types.mbt](jpeg2000_types.mbt).
+Public functions are exported from `jpeg2000.mbt`.  
+Public types are exported from `jpeg2000_types.mbt`.
 
 Core API:
 
@@ -83,4 +83,4 @@ npm artifact packaging:
 
 ## Developer Docs
 
-- Development/testing commands are in [docs/dev-testing.md](docs/dev-testing.md).
+- Development/testing commands are in `docs/dev-testing.md`.
