@@ -1,5 +1,12 @@
 ///|
 fn trailing_bytes_are_fill(data : Array[Int], start : Int) -> Bool {
+  // Interop policy (non-normative):
+  // Some corpus files have one or more 0x00 fill bytes after EOC.
+  // We accept all-zero trailing bytes but still reject any non-zero trailing data.
+  //
+  // Normative baseline:
+  // - EOC usage "shall be the last marker in a codestream"
+  //   /sections/annex-a-codestream-syntax.md:503
   if start >= data.length() {
     return true
   }
@@ -97,6 +104,12 @@ fn parse_codestream_impl(
       segments.push({ code, payload: [], position: i })
       i += 2
       if i != data.length() {
+        // Spec baseline:
+        // - EOC is the end marker and shall be last in codestream.
+        //   /sections/annex-a-codestream-syntax.md:499-503
+        //
+        // Interop policy:
+        // - permit trailing 0x00 fill only; reject any non-zero trailing bytes.
         if !trailing_bytes_are_fill(data, i) {
           return Err(
             "EOC must be the last marker (trailing \{data.length() - i} bytes)",
@@ -151,9 +164,13 @@ fn parse_codestream_impl(
         if declared_end > data.length() {
           return Err("Psot exceeds codestream size")
         }
-        // Some real-world codestreams carry a Psot that is shorter than the
-        // actual tile-part payload. If the declared boundary does not point to a
-        // marker prefix, resynchronize by scanning for the next SOT/EOC marker.
+        // Spec baseline:
+        // - Psot is the tile-part length from SOT to tile-part end.
+        //   /sections/annex-a-codestream-syntax.md:452-455
+        //
+        // Interop policy (non-normative):
+        // - if declared Psot boundary does not align to a marker prefix, prefer
+        //   marker-based resynchronization over hard failure.
         if declared_end < data.length() && data[declared_end] != 0xFF {
           find_next_sot_or_eoc(data, packet_start)
         } else {
