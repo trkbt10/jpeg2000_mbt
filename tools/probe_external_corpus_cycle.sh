@@ -6,7 +6,7 @@ CORPUS_DIR="${1:-$ROOT_DIR/samples/corpus}"
 HEX_ARG_LIMIT_BYTES="${HEX_ARG_LIMIT_BYTES:-120000}"
 STRICT_EXTERNAL_PROBE="${STRICT_EXTERNAL_PROBE:-0}"
 PROBE_LARGE_PATH="${PROBE_LARGE_PATH:-1}"
-TMP_TEST_FILE="$ROOT_DIR/.tmp_external_probe_$$._test.mbt"
+TMP_TEST_FILE="$(mktemp "$ROOT_DIR/.tmp_external_probe_XXXXXX.mbt")"
 
 # Spec basis (T.800 Annex B):
 # - /sections/annex-b-image-and-compressed-image-data-ordering.md:742-747
@@ -23,6 +23,9 @@ if [ ! -d "$CORPUS_DIR" ]; then
 fi
 
 cd "$ROOT_DIR"
+# Remove stale temporary tests from interrupted runs.
+find "$ROOT_DIR" -maxdepth 1 -type f -name '.tmp_external_probe_*.mbt' \
+  ! -name "$(basename "$TMP_TEST_FILE")" -delete
 
 found=0
 ok=0
@@ -35,7 +38,8 @@ probe_large_via_temp_test() {
   local base="$2"
   local hex
   hex="$(xxd -p -c 1000000 "$in_bin" | tr -d '\n\r')"
-  local chunk_size=2048
+  # Keep each literal line small enough for MoonBit parser stability on huge corpora.
+  local chunk_size=1024
   local pos=0
   local total=${#hex}
   {

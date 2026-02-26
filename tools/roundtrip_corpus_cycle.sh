@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CORPUS_DIR="${1:-$ROOT_DIR/samples/corpus}"
 OUT_DIR="$ROOT_DIR/samples/generated/corpus"
 HEX_ARG_LIMIT_BYTES="${HEX_ARG_LIMIT_BYTES:-120000}"
-TMP_TEST_FILE="$ROOT_DIR/.tmp_roundtrip_corpus_$$._test.mbt"
+TMP_TEST_FILE="$(mktemp "$ROOT_DIR/.tmp_roundtrip_corpus_XXXXXX.mbt")"
 
 # Spec basis (T.800 Annex A / Annex B):
 # - annex-a-codestream-syntax.md:82-83
@@ -21,7 +21,8 @@ roundtrip_large_via_temp_test() {
   local base="$2"
   local hex
   hex="$(xxd -p -c 1000000 "$in_bin" | tr -d '\n\r')"
-  local chunk_size=2048
+  # Keep each literal line small enough for MoonBit parser stability on huge corpora.
+  local chunk_size=1024
   local pos=0
   local total=${#hex}
   {
@@ -64,6 +65,9 @@ fi
 
 mkdir -p "$OUT_DIR"
 cd "$ROOT_DIR"
+# Remove stale temporary tests from interrupted runs.
+find "$ROOT_DIR" -maxdepth 1 -type f -name '.tmp_roundtrip_corpus_*.mbt' \
+  ! -name "$(basename "$TMP_TEST_FILE")" -delete
 
 found=0
 for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
