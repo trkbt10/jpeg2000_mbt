@@ -1,0 +1,31 @@
+{
+  "name": "@trkbt10/jpeg2000-wasm",
+  "version": "0.1.0",
+  "description": "WASM artifact package for trkbt10/jpeg2000",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./index.cjs",
+  "module": "./index.mjs",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.cjs"
+    },
+    "./jpeg2000.wasm": "./dist/jpeg2000.wasm",
+    "./manifest.json": "./dist/manifest.json"
+  },
+  "files": [
+    "dist",
+    "index.mjs",
+    "index.cjs",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "../../tools/export_wasm_npm_package.sh",
+    "prepack": "../../tools/export_wasm_npm_package.sh"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

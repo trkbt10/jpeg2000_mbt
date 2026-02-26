@@ -1,5 +1,18 @@
 # trkbt10/jpeg2000
 
+## Distribution Topology
+
+- mooncakes package (library): `trkbt10/jpeg2000`
+- wasm CLI entrypoint package: `trkbt10/jpeg2000/cmd/wasm`
+- npm artifact package directory: `npm/wasm` (`@trkbt10/jpeg2000-wasm`)
+
+Why these files exist:
+
+- `jpeg2000.mbt`: package root anchor and module split index comment.
+  Public API is defined by `pub` declarations across split files.
+- `jpeg2000_wbtest.mbt`: whitebox tests for package-internal invariants.
+  This is test-only and not part of distributed runtime API.
+
 ## Public API (Library)
 
 Core APIs intended for library consumers:
@@ -109,3 +122,19 @@ Run test suite on wasm-gc target:
 ```bash
 moon test --target wasm-gc --jobs 1 --no-parallelize
 ```
+
+## npm WASM Packaging
+
+Export wasm artifact for npm package:
+
+```bash
+./tools/export_wasm_npm_package.sh
+```
+
+Package directory:
+
+- `npm/wasm/package.json`
+- `npm/wasm/index.mjs`
+- `npm/wasm/index.cjs`
+- `npm/wasm/dist/jpeg2000.wasm` (generated)
+- `npm/wasm/dist/manifest.json` (generated)
