@@ -104,3 +104,4 @@
 | 2026-02-26 | Codex | 外部コーパス検証を高速化: `probe_external_corpus_cycle.sh` の重複 `moon run` を削減（実測 2.75s→1.51s） |
 | 2026-02-26 | Codex | `roundtrip_corpus_cycle.sh` を1ファイル1回実行へ最適化し、生成`.mbt`経路を廃止した固定実行方式へ統一 |
 | 2026-02-26 | Codex | 仕様網羅監査導線を追加: `tools/report_requirements_coverage.sh`（Must進捗）と `tools/corpus_matrix_cycle.sh`（default/strict/roundtrip行列）を追加、実測で default/roundtrip 27/27・strict 22/27 を確認 |
+| 2026-02-26 | Codex | strict fail 切り分け導線を追加: `tools/corpus_strict_failure_report.sh` で5件の失敗を自動分類し、Annex A.1.3 / Annex B.10/A.7.4/A.7.5 観点で追跡可能化 |

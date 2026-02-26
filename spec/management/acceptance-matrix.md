@@ -9,7 +9,7 @@
 
 | Group | 対象要求ID | 受入基準 | 証跡 |
 |---|---|---|---|
-| Core syntax | R-0021..R-0055 | marker構文検証が通る | `jpeg2000_test.mbt` の96テスト + `tools/roundtrip_samples_cycle.sh`（9サンプル）+ `tools/roundtrip_corpus_cycle.sh samples/generated/builtins`（9 `.j2k` の読込/再出力一致）+ `tools/probe_external_corpus_cycle.sh samples/corpus`（default+roundtrip 27/27）+ `tools/corpus_matrix_cycle.sh samples/corpus`（default 27/27, strict 22/27, roundtrip 27/27）+ `tools/roundtrip_full_cycle.sh` |
+| Core syntax | R-0021..R-0055 | marker構文検証が通る | `jpeg2000_test.mbt` の96テスト + `tools/roundtrip_samples_cycle.sh`（9サンプル）+ `tools/roundtrip_corpus_cycle.sh samples/generated/builtins`（9 `.j2k` の読込/再出力一致）+ `tools/probe_external_corpus_cycle.sh samples/corpus`（default+roundtrip 27/27）+ `tools/corpus_matrix_cycle.sh samples/corpus`（default 27/27, strict 22/27, roundtrip 27/27）+ `tools/corpus_strict_failure_report.sh samples/corpus`（strict fail 5件を原因分類）+ `tools/roundtrip_full_cycle.sh` |
 | Ordering | R-0056..R-0078 | packet/progression順序整合 | `jpeg2000_test.mbt` の ordering テスト（tile-component, precinct, code-block, packet単位の導出検証） |
 | Arithmetic | R-0087,R-0092..R-0099 | MQ復号一致 | decodingテスト |
 | Bit modelling | R-0100..R-0116 | coding passes再構成一致 | code-blockテスト |

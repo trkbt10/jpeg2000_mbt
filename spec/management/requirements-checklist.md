@@ -628,6 +628,15 @@
 - 変更要約: 外部コーパス運用を「default/strict/roundtrip を同時可視化する行列」へ拡張し、仕様網羅の未達（Annex C以降）を定量確認可能化
 - 継続課題: strict fail 5件（`p0_02`, `p1_03`, `p1_05`, `p1_06`, `g1_colr`）の根拠を Annex B/C 観点で個別整理し、仕様準拠方針に沿って段階解消
 
+### 2026-02-26 / strict失敗の原因分類レポート化
+
+- 完了要求ID: なし（Status変更なし、調査証跡の強化）
+- 実施内容: `tools/corpus_strict_failure_report.sh` を追加し、strict失敗を `error/reason/spec_hint` でCSV/Markdown化
+- 実施試験: `./tools/corpus_strict_failure_report.sh samples/corpus`（strict fail=5、`samples/generated/corpus/strict-failure-report.md` を生成）
+- 失敗ケース追加: なし（既存failの分類を自動化）
+- 変更要約: strict fail の根拠追跡を手作業から定常レポートへ移行し、仕様差分調査の起点を固定化
+- 継続課題: 分類済み5件のうち `invalid marker placement` 1件を Annex A.1.3 の実データ精査で、`PPM/PPT` 4件を Annex B.10 実装拡張で順次解消
+
 ### 2026-02-26 / 外部 corpus 導入（openjpeg-data p0/p1）
 
 - 完了要求ID: `R-0021..R-0055`（`Verified` 継続）
