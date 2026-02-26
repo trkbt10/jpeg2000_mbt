@@ -7,3 +7,6 @@ samples/generated/corpus/
 
 spec/references/openjpeg/
 spec/references/**/*.pdf
+
+spec/references/jpeg2000/
+spec.md
