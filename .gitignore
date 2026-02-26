@@ -4,3 +4,5 @@ _build/
 .moonagent/
 samples/generated/
 samples/generated/corpus/
+
+spec/references/**/*.pdf

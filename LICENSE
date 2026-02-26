@@ -206,8 +206,8 @@ Additional notices (test corpus/source attributions):
 1. `samples/corpus/*.j2k` and `samples/corpus/*.j2c` test files are copied
    Upstream repositories:
    - https://github.com/uclouvain/openjpeg-data
-   tree used as a reference for compatibility testing and marker-behavior
-   analysis.
+   compatibility testing and marker-behavior analysis, but it is not required
+   to be distributed in this repository.
 3. See also:
-   - `LICENSE`
-   - `/tmp/openjpeg-data/input/nonregression/README.txt` (dataset notes)
+   - https://github.com/uclouvain/openjpeg-data/blob/master/input/nonregression/README.txt
+     (dataset notes)
