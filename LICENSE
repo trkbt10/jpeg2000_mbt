@@ -200,3 +200,14 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+Additional notices (test corpus/source attributions):
+
+1. `samples/corpus/*.j2k` and `samples/corpus/*.j2c` test files are copied
+   Upstream repositories:
+   - https://github.com/uclouvain/openjpeg-data
+   tree used as a reference for compatibility testing and marker-behavior
+   analysis.
+3. See also:
+   - `LICENSE`
+   - `/tmp/openjpeg-data/input/nonregression/README.txt` (dataset notes)
