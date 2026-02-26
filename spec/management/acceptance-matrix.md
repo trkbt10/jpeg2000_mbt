@@ -9,8 +9,8 @@
 
 | Group | 対象要求ID | 受入基準 | 証跡 |
 |---|---|---|---|
-| Core syntax | R-0021..R-0055 | marker構文検証が通る | parserテスト |
-| Ordering | R-0056..R-0078 | packet/progression順序整合 | orderingテスト |
+| Core syntax | R-0021..R-0055 | marker構文検証が通る | `jpeg2000_test.mbt` の94テスト + `tools/roundtrip_samples_cycle.sh`（9サンプル）+ `tools/roundtrip_corpus_cycle.sh samples/generated/builtins`（9 `.j2k` の読込/再出力一致）+ `tools/probe_external_corpus_cycle.sh samples/corpus`（外部互換プローブ, 10/10）+ `tools/roundtrip_full_cycle.sh` |
+| Ordering | R-0056..R-0078 | packet/progression順序整合 | `jpeg2000_test.mbt` の ordering テスト（tile-component, precinct, code-block, packet単位の導出検証） |
 | Arithmetic | R-0087,R-0092..R-0099 | MQ復号一致 | decodingテスト |
 | Bit modelling | R-0100..R-0116 | coding passes再構成一致 | code-blockテスト |
 | Quantization | R-0118..R-0120 | reversible/irreversible両経路一致 | quantizationテスト |

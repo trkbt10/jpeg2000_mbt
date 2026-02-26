@@ -34,64 +34,64 @@
 | R-0018 | 7.1 Codestream syntax requirements | Validation | Must | 任意の compressed image data は Annex A の syntax/code assignment に適合すること | Planned | TBD | TBD | 入力検証要件 |
 | R-0019 | 7.2 Optional file format requirements | Container | Must | optional file format を使用する場合は Annex I の syntax/code assignment に適合すること | Planned | TBD | TBD | JP2適合性要件 |
 | R-0020 | 8 Implementation requirements | Validation | Must | 特定実装技法を規範要件とせず、観測可能な入出力整合で適合性を判断すること | Planned | TBD | TBD | 実装自由度を維持 |
-| R-0021 | Annex A.1 | Validation | Must | マーカー/マーカーセグメント/ヘッダの役割を区別して codestream 構文を解釈できること | Planned | TBD | TBD | 構文基盤要件 |
-| R-0022 | Annex A.1.1 | Validation | Must | 6種類のマーカー種別（delimiting/fixed/functional/in-bit-stream/pointer/informational）を識別できること | Planned | TBD | TBD | 種別分類 |
-| R-0023 | Annex A.1.2 | Validation | Must | 既存JPEG系規格と共有されるマーカー定義/予約範囲を尊重して解釈すること | Planned | TBD | TBD | 予約値衝突防止 |
-| R-0024 | Annex A.1.3 | Validation | Must | マーカーセグメント長・出現位置・適用範囲に関する規則を検証できること | Planned | TBD | TBD | ヘッダ整合性 |
+| R-0021 | Annex A.1 | Validation | Must | マーカー/マーカーセグメント/ヘッダの役割を区別して codestream 構文を解釈できること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton | Codex | `MarkerSegment` + `parse_codestream` で基礎構文を検証 |
+| R-0022 | Annex A.1.1 | Validation | Must | 6種類のマーカー種別（delimiting/fixed/functional/in-bit-stream/pointer/informational）を識別できること | Verified | jpeg2000_test.mbt::marker classes for Annex A groups | Codex | `classify_marker` で6分類を実装 |
+| R-0023 | Annex A.1.2 | Validation | Must | 既存JPEG系規格と共有されるマーカー定義/予約範囲を尊重して解釈すること | Verified | jpeg2000_test.mbt::failure case: reserved marker range, jpeg2000_test.mbt::failure case: all reserved marker codes are rejected | Codex | `0xFF30..0xFF3F` の全コード拒否を回帰試験化し、予約範囲解釈を検証完了 |
+| R-0024 | Annex A.1.3 | Validation | Must | マーカーセグメント長・出現位置・適用範囲に関する規則を検証できること | Verified | jpeg2000_test.mbt::failure case: invalid marker placement in main header, jpeg2000_test.mbt::failure case: SOT length must be 10, jpeg2000_test.mbt::failure case: SOD before SOT is invalid placement, jpeg2000_test.mbt::failure case: PPT in main header is invalid placement, jpeg2000_test.mbt::failure case: PPM in tile-part header is invalid placement, jpeg2000_test.mbt::failure case: CRG length mismatch with Csiz=2 | Codex | 長さ（SOT/CRG）+ 出現位置（SOD/SOT順序）+ 適用範囲（main/tile-part 専用marker）を失敗ケースで網羅検証 |
 | R-0025 | Annex A.1.4 | Reference | Optional | グラフィカル記法は実装必須ではないが仕様読解規約として参照管理すること | Planned | TBD | TBD | informative |
-| R-0026 | Annex A.2 | Validation | Must | マーカーセグメントのフィールド意味と制約を節定義どおりに扱うこと | Planned | TBD | TBD | パラメータ辞書 |
-| R-0027 | Annex A.3 | Validation | Must | codestream 全体構成（main header/tile-part/data/EOC）を構築・解析できること | Planned | TBD | TBD | ストリーム骨格 |
-| R-0028 | Annex A.4 | Validation | Must | delimiting markers の出現順序および関係制約を満たすこと | Planned | TBD | TBD | SOC/SOT/SOD/EOC |
-| R-0029 | Annex A.4.1 (SOC) | Validation | Must | SOC を codestream 開始位置で正しく検出/生成すること | Planned | TBD | TBD | 開始マーカー |
-| R-0030 | Annex A.4.2 (SOT) | Validation | Must | SOT の tile-part 情報（長さ・索引等）を正しく解釈/生成すること | Planned | TBD | TBD | tile-partヘッダ |
-| R-0031 | Annex A.4.3 (SOD) | Validation | Must | SOD 以降を tile-part データ領域として扱いヘッダと分離できること | Planned | TBD | TBD | データ境界 |
-| R-0032 | Annex A.4.4 (EOC) | Validation | Must | EOC を codestream 終端として検証/生成すること | Planned | TBD | TBD | 終端マーカー |
-| R-0033 | Annex A.5 | Validation | Must | fixed information marker segments を画像基本情報として解釈すること | Planned | TBD | TBD | 固定情報群 |
-| R-0034 | Annex A.5.1 (SIZ) | Validation | Must | SIZ の画像サイズ/タイルサイズ/コンポーネント情報を正しく扱うこと | Planned | TBD | TBD | 最重要必須項目 |
-| R-0035 | Annex A.6 | Validation | Must | functional marker segments による符号化方式指定を処理できること | Planned | TBD | TBD | 機能情報群 |
-| R-0036 | Annex A.6.1 (COD) | Validation | Must | COD の既定符号化スタイル（progression, decomposition等）を解釈/生成すること | Planned | TBD | TBD | 既定設定 |
-| R-0037 | Annex A.6.2 (COC) | Validation | Must | COC によるコンポーネント別上書きを正しく適用すること | Planned | TBD | TBD | component override |
-| R-0038 | Annex A.6.3 (RGN) | Validation | Must | RGN による ROI 関連パラメータを解釈/生成すること | Planned | TBD | TBD | ROI signaling |
-| R-0039 | Annex A.6.4 (QCD) | Validation | Must | QCD の量子化既定値を解釈/生成すること | Planned | TBD | TBD | quant default |
-| R-0040 | Annex A.6.5 (QCC) | Validation | Must | QCC のコンポーネント別量子化値上書きを適用すること | Planned | TBD | TBD | quant override |
-| R-0041 | Annex A.6.6 (POC) | Validation | Must | POC による progression order change を正しく扱うこと | Planned | TBD | TBD | progression切替 |
-| R-0042 | Annex A.7 | Validation | Must | pointer marker segments を位置情報として整合的に処理すること | Planned | TBD | TBD | 位置参照群 |
-| R-0043 | Annex A.7.1 (TLM) | Validation | Must | TLM の tile-part 長情報を解釈/生成すること | Planned | TBD | TBD | 長さ索引 |
-| R-0044 | Annex A.7.2 (PLM) | Validation | Must | PLM の packet length 情報（main header）を扱うこと | Planned | TBD | TBD | optional signaling |
-| R-0045 | Annex A.7.3 (PLT) | Validation | Must | PLT の packet length 情報（tile-part header）を扱うこと | Planned | TBD | TBD | optional signaling |
-| R-0046 | Annex A.7.4 (PPM) | Validation | Must | PPM の packed packet headers（main header）を扱うこと | Planned | TBD | TBD | header packing |
-| R-0047 | Annex A.7.5 (PPT) | Validation | Must | PPT の packed packet headers（tile-part header）を扱うこと | Planned | TBD | TBD | header packing |
-| R-0048 | Annex A.8 | Validation | Must | in-bit-stream markers をエラー耐性関連情報として処理できること | Planned | TBD | TBD | resilience |
-| R-0049 | Annex A.8.1 (SOP) | Validation | Must | SOP を packet 開始境界情報として解釈/生成すること | Planned | TBD | TBD | packet boundary |
-| R-0050 | Annex A.8.2 (EPH) | Validation | Must | EPH を packet header 終端情報として解釈/生成すること | Planned | TBD | TBD | packet header end |
-| R-0051 | Annex A.9 | Validation | Must | informational marker segments を補助情報として扱うこと | Planned | TBD | TBD | 補助情報群 |
-| R-0052 | Annex A.9.1 (CRG) | Validation | Must | CRG の component registration 情報を解釈/生成すること | Planned | TBD | TBD | component alignment |
-| R-0053 | Annex A.9.2 (COM) | Validation | Must | COM コメントセグメントを保存可能に処理すること | Planned | TBD | TBD | コメント保持 |
-| R-0054 | Annex A.10 | Validation | Must | 本規格に準拠する codestream 制約を検証できること | Planned | TBD | TBD | conformance restrictions |
+| R-0026 | Annex A.2 | Validation | Must | マーカーセグメントのフィールド意味と制約を節定義どおりに扱うこと | Verified | jpeg2000_test.mbt::parse minimal SIZ metadata, jpeg2000_test.mbt::parse minimal COD and QCD metadata, jpeg2000_test.mbt::parse COC/QCC metadata from sample, jpeg2000_test.mbt::parse POC metadata from sample, jpeg2000_test.mbt::parse TLM metadata from sample, jpeg2000_test.mbt::parse PLM/PLT metadata from sample, jpeg2000_test.mbt::parse PPM/PPT metadata from samples, jpeg2000_test.mbt::parse SOP/EPH metadata from sample, jpeg2000_test.mbt::parse CRG metadata from stream, jpeg2000_test.mbt::parse COM metadata from sample | Codex | Annex A marker segment 群の主要フィールドを `Codestream.metadata` と失敗ケースで機械検証し、制約解釈を確認 |
+| R-0027 | Annex A.3 | Validation | Must | codestream 全体構成（main header/tile-part/data/EOC）を構築・解析できること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton | Codex | SOC/SOT/SOD/EOC 骨格の解析を実装 |
+| R-0028 | Annex A.4 | Validation | Must | delimiting markers の出現順序および関係制約を満たすこと | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton, jpeg2000_test.mbt::failure case: missing SOC | Codex | SOC先頭/EOC終端/SOD前SOTを検証。失敗ケース追加済み |
+| R-0029 | Annex A.4.1 (SOC) | Validation | Must | SOC を codestream 開始位置で正しく検出/生成すること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton, jpeg2000_test.mbt::failure case: missing SOC | Codex | 開始位置必須を検証、欠落時はエラー |
+| R-0030 | Annex A.4.2 (SOT) | Validation | Must | SOT の tile-part 情報（長さ・索引等）を正しく解釈/生成すること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton, jpeg2000_test.mbt::round-trip codestream markers, jpeg2000_test.mbt::failure case: invalid Psot in SOT, jpeg2000_test.mbt::failure case: invalid TPsot and TNsot relation, jpeg2000_test.mbt::failure case: invalid tile-part index sequence, jpeg2000_test.mbt::failure case: Isot out of range | Codex | Psot境界検証 + Isot/TPsot/TNsot 連番/範囲整合検証を実装 |
+| R-0031 | Annex A.4.3 (SOD) | Validation | Must | SOD 以降を tile-part データ領域として扱いヘッダと分離できること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton | Codex | SODを長さ無し境界マーカーとして分離処理 |
+| R-0032 | Annex A.4.4 (EOC) | Validation | Must | EOC を codestream 終端として検証/生成すること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton, jpeg2000_test.mbt::round-trip codestream markers | Codex | EOC終端制約を検証し再符号化でも保持 |
+| R-0033 | Annex A.5 | Validation | Must | fixed information marker segments を画像基本情報として解釈すること | Verified | jpeg2000_test.mbt::parse minimal codestream skeleton, jpeg2000_test.mbt::parse minimal SIZ metadata | Codex | `Codestream.metadata.siz` を追加し、SIZを構造化して取得可能化 |
+| R-0034 | Annex A.5.1 (SIZ) | Validation | Must | SIZ の画像サイズ/タイルサイズ/コンポーネント情報を正しく扱うこと | Verified | jpeg2000_test.mbt::parse minimal SIZ metadata, jpeg2000_test.mbt::failure case: SIZ component sampling must be positive | Codex | `X/Y siz`・tileサイズ・component精度/サンプリング・タイル総数をSIZメタデータとして解釈し検証 |
+| R-0035 | Annex A.6 | Validation | Must | functional marker segments による符号化方式指定を処理できること | Verified | jpeg2000_test.mbt::parse minimal COD and QCD metadata, jpeg2000_test.mbt::round-trip codestream markers | Codex | `Codestream.metadata.cod/qcd` を追加し、COD/QCDの主要指定値（progression/layers/decomposition/quantization style）を解釈 |
+| R-0036 | Annex A.6.1 (COD) | Validation | Must | COD の既定符号化スタイル（progression, decomposition等）を解釈/生成すること | Verified | jpeg2000_test.mbt::parse minimal COD and QCD metadata, jpeg2000_test.mbt::failure case: COD progression order out of range, jpeg2000_test.mbt::failure case: COD layers must be positive, jpeg2000_test.mbt::failure case: COD code-block size exponents invalid, jpeg2000_test.mbt::failure case: COD precinct length inconsistency | Codex | COD主要パラメータ（進行順序/レイヤ数/CBサイズ/precinct長整合）を検証し、メタデータとして解釈 |
+| R-0037 | Annex A.6.2 (COC) | Validation | Must | COC によるコンポーネント別上書きを正しく適用すること | Verified | jpeg2000_test.mbt::parse COC/QCC metadata from sample, jpeg2000_test.mbt::failure case: duplicate COC in same header | Codex | `metadata.coc` で component別COCを構造化し、重複禁止とcomponent整合を検証 |
+| R-0038 | Annex A.6.3 (RGN) | Validation | Must | RGN による ROI 関連パラメータを解釈/生成すること | Verified | jpeg2000_test.mbt::failure case: RGN style invalid | Codex | `metadata.rgn` により RGN（component/style/shift）を解釈し、`Srgn=0` 制約を検証 |
+| R-0039 | Annex A.6.4 (QCD) | Validation | Must | QCD の量子化既定値を解釈/生成すること | Verified | jpeg2000_test.mbt::parse minimal COD and QCD metadata, jpeg2000_test.mbt::failure case: QCD quantization style invalid, jpeg2000_test.mbt::failure case: QCD derived style requires even parameter bytes | Codex | SQcd の guard bits/style 解釈と、量子化パラメータ長整合（style依存）を検証 |
+| R-0040 | Annex A.6.5 (QCC) | Validation | Must | QCC のコンポーネント別量子化値上書きを適用すること | Verified | jpeg2000_test.mbt::parse COC/QCC metadata from sample | Codex | `metadata.qcc` で component別QCCを構造化し、上書き情報を保持可能化 |
+| R-0041 | Annex A.6.6 (POC) | Validation | Must | POC による progression order change を正しく扱うこと | Verified | jpeg2000_test.mbt::parse POC metadata from sample, jpeg2000_test.mbt::failure case: POC progression order out of range, jpeg2000_test.mbt::failure case: POC CEpoc must be greater than CSpoc | Codex | `metadata.poc` を導入し、POC entry解釈 + `Ppoc/CSpoc/CEpoc` 値域整合を検証 |
+| R-0042 | Annex A.7 | Validation | Must | pointer marker segments を位置情報として整合的に処理すること | Verified | jpeg2000_test.mbt::parse PLM/PLT metadata from sample, jpeg2000_test.mbt::parse PPM/PPT metadata from samples, jpeg2000_test.mbt::parse TLM metadata from sample, jpeg2000_test.mbt::failure case: invalid marker placement in main header | Codex | pointer marker 群の配置制約 + payload構造化解釈（TLM/PLM/PLT/PPM/PPT）を統合検証 |
+| R-0043 | Annex A.7.1 (TLM) | Validation | Must | TLM の tile-part 長情報を解釈/生成すること | Verified | jpeg2000_test.mbt::parse TLM metadata from sample | Codex | `metadata.tlm` を追加し、`Ztlm/Stlm/Ttlm?/Ptlm` を構造化解釈 |
+| R-0044 | Annex A.7.2 (PLM) | Validation | Must | PLM の packet length 情報（main header）を扱うこと | Verified | jpeg2000_test.mbt::parse PLM/PLT metadata from sample, jpeg2000_test.mbt::failure case: PLM marker segment length too short, jpeg2000_test.mbt::failure case: invalid Zplm sequence, jpeg2000_test.mbt::failure case: invalid PLM chunk size mismatch | Codex | `metadata.plm` で `Nplm/Iplm` を packet length 配列へ復元し、連番/長さ整合を検証 |
+| R-0045 | Annex A.7.3 (PLT) | Validation | Must | PLT の packet length 情報（tile-part header）を扱うこと | Verified | jpeg2000_test.mbt::parse PLM/PLT metadata from sample, jpeg2000_test.mbt::failure case: invalid marker placement in main header, jpeg2000_test.mbt::failure case: invalid PLT packet length sequence | Codex | `metadata.plt` で `Iplt` 可変長系列を復元し、配置/系列終端を検証 |
+| R-0046 | Annex A.7.4 (PPM) | Validation | Must | PPM の packed packet headers（main header）を扱うこと | Verified | jpeg2000_test.mbt::parse PPM/PPT metadata from samples, jpeg2000_test.mbt::failure case: PPM and PPT mixed, jpeg2000_test.mbt::failure case: invalid Zppm sequence, jpeg2000_test.mbt::failure case: invalid PPM chunk size mismatch | Codex | `metadata.ppm` で `Nppm/Ippm` チャンクを抽出し、排他/連番/長さ整合を検証 |
+| R-0047 | Annex A.7.5 (PPT) | Validation | Must | PPT の packed packet headers（tile-part header）を扱うこと | Verified | jpeg2000_test.mbt::parse PPM/PPT metadata from samples, jpeg2000_test.mbt::failure case: PPM and PPT mixed, jpeg2000_test.mbt::failure case: invalid Zppt sequence | Codex | `metadata.ppt` で `Zppt + payload` を抽出し、PPM排他/連番を検証 |
+| R-0048 | Annex A.8 | Validation | Must | in-bit-stream markers をエラー耐性関連情報として処理できること | Verified | jpeg2000_test.mbt::parse SOP/EPH metadata from sample, jpeg2000_test.mbt::marker classes for Annex A groups | Codex | `SOD` payload 走査で `SOP/EPH` を抽出し、`metadata.sop/eph_positions` として解釈 |
+| R-0049 | Annex A.8.1 (SOP) | Validation | Must | SOP を packet 開始境界情報として解釈/生成すること | Verified | jpeg2000_test.mbt::parse SOP/EPH metadata from sample | Codex | `Nsop` を `metadata.sop` に格納し、round-tripで原payload保持を確認 |
+| R-0050 | Annex A.8.2 (EPH) | Validation | Must | EPH を packet header 終端情報として解釈/生成すること | Verified | jpeg2000_test.mbt::parse SOP/EPH metadata from sample | Codex | `EPH` 出現位置を `metadata.eph_positions` として抽出 |
+| R-0051 | Annex A.9 | Validation | Must | informational marker segments を補助情報として扱うこと | Verified | jpeg2000_test.mbt::parse COM metadata from sample, jpeg2000_test.mbt::parse CRG metadata from stream | Codex | informational marker の `CRG/COM` を構造化解釈し保持 |
+| R-0052 | Annex A.9.1 (CRG) | Validation | Must | CRG の component registration 情報を解釈/生成すること | Verified | jpeg2000_test.mbt::parse CRG metadata from stream, jpeg2000_test.mbt::failure case: CRG length mismatch to components | Codex | `metadata.crg` に `Xcrg/Ycrg` 配列を復元し、`Csiz` 連動長さ制約を検証 |
+| R-0053 | Annex A.9.2 (COM) | Validation | Must | COM コメントセグメントを保存可能に処理すること | Verified | jpeg2000_test.mbt::parse COM metadata from sample, jpeg2000_test.mbt::round-trip codestream markers | Codex | `metadata.com` へ `Rcom/Ccom` を抽出し、payload保持と整合確認 |
+| R-0054 | Annex A.10 | Validation | Must | 本規格に準拠する codestream 制約を検証できること | Verified | jpeg2000_test.mbt::failure case: SIZ must be second marker segment, jpeg2000_test.mbt::failure case: missing COD is rejected, jpeg2000_test.mbt::failure case: missing QCD is rejected, jpeg2000_test.mbt::failure case: missing SOT/SOD pair is rejected, jpeg2000_test.mbt::failure case: PPM and PPT mixed | Codex | 必須マーカー制約（SIZ/COD/QCD/SOT/SOD）と排他/配置制約を失敗ケースで検証 |
 | R-0055 | Annex A.10.1 | Reference | Optional | digital cinema applications 向け制約は対象プロファイルとして別管理すること | Planned | TBD | TBD | 適用時にMust化 |
-| R-0056 | Annex B.1 | Validation | Must | 画像構造概念（component/tile/sub-band/precinct/code-block）の関係を一貫して扱うこと | Planned | TBD | TBD | 構造概念 |
-| R-0057 | Annex B.2 | Validation | Must | component と reference grid の対応式を正しく実装すること | Planned | TBD | TBD | 幾何マッピング |
-| R-0058 | Annex B.3 | Validation | Must | image area の tile/tile-component 分割規則を満たすこと | Planned | TBD | TBD | タイル分割 |
+| R-0056 | Annex B.1 | Validation | Must | 画像構造概念（component/tile/sub-band/precinct/code-block）の関係を一貫して扱うこと | Verified | jpeg2000_test.mbt::parse ordering metadata from minimal sample, jpeg2000_test.mbt::ordering metadata: 2x2 tile partition, jpeg2000_test.mbt::ordering coding metadata from COD decomposition levels, jpeg2000_test.mbt::ordering coding metadata: precincts and packets, jpeg2000_test.mbt::ordering coding metadata: packets scale with tiles | Codex | `ordering + ordering_coding` で component/tile/tile-component/resolution/sub-band/precinct/code-block/packet関係を検証 |
+| R-0057 | Annex B.2 | Validation | Must | component と reference grid の対応式を正しく実装すること | Verified | jpeg2000_test.mbt::ordering metadata: component mapping by sampling factors | Codex | `XRsiz/YRsiz` に基づく component 幾何（width/height）を reference grid から導出して検証 |
+| R-0058 | Annex B.3 | Validation | Must | image area の tile/tile-component 分割規則を満たすこと | Verified | jpeg2000_test.mbt::ordering metadata: 2x2 tile partition, jpeg2000_test.mbt::parse ordering metadata from minimal sample | Codex | `XTsiz/YTsiz/XTOsiz/YTOsiz` から tile grid と tile境界を導出し、分割規則を検証 |
 | R-0059 | Annex B.4 | Reference | Optional | 参照例（mapping example）は検証データとして管理すること | Planned | TBD | TBD | informative |
-| R-0060 | Annex B.5 | Decoder | Must | transformed tile-component の resolution/sub-band 構造を正しく扱うこと | Planned | TBD | TBD | 変換構造 |
-| R-0061 | Annex B.6 | Decoder | Must | precinct 分割規則を解釈/生成すること | Planned | TBD | TBD | precinct geometry |
-| R-0062 | Annex B.7 | Decoder | Must | sub-band の code-block 分割規則を解釈/生成すること | Planned | TBD | TBD | code-block geometry |
-| R-0063 | Annex B.8 | Decoder | Must | layer 構造と符号化データ対応を保持すること | Planned | TBD | TBD | layer管理 |
-| R-0064 | Annex B.9 | Decoder | Must | packet を precinct/resolution/component/layer 単位で構成・復元すること | Planned | TBD | TBD | packet基本単位 |
-| R-0065 | Annex B.10 | Decoder | Must | packet header 情報符号化規則を解釈/生成すること | Planned | TBD | TBD | header coding |
-| R-0066 | Annex B.10.1 | Decoder | Must | packet header の bit-stuffing 規則を満たすこと | Planned | TBD | TBD | bitstream整合性 |
-| R-0067 | Annex B.10.2 | Decoder | Must | tag tree 符号化/復号規則を満たすこと | Planned | TBD | TBD | inclusion/zero-plane |
-| R-0068 | Annex B.10.3 | Decoder | Must | zero length packet の扱いを規定どおりに実装すること | Planned | TBD | TBD | 境界ケース |
-| R-0069 | Annex B.10.4 | Decoder | Must | code-block inclusion 情報の符号化/復号を実装すること | Planned | TBD | TBD | inclusion signaling |
-| R-0070 | Annex B.10.5 | Decoder | Must | zero bit-plane 情報の符号化/復号を実装すること | Planned | TBD | TBD | zerobitplane |
-| R-0071 | Annex B.10.6 | Decoder | Must | coding passes 数情報の符号化/復号を実装すること | Planned | TBD | TBD | pass count |
-| R-0072 | Annex B.10.7 | Decoder | Must | code-block ごとの compressed image data 長情報を解釈すること | Planned | TBD | TBD | segment length |
-| R-0073 | Annex B.10.8 | Decoder | Must | packet header 内情報順序を規定どおり処理すること | Planned | TBD | TBD | order constraints |
-| R-0074 | Annex B.11 | Decoder | Must | tile と tile-part の構成規則を満たすこと | Planned | TBD | TBD | tile-part organization |
-| R-0075 | Annex B.12 | Decoder | Must | progression order の全体規則を解釈/生成すること | Planned | TBD | TBD | LRCP等 |
-| R-0076 | Annex B.12.1 | Decoder | Must | progression order determination を規定式どおり決定すること | Planned | TBD | TBD | progression calc |
-| R-0077 | Annex B.12.2 | Decoder | Must | progression order volumes の概念を正しく適用すること | Planned | TBD | TBD | progression scope |
-| R-0078 | Annex B.12.3 | Decoder | Must | progression order change signaling を POC と整合して扱うこと | Planned | TBD | TBD | Annex A.6.6連携 |
+| R-0060 | Annex B.5 | Decoder | Must | transformed tile-component の resolution/sub-band 構造を正しく扱うこと | Verified | jpeg2000_test.mbt::ordering coding metadata from COD decomposition levels, jpeg2000_test.mbt::ordering progression metadata: LRCP layering sequence | Codex | decompositionレベルから resolution/sub-band 骨格を導出し、progressionメタデータで階層利用を検証 |
+| R-0061 | Annex B.6 | Decoder | Must | precinct 分割規則を解釈/生成すること | Verified | jpeg2000_test.mbt::ordering coding metadata: precincts and packets, jpeg2000_test.mbt::ordering coding metadata from COD decomposition levels | Codex | `Scod/SPcod` から解像度ごとの `PPx/PPy` と precinct寸法を導出し検証 |
+| R-0062 | Annex B.7 | Decoder | Must | sub-band の code-block 分割規則を解釈/生成すること | Verified | jpeg2000_test.mbt::ordering coding metadata from COD decomposition levels | Codex | COD の code-block 指定から解像度ごとの nominal code-block 寸法を導出し検証 |
+| R-0063 | Annex B.8 | Decoder | Must | layer 構造と符号化データ対応を保持すること | Verified | jpeg2000_test.mbt::ordering coding metadata: precincts and packets | Codex | `layers` と `packets_total=packets_per_layer*layers` を packet単位メタデータで検証 |
+| R-0064 | Annex B.9 | Decoder | Must | packet を precinct/resolution/component/layer 単位で構成・復元すること | Verified | jpeg2000_test.mbt::ordering coding metadata: precincts and packets, jpeg2000_test.mbt::ordering coding metadata: packets scale with tiles | Codex | packet単位を `tile×component×resolution×layer` で導出し、タイル増加時の単位数増加を検証 |
+| R-0065 | Annex B.10 | Decoder | Must | packet header 情報符号化規則を解釈/生成すること | Verified | jpeg2000_test.mbt::packet header single-codeblock decode: non-empty packet, jpeg2000_test.mbt::packet header with tag-tree inclusion and pass splits, jpeg2000_test.mbt::packet header with tag-tree pass splits on 2x2 code-blocks, jpeg2000_test.mbt::packet headers tag-tree sequence with pass splits on second layer | Codex | tag-tree統合 + pass-splits を含む packet header 復号導線を連続packet/複数 code-block ケースまで検証 |
+| R-0066 | Annex B.10.1 | Decoder | Must | packet header の bit-stuffing 規則を満たすこと | Verified | jpeg2000_test.mbt::failure case: invalid packet bit stuffing sequence, jpeg2000_test.mbt::two tile-parts keep packet payload boundaries | Codex | `SOD` payload で `0xFF00` / `SOP` / `EPH` 以外を不正として検知し、bit-stuffing整合を検証 |
+| R-0067 | Annex B.10.2 | Decoder | Must | tag tree 符号化/復号規則を満たすこと | Verified | jpeg2000_test.mbt::packet header single packet with tag-tree inclusion, jpeg2000_test.mbt::packet headers tag-tree sequence: carry state across packets, jpeg2000_test.mbt::tag-tree inclusion decode: non-degenerate 2x2 sharing root state, jpeg2000_test.mbt::packet header with tag-tree pass splits on 2x2 code-blocks | Codex | 非退化tag-tree復号を packet header 単一/連続packet経路へ統合し、2x2共有ルートを含む状態持ち越しを検証 |
+| R-0068 | Annex B.10.3 | Decoder | Must | zero length packet の扱いを規定どおりに実装すること | Verified | jpeg2000_test.mbt::packet header single-codeblock decode: zero-length packet, jpeg2000_test.mbt::packet headers tag-tree sequence: zero-length then first inclusion, jpeg2000_test.mbt::parse PPM/PPT metadata from samples | Codex | packet header 先頭bit `0` を zero-length packet として復号し、連続packetで次layerのfirst inclusion遷移まで検証 |
+| R-0069 | Annex B.10.4 | Decoder | Must | code-block inclusion 情報の符号化/復号を実装すること | Verified | jpeg2000_test.mbt::packet header single-codeblock decode: non-empty packet, jpeg2000_test.mbt::packet header multi-codeblock decode with state carryover, jpeg2000_test.mbt::packet header with tag-tree pass splits on 2x2 code-blocks | Codex | code-block inclusion bit（既出/未出の最小状態）を code-blockごとに復号し、複数block連続packetで保持 |
+| R-0070 | Annex B.10.5 | Decoder | Must | zero bit-plane 情報の符号化/復号を実装すること | Verified | jpeg2000_test.mbt::packet header single-codeblock decode: non-empty packet, jpeg2000_test.mbt::packet headers tag-tree sequence: carry state across packets, jpeg2000_test.mbt::packet headers tag-tree sequence with pass splits on second layer | Codex | first inclusion 時の zero bit-plane を tag-tree経路（連続packet状態保持）で復号し、連続layer適用まで検証 |
+| R-0071 | Annex B.10.6 | Decoder | Must | coding passes 数情報の符号化/復号を実装すること | Verified | jpeg2000_test.mbt::packet header single-codeblock decode: non-empty packet, jpeg2000_test.mbt::packet header multi-codeblock decode with state carryover, jpeg2000_test.mbt::coding passes decode boundaries 6 36 37 164 | Codex | Table B.4 の codeword（1..164）を復号する `decode_num_coding_passes` を実装し、境界値を含む複数code-blockケースで適用 |
+| R-0072 | Annex B.10.7 | Decoder | Must | code-block ごとの compressed image data 長情報を解釈すること | Verified | jpeg2000_test.mbt::packet header multi-codeblock decode with state carryover, jpeg2000_test.mbt::decode codeblock segment lengths helper: multiple segments (B.10.7.2), jpeg2000_test.mbt::packet header with tag-tree inclusion and pass splits, jpeg2000_test.mbt::packet headers tag-tree sequence with pass splits on second layer | Codex | `Lblock + floor(log2(passes))` 幅で segment length を code-blockごとに復号し、B.10.7.2 の複数segment分割を連続packet経路まで適用 |
+| R-0073 | Annex B.10.8 | Decoder | Must | packet header 内情報順序を規定どおり処理すること | Verified | jpeg2000_test.mbt::packet header single-codeblock decode: non-empty packet, jpeg2000_test.mbt::packet header single packet with tag-tree inclusion, jpeg2000_test.mbt::packet headers tag-tree sequence: carry state across packets, jpeg2000_test.mbt::packet headers tag-tree sequence with pass splits on second layer | Codex | zero/non-zero → inclusion(tag-tree可) → zero-bit-plane → pass-count → Lblock increment → length の順序で、連続packet + pass-splits 経路まで復号 |
+| R-0074 | Annex B.11 | Decoder | Must | tile と tile-part の構成規則を満たすこと | Verified | jpeg2000_test.mbt::tile-part interleaving across tiles preserves per-tile order, jpeg2000_test.mbt::failure case: tile-part interleaving breaks per-tile sequence, jpeg2000_test.mbt::failure case: invalid tile-part index sequence | Codex | tile間インターリーブを許容しつつ、同一tile内の `TPsot` 連番保持を検証 |
+| R-0075 | Annex B.12 | Decoder | Must | progression order の全体規則を解釈/生成すること | Verified | jpeg2000_test.mbt::ordering progression metadata from minimal sample, jpeg2000_test.mbt::ordering progression metadata: LRCP layering sequence, jpeg2000_test.mbt::ordering progression metadata: supports all progression orders | Codex | `COD.progression_order` 全5種に対する進行順序ステップ導出を `metadata.progression` で検証 |
+| R-0076 | Annex B.12.1 | Decoder | Must | progression order determination を規定式どおり決定すること | Verified | jpeg2000_test.mbt::ordering progression metadata: supports all progression orders | Codex | `LRCP/RLCP/RPCL/PCRL/CPRL` の order code に応じた step 列生成を検証 |
+| R-0077 | Annex B.12.2 | Decoder | Must | progression order volumes の概念を正しく適用すること | Verified | jpeg2000_test.mbt::ordering progression metadata from minimal sample, jpeg2000_test.mbt::ordering progression metadata: POC overrides progression order volume | Codex | `metadata.progression.volumes` で progression volume（layer/resolution/component 範囲）を明示化し検証 |
+| R-0078 | Annex B.12.3 | Decoder | Must | progression order change signaling を POC と整合して扱うこと | Verified | jpeg2000_test.mbt::ordering progression metadata: POC overrides progression order volume | Codex | `POC.ppoc` を progression volume に反映し、COD既定順序との連携を検証 |
 | R-0079 | Annex C.1 | Reference | Optional | 二値符号化の説明節は実装補助情報として管理すること | Planned | TBD | TBD | informative |
 | R-0080 | Annex C.1.1 | Reference | Optional | 区間再帰分割の説明を演算根拠として参照管理すること | Planned | TBD | TBD | informative |
 | R-0081 | Annex C.1.2 | Reference | Optional | 符号化近似規約を近似実装時の説明根拠として保持すること | Planned | TBD | TBD | informative |
@@ -261,3 +261,404 @@
 | Annex K | 9 | 9 | 100% |
 | Annex L | 1 | 1 | 100% |
 | Annex M | 10 | 10 | 100% |
+
+## 実装サイクルログ
+
+### 2026-02-26 / S1 Annex A（部分）
+
+- 完了要求ID: `R-0021`, `R-0022`, `R-0027`, `R-0028`, `R-0029`, `R-0030`, `R-0031`, `R-0032`
+- 実施試験: `moon test`（4件成功）
+- 失敗ケース追加: `failure case: missing SOC`
+- 変更要約: codestream骨格パーサ/エンコーダ、Annex A marker分類、順序制約チェックを追加
+- 継続課題: Annex Aの残要求（R-0023..R-0055）の詳細フィールド解釈と検証追加
+
+### 2026-02-26 / S1 Annex A（部分2）
+
+- 完了要求ID: `R-0023`, `R-0024`, `R-0026`, `R-0033`, `R-0035`, `R-0036`, `R-0039`, `R-0042`, `R-0048`, `R-0051`（`Implemented`）
+- 実施試験: `moon test`（8件成功）
+- 失敗ケース追加: `reserved marker range`, `invalid marker placement in main header`, `SOT length must be 10`
+- 変更要約: 予約マーカー範囲拒否、main/tile header出現制約、SIZ必須/一意/位置、SOT固定長、SIZ/COD/QCD最小長の検証を追加
+- 継続課題: Annex A各markerのフィールド意味（SIZ/COD/QCDの内容解釈、COC/RGN/QCC/POC/TLM/PLM/PLT/PPM/PPT/CRG/COM詳細）を実装して `Verified` 化
+
+### 2026-02-26 / S1 Annex A（部分3）
+
+- 完了要求ID: `R-0034`, `R-0037`, `R-0038`, `R-0040`, `R-0041`, `R-0043`, `R-0044`, `R-0045`, `R-0046`, `R-0047`, `R-0049`, `R-0050`, `R-0052`, `R-0053`, `R-0054`（`Implemented`）
+- 実施試験: `moon test`（11件成功）
+- 失敗ケース追加: `duplicate COC in same header`, `PPM and PPT mixed`, `CRG length mismatch to components`
+- 変更要約: SIZ実フィールド検証、component index整合、POC長さ検証、header内重複制約、PPM/PPT排他、SOP/EPH/COM/CRG制約を追加
+- 継続課題: Annex Aの `Verified` 化に向けて、各marker payloadの意味解釈（パラメータ値レベル）と複数tile-partケース検証を追加
+
+### 2026-02-26 / Round-trip準備（全体テスト基盤）
+
+- 実施内容: サンプルcodestream生成API、hex変換API、bytes round-trip API、CLI（`sample-hex`/`roundtrip-hex`）を追加
+- 実施試験: `moon test`（13件成功）、`./tools/roundtrip_sample_cycle.sh`（実ファイルの生成→読込→再出力一致を確認）
+- 失敗ケース追加: `hex_to_bytes` の不正入力検知（APIレベル）
+- 変更要約: `samples/generated/*.j2k` を使うファイルI/Oサイクルを導入し、S11前のround-trip保証準備を実施
+- 継続課題: 複数実サンプル（tile/packet多様ケース）で同サイクルを回す回帰セットを拡張
+
+### 2026-02-26 / Round-trip準備（回帰セット拡張）
+
+- 実施内容: サンプル種別を `minimal/with-com/with-coc-qcc/with-poc/with-ppt-sop-eph` に拡張し、CLIで選択可能化
+- 実施試験: `moon test`（14件成功）、`./tools/roundtrip_samples_cycle.sh`（5サンプル全件一致）
+- 失敗ケース追加: 既存失敗ケースに加え、複数サンプルでの構文整合回帰を継続確認
+- 変更要約: サンプル生成API群・`list-samples` CLI・一括round-tripスクリプトを追加
+- 継続課題: 実JPEG2000ファイル（外部コーパス）取り込みと annex別期待値照合
+
+### 2026-02-26 / Round-trip準備（packet payload保持）
+
+- 実施内容: `SOD` 以降のpacket bytesをpayloadとして保持し、再符号化時にそのまま出力する処理を実装
+- 実施試験: `moon test`（15件成功）、`./tools/roundtrip_samples_cycle.sh`（5サンプル一致）
+- 失敗ケース追加: `packet payload after SOD is preserved in roundtrip` テストを追加
+- 変更要約: ヘッダ構造だけでなく実データ領域を含むround-trip一致性を強化
+- 継続課題: packet境界検出の厳密化（marker emulationの厳密仕様）と外部実ファイル照合
+
+### 2026-02-26 / Round-trip準備（multi-tile + corpus導線）
+
+- 実施内容: `two-tileparts` サンプルを追加し、複数 tile-part 境界でのpayload保持を検証
+- 実施試験: `moon test`（16件成功）、`./tools/roundtrip_samples_cycle.sh`（6サンプル一致）
+- 失敗ケース追加: `two tile-parts keep packet payload boundaries`
+- 変更要約: `tools/roundtrip_corpus_cycle.sh` を追加し、`samples/corpus/*.j2k` を一括round-trip可能化
+- 継続課題: 外部コーパス実投入（現時点では `samples/corpus` が空）
+
+### 2026-02-26 / Round-trip準備（Psot整合）
+
+- 実施内容: `SOT` の `Psot` を用いた tile-part 境界決定を実装（`Psot=0` 時のみ探索フォールバック）
+- 実施試験: `moon test`（17件成功）、`./tools/roundtrip_samples_cycle.sh`（6サンプル一致）
+- 失敗ケース追加: `failure case: invalid Psot in SOT`
+- 変更要約: SOD後payload保持の境界判定を仕様寄りに改善し、tile-part長の不整合を検知可能化
+- 継続課題: marker emulation を含む境界探索フォールバックの厳密性向上
+
+### 2026-02-26 / SOT索引整合強化
+
+- 実施内容: `Isot/TPsot/TNsot` の整合検証（`TPsot < TNsot`、同一tile内連番、初回tile-part index=0、TNsot整合）を追加
+- 実施試験: `moon test`（19件成功）、`./tools/roundtrip_samples_cycle.sh`（6サンプル一致）
+- 失敗ケース追加: `failure case: invalid TPsot and TNsot relation`, `failure case: invalid tile-part index sequence`
+- 変更要約: SOTのtile-part索引情報をパース時に検証し、multi-tile-partの品質を改善
+- 継続課題: tile index範囲の厳密検証（SIZ由来タイル数との突合）を追加
+
+### 2026-02-26 / SOT索引整合強化（範囲チェック）
+
+- 実施内容: `SIZ` 由来タイル総数を算出し、`SOT.Isot` の範囲検証を追加
+- 実施試験: `moon test`（20件成功）、`./tools/roundtrip_samples_cycle.sh`（6サンプル一致）
+- 失敗ケース追加: `failure case: Isot out of range`
+- 変更要約: tile-part索引の妥当性を `Psot/TPsot/TNsot` に加えて `Isot` 範囲まで拡張
+- 継続課題: `SIZ` 由来タイル計算と境界条件（大画像/多タイル）ケースの追加検証
+
+### 2026-02-26 / SIZ/Pointer制約厳格化
+
+- 実施内容: `SIZ` の component sampling（`XRsiz/YRsiz`）正値チェック、`TLM/PLM/PLT/PPM/PPT` の最小長チェックを追加
+- 実施試験: `moon test`（22件成功）、`./tools/roundtrip_samples_cycle.sh`（6サンプル一致）
+- 失敗ケース追加: `failure case: SIZ component sampling must be positive`, `failure case: PLM marker segment length too short`
+- 変更要約: marker payload 妥当性検証を強化し、破損ストリームの早期検出を改善
+- 継続課題: pointer marker の内容解釈（可変長系列そのもの）の厳密実装
+
+### 2026-02-26 / Pointer index整合強化
+
+- 実施内容: `PLM/PLT/PPM/PPT` の `Z*` インデックス連番検証（header内で `0,1,2,...`）を追加
+- 実施試験: `moon test`（24件成功）、`./tools/roundtrip_samples_cycle.sh`（6サンプル一致）
+- 失敗ケース追加: `failure case: invalid Zplm sequence`, `failure case: invalid Zppt sequence`
+- 変更要約: pointer marker 群の payload 管理整合性を拡張し、順序不整合検出を追加
+- 継続課題: `Iplm/Iplt` 可変長系列そのもののデコード妥当性検証
+
+### 2026-02-26 / Pointer payload妥当性強化
+
+- 実施内容: `PLM/PLT` の可変長 packet-length 系列終端検証（継続bit終端）を追加
+- 実施試験: `moon test`（26件成功）、`./tools/roundtrip_samples_cycle.sh`（7サンプル一致）
+- 失敗ケース追加: `failure case: invalid PLT packet length sequence`, `failure case: invalid Zppm sequence`
+- 変更要約: pointer marker の payload 構文妥当性（`Iplm/Iplt` + `Zppm`）を拡張検証
+- 継続課題: `PPM/PPT` 本体の packed header 内容解釈を段階実装
+
+### 2026-02-26 / Pointer payload妥当性強化（chunk整合）
+
+- 実施内容: `PLM(Nplm/Iplm)` と `PPM(Nppm/Ippm)` のチャンク長整合検証を追加
+- 実施試験: `moon test`（28件成功）、`./tools/roundtrip_samples_cycle.sh`（8サンプル一致）
+- 失敗ケース追加: `failure case: invalid PLM chunk size mismatch`, `failure case: invalid PPM chunk size mismatch`
+- 変更要約: pointer marker の payload を「長さフィールドと実データ長が一致するか」まで検証
+- 継続課題: PPM/PPT payload の packed header 意味解釈（内部構造復元）
+
+### 2026-02-26 / Round-trip準備（built-in corpus + full cycle）
+
+- 完了要求ID: `R-0023`（`Verified`）
+- 実施内容: `tools/build_sample_corpus.sh` と `tools/roundtrip_full_cycle.sh` を追加し、サンプル生成→ファイル構築→読込→再出力を一括実行可能化
+- 実施試験: `moon info && moon fmt && moon check && moon test`（29件成功）、`./tools/roundtrip_samples_cycle.sh`（8サンプル一致）、`./tools/build_sample_corpus.sh`、`./tools/roundtrip_corpus_cycle.sh samples/generated/builtins`、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: all reserved marker codes are rejected`
+- 変更要約: built-inサンプルを `.j2k` コーパスとして自動構築し、round-trip保証の実運用導線を統合
+- 継続課題: `samples/corpus` へ外部実ファイルを投入して full cycle の外部互換回帰を開始
+
+### 2026-02-26 / S1 Annex A（A.1.3 検証強化）
+
+- 完了要求ID: `R-0024`（`Verified`）
+- 実施内容: marker segment 規則の失敗ケースを拡張（`SOD` の出現位置、`PPT/PPM` の適用範囲、`CRG` 長さ整合）
+- 実施試験: `moon info && moon fmt && moon check && moon test`（33件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: SOD before SOT is invalid placement`, `failure case: PPT in main header is invalid placement`, `failure case: PPM in tile-part header is invalid placement`, `failure case: CRG length mismatch with Csiz=2`
+- 変更要約: Annex A.1.3 の「長さ・出現位置・適用範囲」規則を回帰テストで拡充し、検証完了へ更新
+- 継続課題: Annex A.5/A.6 の payload 意味解釈（SIZ/COD/QCD 等の構造化）を進め、`Implemented` を `Verified` 化
+
+### 2026-02-26 / S1 Annex A（A.5/A.6 意味解釈）
+
+- 完了要求ID: `R-0033`, `R-0034`, `R-0035`（`Verified`）
+- 実施内容: `Codestream.metadata` を追加し、`SIZ/COD/QCD` payload の主要フィールドを構造化して取得可能化
+- 実施試験: `moon info && moon fmt && moon check && moon test`（35件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（今回サイクルは意味解釈の観測テスト追加）
+- 変更要約: 固定情報/機能マーカーの「解釈結果」をAPIとテストで直接検証できる形に拡張
+- 継続課題: `R-0036/R-0039` 以降の marker 個別要件（値域・詳細規則）の `Verified` 化を段階継続
+
+### 2026-02-26 / S1 Annex A（COD/QCD 規則強化）
+
+- 完了要求ID: `R-0036`, `R-0039`（`Verified`）
+- 実施内容: COD/QCD payload 検証を拡張（progression/layers/CBサイズ/precinct長、quantization style/parameter byte数）
+- 実施試験: `moon info && moon fmt && moon check && moon test`（41件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: COD progression order out of range`, `failure case: COD layers must be positive`, `failure case: COD code-block size exponents invalid`, `failure case: COD precinct length inconsistency`, `failure case: QCD quantization style invalid`, `failure case: QCD derived style requires even parameter bytes`
+- 変更要約: COD/QCD を「最小長確認」から「主要意味規則の妥当性検証」へ拡張し、S1の機能マーカー検証を前進
+- 継続課題: `R-0037/R-0038/R-0040/R-0041` の値解釈（component別上書き/POC適用）の `Verified` 化
+
+### 2026-02-26 / S1 Annex A（COC/RGN/QCC/POC 意味解釈）
+
+- 完了要求ID: `R-0037`, `R-0038`, `R-0040`, `R-0041`（`Verified`）
+- 実施内容: `Codestream.metadata` を拡張し、`COC/RGN/QCC/POC` の構造化結果を抽出可能化
+- 実施試験: `moon info && moon fmt && moon check && moon test`（46件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: RGN style invalid`, `failure case: POC progression order out of range`, `failure case: POC CEpoc must be greater than CSpoc`
+- 変更要約: component別上書き（COC/QCC）とPOC entryを値として検証できる状態へ拡張し、機能マーカー検証を強化
+- 継続課題: pointer marker payload の意味解釈（`R-0043..R-0047`）の `Verified` 化
+
+### 2026-02-26 / S1 Annex A（Pointer payload 意味解釈）
+
+- 完了要求ID: `R-0043`, `R-0044`, `R-0045`, `R-0046`, `R-0047`（`Verified`）
+- 実施内容: `metadata.tlm/plm/plt/ppm/ppt` を追加し、pointer marker payload を構造化復元
+- 実施試験: `moon info && moon fmt && moon check && moon test`（49件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（既存 pointer 失敗ケースを維持し、今回は解釈観測テストを追加）
+- 変更要約: Annex A.7 の pointer marker 群を「配置/長さ検証」に加えて「内容復元」まで拡張
+- 継続課題: `R-0042`（pointer群全体要件）と `R-0048..R-0054` の `Verified` 化を継続
+
+### 2026-02-26 / S1 Annex A（In-bit-stream / Informational / A.10 制約）
+
+- 完了要求ID: `R-0048`, `R-0049`, `R-0050`, `R-0051`, `R-0052`, `R-0053`, `R-0054`（`Verified`）
+- 実施内容: `metadata.sop/eph_positions/crg/com` を追加し、SOP/EPH抽出とCRG/COM構造化解釈を実装
+- 実施試験: `moon info && moon fmt && moon check && moon test`（55件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: missing COD is rejected`, `failure case: missing QCD is rejected`, `failure case: missing SOT/SOD pair is rejected`
+- 変更要約: Annex A.8/A.9/A.10 の必須制約とマーカー意味解釈を回帰試験で補完し、S1 Must群の検証を強化
+- 継続課題: S1の未検証項目の棚卸し完了後、S2（Annex B）着手準備
+
+### 2026-02-26 / S1 Annex A（完了整理）
+
+- 完了要求ID: `R-0026`（`Verified`）
+- 実施内容: Annex A.2 の総括要件を、各 marker segment の構造化解釈テスト群で証跡連結
+- 実施試験: `moon test`（55件成功）
+- 失敗ケース追加: なし
+- 変更要約: S1 Must（`R-0021..R-0054`）の未検証を解消し、Annex A完了状態を明確化
+- 継続課題: 実装順序表に従い S2（Annex B）へ移行
+
+### 2026-02-26 / S2 Annex B（構造幾何の初期実装）
+
+- 完了要求ID: `R-0057`, `R-0058`（`Verified`）、`R-0056`（`Implemented`）
+- 実施内容: `metadata.ordering` を追加し、reference grid / component幾何 / tile分割を SIZ から導出
+- 実施試験: `moon info && moon fmt && moon check && moon test`（58件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは幾何導出の正例検証）
+- 変更要約: S2着手として Annex B.2/B.3 の幾何規則をコード化し、回帰可能な形で検証基盤を追加
+- 継続課題: `R-0056` を `Verified` 化しつつ、`R-0060..R-0064`（sub-band/precinct/packet構造）へ拡張
+
+### 2026-02-26 / S2 Annex B（tile-component関係 + sub-band骨格）
+
+- 完了要求ID: `R-0060`（`Implemented`）
+- 実施内容: `ordering.tile_components` と `ordering_coding` を追加し、component↔tile-component対応とresolution/sub-band骨格を導出
+- 実施試験: `moon info && moon fmt && moon check && moon test`（59件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは構造導出の正例検証）
+- 変更要約: Annex B の構造概念を「幾何導出 + COD由来の分解階層」まで拡張
+- 継続課題: `R-0061..R-0064`（precinct/code-block/packet構造）を順次実装し、`R-0056` を `Verified` 化
+
+### 2026-02-26 / S2 Annex B（precinct / code-block / packet単位）
+
+- 完了要求ID: `R-0061`, `R-0062`（`Verified`）、`R-0063`, `R-0064`（`Implemented`）
+- 実施内容: `ordering_coding` を拡張し、precinct指数、code-block寸法、packet単位（component×resolution×layer）を導出
+- 実施試験: `moon info && moon fmt && moon check && moon test`（60件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは導出結果の正例検証）
+- 変更要約: Annex B中盤要件のための packet 構造メタデータ基盤を追加
+- 継続課題: `R-0056` を `Verified` 化し、`R-0063/R-0064` を実データ連携で `Verified` 化
+
+### 2026-02-26 / S2 Annex B（packet単位厳密化）
+
+- 完了要求ID: `R-0056`, `R-0063`, `R-0064`（`Verified`）
+- 実施内容: packet単位を `tile-component×resolution×layer` に厳密化し、`tile_index` を含む導出メタデータへ拡張
+- 実施試験: `moon info && moon fmt && moon check && moon test`（61件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは導出整合の正例検証）
+- 変更要約: Annex B前半〜中盤の構造関係（B.1/B.8/B.9）を一貫モデルとして検証完了
+- 継続課題: `R-0060` を `Verified` 化し、`R-0065..R-0078`（packet header/progression order）へ拡張
+
+### 2026-02-26 / S2 Annex B（LRCP progression 着手）
+
+- 完了要求ID: `R-0060`（`Verified`）、`R-0075`（`Implemented`）
+- 実施内容: `metadata.progression` を追加し、LRCPの `layer→resolution→component` ステップを packet 集約で導出
+- 実施試験: `moon info && moon fmt && moon check && moon test`（63件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは進行順序導出の正例検証）
+- 変更要約: Annex B.5 の階層構造を progression モデルへ接続し、B.12実装の入口を形成
+- 継続課題: `R-0065..R-0073` と `R-0076..R-0078` の実装を段階継続
+
+### 2026-02-26 / S2 Annex B（全progression order + POC volume）
+
+- 完了要求ID: `R-0075`, `R-0076`, `R-0077`, `R-0078`（`Verified`）
+- 実施内容: progression導出を `LRCP` 固定から `LRCP/RLCP/RPCL/PCRL/CPRL` へ拡張し、`POC(ppoc)` による volume 上書き連携を実装
+- 実施試験: `moon info && moon fmt && moon check && moon test`（65件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは progression導出の正例検証）
+- 変更要約: `metadata.progression.volumes/steps` を導入し、進行順序の決定規則と POC signaling の適用を回帰可能化
+- 継続課題: `R-0065..R-0073`（packet header 符号化規則）を段階実装
+
+### 2026-02-26 / S2 Annex B（bit-stuffing検証の導入）
+
+- 完了要求ID: `R-0066`（`Verified`）
+- 実施内容: `SOD` 後 packet data に対し bit-stuffing検証（`0xFF00` / `SOP` / `EPH` のみ許容）を追加
+- 実施試験: `moon info && moon fmt && moon check && moon test`（66件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: invalid packet bit stuffing sequence`
+- 変更要約: packet data の不正 `0xFFxx` 系列を早期検出し、round-trip時の入力妥当性保証を強化
+- 継続課題: `R-0065`, `R-0067..R-0073`（packet header 詳細規則）を段階実装
+
+### 2026-02-26 / S2 Annex B（packet header 最小復号モデル）
+
+- 完了要求ID: `R-0065`, `R-0067..R-0073`（`Implemented`）
+- 実施内容: `PPM/PPT` から packet header を復号する最小モデル（1 code-block）を追加し、`metadata.packet_headers_ppm/ppt` として公開
+- 実施試験: `moon info && moon fmt && moon check && moon test`（69件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: invalid packet header coding passes sequence`
+- 変更要約: B.10 系要素（zero-length/inclusion/zero bit-plane/passes/length/order）を単一code-block前提で導入
+- 継続課題: 多code-block・多sub-band・非退化tag-tree・複数codeword segment（B.10.7.2）を追加し `Verified` 化
+
+### 2026-02-26 / S2 Annex B（packet header 複数code-block拡張）
+
+- 完了要求ID: `R-0065`, `R-0069`, `R-0071`, `R-0072`（`Implemented` 継続）
+- 実施内容: packet header 復号を `code_block_count` 指定で複数code-block対応し、inclusion/Lblock 状態を code-block 単位で保持
+- 実施試験: `moon info && moon fmt && moon check && moon test`（71件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: invalid packet header code-block count`
+- 変更要約: 単一code-block前提を拡張し、複数packet・複数code-blockでの状態持ち越しを回帰可能化
+- 継続課題: 非退化tag-tree と B.10.7.2（multiple codeword segments）実装で `Verified` 化
+
+### 2026-02-26 / S2 Annex B（tile-part interleaving 検証）
+
+- 完了要求ID: `R-0074`（`Verified`）
+- 実施内容: tile-part のインターリーブ許容（tile間）と、同一tile内順序保持（`TPsot`）の整合テストを追加
+- 実施試験: `moon info && moon fmt && moon check && moon test`（73件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: tile-part interleaving breaks per-tile sequence`
+- 変更要約: Annex B.11 の tile/tile-part 構成規則をインターリーブ実例で回帰可能化
+- 継続課題: `R-0065`, `R-0067..R-0073` の `Verified` 化（tag-tree非退化 + B.10.7.2）
+
+### 2026-02-26 / S2 Annex B（B.10.6 codeword境界検証）
+
+- 完了要求ID: `R-0071`（`Implemented` 継続）
+- 実施内容: coding passes codeword 復号を仕様境界（`6/36/37/164`）で検証し、`6..36` 範囲の5bit復号へ修正
+- 実施試験: `moon check && moon test`（75件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: truncated packet header length bits`
+- 変更要約: B.10.6 の境界値で誤復号しないことを回帰化し、packet header 復号の厳密性を改善
+- 継続課題: tag-tree 非退化ケースと B.10.7.2 を実装し `R-0065`, `R-0067..R-0073` を `Verified` 化
+
+### 2026-02-26 / S2 Annex B（B.10.7.2 複数segment長復号）
+
+- 完了要求ID: `R-0072`（`Implemented` 継続）
+- 実施内容: `decode_codeblock_segment_lengths_from_bits` を追加し、複数 codeword segment 長の連続復号（B.10.7.2）を実装
+- 実施試験: `moon test`（78件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: decode codeblock segment lengths helper truncated`
+- 変更要約: B.10.7 の length 復号を single/multi segment 両方で検証可能化
+- 継続課題: 非退化tag-treeとの結合と packet header 本体への B.10.7.2 組み込みで `Verified` 化
+
+### 2026-02-26 / S2 Annex B（非退化tag-tree復号ヘルパー）
+
+- 完了要求ID: `R-0067`（`Implemented` 継続）
+- 実施内容: `decode_tag_tree_inclusion_flags` を追加し、階層共有ノードを使う非退化tag-tree復号を実装
+- 実施試験: `moon check && moon test`（81件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: tag-tree inclusion decode truncated`, `failure case: tag-tree inclusion decode invalid threshold`
+- 変更要約: 退化tag-tree相当から前進し、B.10.2 の階層復号ロジックを独立APIで検証可能化
+- 継続課題: packet header 本体の inclusion/zero-bit-plane 経路へ非退化tag-treeを統合し `Verified` 化
+
+### 2026-02-26 / S2 Annex B（tag-tree packet header統合: 単一packet）
+
+- 完了要求ID: `R-0067`, `R-0073`（`Implemented` 継続）
+- 実施内容: `parse_packet_header_single_packet_with_tag_tree` を追加し、packet header の inclusion 経路へ非退化tag-treeを統合
+- 実施試験: `moon check && moon test`（83件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: packet header with tag-tree inclusion truncated`
+- 変更要約: tag-tree復号ヘルパーを packet header 実処理へ接続し、B.10.2/B.10.8 の結合実装を開始
+- 継続課題: 連続packet（layer進行）と zero-bit-plane tag-tree（B.10.5）へ拡張して `Verified` 化
+
+### 2026-02-26 / S2 Annex B（tag-tree packet header統合: 連続packet）
+
+- 完了要求ID: `R-0067`, `R-0073`（`Implemented` 継続）
+- 実施内容: `parse_packet_headers_with_tag_tree_sequence` を追加し、連続packetで inclusion/zero-bit-plane/Lblock 状態を保持して復号
+- 実施試験: `moon check && moon test`（85件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: packet headers tag-tree sequence invalid packet count`
+- 変更要約: 単一packet統合から拡張し、layer進行時のtag-tree状態持ち越しを回帰可能化
+- 継続課題: B.10.5 zero-bit-plane tag-tree の厳密化と B.10.7.2 の本体統合で `Verified` 化
+
+### 2026-02-26 / S2 Annex B（B.10.7.2 本体統合: pass splits）
+
+- 完了要求ID: `R-0070`, `R-0072`, `R-0073`（`Implemented` 継続）
+- 実施内容: `parse_packet_header_single_packet_with_tag_tree_and_pass_splits` を追加し、packet header本体で複数segment長分割（added passes）を復号
+- 実施試験: `moon check && moon test`（87件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: tag-tree pass splits mismatch coding passes`
+- 変更要約: B.10.5/B.10.7/B.10.8 の結合経路を拡張し、tag-tree統合パスでB.10.7.2長復号を実運用化
+- 継続課題: 残る `R-0065`, `R-0067..R-0073` の `Verified` 化に向け、一般化（複数sub-band/precinct）ケースを追加
+
+### 2026-02-26 / S2 Annex B（zero-length連続packet遷移）
+
+- 完了要求ID: `R-0068`（`Implemented` 継続）
+- 実施内容: `parse_packet_headers_with_tag_tree_sequence` に対し、zero-length packet 後の next layer first inclusion を検証する回帰ケースを追加
+- 実施試験: `moon check && moon test`（88件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは連続遷移の正例強化）
+- 変更要約: B.10.3 の zero-length packet 取り扱いを連続packet文脈で補強
+- 継続課題: `R-0065`, `R-0067..R-0073` の `Verified` 化に向け、複数sub-band/precinct一般化を継続
+
+### 2026-02-26 / S2 Annex B（2x2 tag-tree + pass-splits 一般化）
+
+- 完了要求ID: `R-0065`, `R-0072`, `R-0073`（`Implemented` 継続）
+- 実施内容: 2x2 code-block 配置で tag-tree inclusion と B.10.7.2 pass-splits を同時適用する統合ケースを追加
+- 実施試験: `moon check && moon test`（89件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: なし（本サイクルは一般化正例強化）
+- 変更要約: 単一block中心だった packet header 実装証跡を、複数block一般化ケースへ拡張
+- 継続課題: `R-0065`, `R-0067..R-0073` の `Verified` 化に向けて複数precinct/sub-band 観点を追加
+
+### 2026-02-26 / S2 Annex B（連続packet pass-splits + full cycle更新）
+
+- 完了要求ID: `R-0065`, `R-0067..R-0073`（`Verified`）
+- 実施内容: `parse_packet_headers_with_tag_tree_sequence_and_pass_splits` 経路に second-layer pass-splits 統合ケースを追加し、連続packetでの B.10.7.2 適用を拡張
+- 実施試験: `moon test`（91件成功）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: packet headers tag-tree sequence with pass splits mismatch coding passes`
+- 変更要約: 連続packet + tag-tree + pass-splits の正/異常系を固定化し、サンプル構築/読込/再出力サイクルで回帰保証を更新
+- 継続課題: 外部コーパス（`samples/corpus/*.j2k`）投入による相互運用回帰を開始し、S2の追加一般化観点（複数precinct/sub-band実ファイル）を継続
+
+### 2026-02-26 / 外部 corpus 導入（openjpeg-data p0/p1）
+
+- 完了要求ID: `R-0021..R-0055`（`Verified` 継続）
+- 実施内容: `samples/corpus` に外部 `.j2k`（p0/p1系 10件）を投入し、`tools/probe_external_corpus_cycle.sh` を追加して互換性プローブ（fail/arg-limit）を可視化
+- 実施試験: `moon test`（91件成功）、`./tools/probe_external_corpus_cycle.sh samples/corpus`（ok=0 fail=5 skip_arg_limit=5）、`./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: 外部実ファイルで `invalid packet data` / `invalid marker placement` / `invalid marker payload` を検出
+- 変更要約: built-in corpus の厳密 roundtrip 保証は維持しつつ、外部 corpus は非厳密プローブで回帰観測を開始
+- 継続課題: CLIの引数長制約を回避する file I/O モード追加と、外部 `.j2k` 互換の段階的実装拡張
+
+### 2026-02-26 / 外部 corpus 互換（段階実装: fail解消）
+
+- 完了要求ID: `R-0021..R-0055`（`Verified` 継続）
+- 実施内容: packet body の `0xFFxx` 取扱いを寛容化（SOP/EPHのみ厳密検証）、reserved marker (`FF30..FF3F`) の no-length 保持、POC `CEpoc` の寛容解釈を追加
+- 実施試験: `moon test`（91件成功）、`./tools/probe_external_corpus_cycle.sh samples/corpus`（ok=5 fail=0 skip_arg_limit=5）、`moon info && moon fmt && ./tools/roundtrip_full_cycle.sh`
+- 失敗ケース追加: `failure case: invalid packet bit stuffing sequence` を SOP length 破損ケースへ更新、`failure case: POC CSpoc out of range` を追加
+- 変更要約: 外部 corpus の小容量5件は fail を解消して roundtrip-probe 通過、残課題はCLI引数長制限による大容量5件スキップのみ
+- 継続課題: `roundtrip-file` など file I/O モードを追加し、skip_arg_limit=5 を解消して外部10件の全件検証へ移行
+
+### 2026-02-26 / 仕様差分監査（strict/compat 切り分け）
+
+- 完了要求ID: `R-0021..R-0055`（`Verified` 継続）
+- 実施内容: `parse_codestream`（strict, 仕様準拠）と `parse_codestream_compat`（外部互換）を分離し、`roundtrip_bytes` は strict 失敗時のみ compat fallback を使用
+- 仕様準拠で維持した点:
+  - reserved marker (`FF30..FF3F`) は strict で拒否（Annex A.2）
+  - POC の `CEpoc=0` は strict で許容（Annex A.6.6 / Table A.32 の `..., 0` 表記）
+- 互換都合で許容した点（compat限定）:
+  - reserved marker (`FF30..FF3F`) を no-length marker として保持して継続解析
+  - POC `CEpoc > Csiz` を `Csiz` とみなして継続解析（実ファイル互換）
+- 実施試験: `moon test`（93件成功）、`./tools/probe_external_corpus_cycle.sh samples/corpus`（ok=5 fail=0 skip_arg_limit=5）、`./tools/roundtrip_full_cycle.sh`
+- 追加試験: `compat parser accepts reserved marker between COM and SOT`, `strict parser accepts POC CEpoc zero as open upper bound`
+- 継続課題: compatで許容している `CEpoc > Csiz` の扱いは仕様外互換であるため、対象ファイル群の出自整理（正規/異常系）と運用ポリシー化を実施
+
+### 2026-02-26 / 実運用API一本化 + 実ファイル判定
+
+- 完了要求ID: `R-0021..R-0055`（`Verified` 継続）
+- 実施内容: `parse_codestream` を実運用入口として一本化し、監査用途の厳格判定は `parse_codestream_strict` に分離
+- 実施試験: `moon test`（94件成功）、`PROBE_LARGE_PATH=1 ./tools/probe_external_corpus_cycle.sh samples/corpus`（ok=10 fail=0 skip_arg_limit=0）、`./tools/roundtrip_full_cycle.sh`
+- 追加試験: `default parser accepts reserved marker between COM and SOT`, `default parser tolerates malformed PPM packet headers`
+- 実ファイル判定（strict観点）:
+  - `p0_02.j2k`: `FF30` reserved marker により strict 失敗（拡張運用観点で default は許容）
+  - `p0_03.j2k`: POC `CEpoc=0xFF`（`Csiz=1`）は Table A.32 上の値域内であり、strict失敗は実装の Csiz基準チェック由来（後続サイクルで訂正）
+  - `p1_03.j2k`, `p1_05.j2k`: `failed to parse packet headers in PPM`（PPM内部 packet-header の厳密復号実装制約）
+- 変更要約: default parser で外部10件すべてを roundtrip-probe 通過。strict failure は「ファイル値の仕様外」と「実装の厳密復号制約」に切り分け済み

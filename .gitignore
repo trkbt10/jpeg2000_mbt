@@ -2,3 +2,5 @@
 _build/
 .mooncakes/
 .moonagent/
+samples/generated/
+samples/generated/corpus/

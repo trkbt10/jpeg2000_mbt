@@ -1,6 +1,7 @@
-// import {
-//   "trkbt10/jpeg2000" @lib,
-// }
+import {
+  "moonbitlang/core/env",
+  "trkbt10/jpeg2000" @lib,
+}
 
 options(
   "is-main": true,
