@@ -208,9 +208,9 @@ Additional notices (test corpus/source attributions):
    Upstream repositories:
    - https://github.com/uclouvain/openjpeg
    - https://github.com/uclouvain/openjpeg-data
-2. `` contains a local clone of the OpenJPEG source
-   tree used as a reference for compatibility testing and marker-behavior
-   analysis.
+2. A local OpenJPEG source clone may be used during development for
+   compatibility testing and marker-behavior analysis, but it is not required
+   to be distributed in this repository.
 3. See also:
-   - `LICENSE`
-   - `/tmp/openjpeg-data/input/nonregression/README.txt` (dataset notes)
+   - https://github.com/uclouvain/openjpeg-data/blob/master/input/nonregression/README.txt
+     (dataset notes)
