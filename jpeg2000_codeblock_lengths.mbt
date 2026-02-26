@@ -1,5 +1,5 @@
 ///|
-pub fn decode_codeblock_segment_lengths_from_bits(
+fn decode_codeblock_segment_lengths_from_bits_impl(
   data : Array[Int],
   lblock_initial : Int,
   added_passes : Array[Int],

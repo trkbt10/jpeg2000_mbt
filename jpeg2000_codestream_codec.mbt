@@ -538,19 +538,23 @@ fn parse_codestream_impl(
 }
 
 ///|
-pub fn parse_codestream(data : Array[Int]) -> Result[Codestream, String] {
+fn parse_codestream_impl_default(
+  data : Array[Int],
+) -> Result[Codestream, String] {
   // Runtime/default API: interoperability-first parser behavior.
   parse_codestream_impl(data, true)
 }
 
 ///|
-pub fn parse_codestream_strict(data : Array[Int]) -> Result[Codestream, String] {
+fn parse_codestream_strict_impl(
+  data : Array[Int],
+) -> Result[Codestream, String] {
   // Audit API: strict conformance checks for investigation workflows.
   parse_codestream_impl(data, false)
 }
 
 ///|
-pub fn encode_codestream(stream : Codestream) -> Result[Array[Int], String] {
+fn encode_codestream_impl(stream : Codestream) -> Result[Array[Int], String] {
   let out : Array[Int] = []
   for segment in stream.segments {
     if segment.code >> 8 != 0xFF {

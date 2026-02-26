@@ -1,12 +1,12 @@
 ///|
-pub fn parse_packet_headers_single_codeblock(
+fn parse_packet_headers_single_codeblock_impl(
   data : Array[Int],
 ) -> Result[Array[PacketHeaderMetadata], String] {
   parse_packet_headers_series_with_code_blocks(data, 1)
 }
 
 ///|
-pub fn parse_packet_headers_with_code_blocks(
+fn parse_packet_headers_with_code_blocks_impl(
   data : Array[Int],
   code_block_count : Int,
 ) -> Result[Array[PacketHeaderMetadata], String] {
@@ -14,7 +14,7 @@ pub fn parse_packet_headers_with_code_blocks(
 }
 
 ///|
-pub fn parse_packet_header_single_packet_with_tag_tree(
+fn parse_packet_header_single_packet_with_tag_tree_impl(
   data : Array[Int],
   width : Int,
   height : Int,
@@ -117,7 +117,7 @@ pub fn parse_packet_header_single_packet_with_tag_tree(
 }
 
 ///|
-pub fn parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
+fn parse_packet_header_single_packet_with_tag_tree_and_pass_splits_impl(
   data : Array[Int],
   width : Int,
   height : Int,
@@ -226,13 +226,13 @@ pub fn parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
 }
 
 ///|
-pub fn parse_packet_headers_with_tag_tree_sequence(
+fn parse_packet_headers_with_tag_tree_sequence_impl(
   data : Array[Int],
   width : Int,
   height : Int,
   packet_count : Int,
 ) -> Result[Array[PacketHeaderMetadata], String] {
-  parse_packet_headers_with_tag_tree_sequence_and_pass_splits(
+  parse_packet_headers_with_tag_tree_sequence_and_pass_splits_impl(
     data,
     width,
     height,
@@ -242,7 +242,7 @@ pub fn parse_packet_headers_with_tag_tree_sequence(
 }
 
 ///|
-pub fn parse_packet_headers_with_tag_tree_sequence_and_pass_splits(
+fn parse_packet_headers_with_tag_tree_sequence_and_pass_splits_impl(
   data : Array[Int],
   width : Int,
   height : Int,

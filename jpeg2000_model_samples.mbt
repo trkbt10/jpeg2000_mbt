@@ -378,7 +378,7 @@ fn minimal_cod_payload() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_minimal() -> Array[Int] {
+fn sample_codestream_minimal_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -393,7 +393,7 @@ pub fn sample_codestream_minimal() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_com() -> Array[Int] {
+fn sample_codestream_with_com_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -410,7 +410,7 @@ pub fn sample_codestream_with_com() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_coc_qcc() -> Array[Int] {
+fn sample_codestream_with_coc_qcc_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -427,7 +427,7 @@ pub fn sample_codestream_with_coc_qcc() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_poc() -> Array[Int] {
+fn sample_codestream_with_poc_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -450,7 +450,7 @@ pub fn sample_codestream_with_poc() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_ppt_sop_eph() -> Array[Int] {
+fn sample_codestream_with_ppt_sop_eph_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -468,7 +468,7 @@ pub fn sample_codestream_with_ppt_sop_eph() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_two_tileparts() -> Array[Int] {
+fn sample_codestream_two_tileparts_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -490,7 +490,7 @@ pub fn sample_codestream_two_tileparts() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_plm_plt() -> Array[Int] {
+fn sample_codestream_with_plm_plt_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -509,7 +509,7 @@ pub fn sample_codestream_with_plm_plt() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_tlm() -> Array[Int] {
+fn sample_codestream_with_tlm_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -526,7 +526,7 @@ pub fn sample_codestream_with_tlm() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_with_ppm() -> Array[Int] {
+fn sample_codestream_with_ppm_impl() -> Array[Int] {
   let siz_payload = minimal_siz_payload()
   let cod_payload = minimal_cod_payload()
   [
@@ -543,39 +543,39 @@ pub fn sample_codestream_with_ppm() -> Array[Int] {
 }
 
 ///|
-pub fn sample_codestream_by_name(name : String) -> Array[Int]? {
+fn sample_codestream_by_name_impl(name : String) -> Array[Int]? {
   if name == "minimal" {
-    return Some(sample_codestream_minimal())
+    return Some(sample_codestream_minimal_impl())
   }
   if name == "with-com" {
-    return Some(sample_codestream_with_com())
+    return Some(sample_codestream_with_com_impl())
   }
   if name == "with-coc-qcc" {
-    return Some(sample_codestream_with_coc_qcc())
+    return Some(sample_codestream_with_coc_qcc_impl())
   }
   if name == "with-poc" {
-    return Some(sample_codestream_with_poc())
+    return Some(sample_codestream_with_poc_impl())
   }
   if name == "with-ppt-sop-eph" {
-    return Some(sample_codestream_with_ppt_sop_eph())
+    return Some(sample_codestream_with_ppt_sop_eph_impl())
   }
   if name == "two-tileparts" {
-    return Some(sample_codestream_two_tileparts())
+    return Some(sample_codestream_two_tileparts_impl())
   }
   if name == "with-plm-plt" {
-    return Some(sample_codestream_with_plm_plt())
+    return Some(sample_codestream_with_plm_plt_impl())
   }
   if name == "with-tlm" {
-    return Some(sample_codestream_with_tlm())
+    return Some(sample_codestream_with_tlm_impl())
   }
   if name == "with-ppm" {
-    return Some(sample_codestream_with_ppm())
+    return Some(sample_codestream_with_ppm_impl())
   }
   None
 }
 
 ///|
-pub fn sample_codestream_names() -> Array[String] {
+fn sample_codestream_names_impl() -> Array[String] {
   [
     "minimal", "with-com", "with-coc-qcc", "with-poc", "with-ppt-sop-eph", "two-tileparts",
     "with-plm-plt", "with-tlm", "with-ppm",
@@ -643,7 +643,7 @@ const MARKER_CRG : Int = 0xFF63
 const MARKER_COM : Int = 0xFF64
 
 ///|
-pub fn classify_marker(code : Int) -> MarkerClass {
+fn classify_marker_impl(code : Int) -> MarkerClass {
   if code == MARKER_SOC ||
     code == MARKER_SOT ||
     code == MARKER_SOD ||

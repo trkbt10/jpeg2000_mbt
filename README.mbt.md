@@ -9,7 +9,8 @@
 Why these files exist:
 
 - `jpeg2000.mbt`: package root anchor and module split index comment.
-  Public API is defined by `pub` declarations across split files.
+- `jpeg2000_public_api.mbt`: public function entrypoint for mooncakes users.
+  Runtime API functions are exported only from this file.
 - `jpeg2000_wbtest.mbt`: whitebox tests for package-internal invariants.
   This is test-only and not part of distributed runtime API.
 
