@@ -3,9 +3,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CORPUS_DIR="${1:-$ROOT_DIR/samples/corpus}"
-OUT_DIR="$ROOT_DIR/samples/generated/corpus"
 HEX_ARG_LIMIT_BYTES="${HEX_ARG_LIMIT_BYTES:-120000}"
 TMP_TEST_FILE="$(mktemp "$ROOT_DIR/.tmp_roundtrip_corpus_XXXXXX.mbt")"
+WRITE_ROUNDTRIP_ARTIFACTS="${WRITE_ROUNDTRIP_ARTIFACTS:-0}"
+OUT_DIR="$ROOT_DIR/samples/generated/corpus"
 
 # Spec basis (T.800 Annex A / Annex B):
 # - annex-a-codestream-syntax.md:82-83
@@ -63,7 +64,9 @@ if [ ! -d "$CORPUS_DIR" ]; then
   exit 1
 fi
 
-mkdir -p "$OUT_DIR"
+if [ "$WRITE_ROUNDTRIP_ARTIFACTS" = "1" ]; then
+  mkdir -p "$OUT_DIR"
+fi
 cd "$ROOT_DIR"
 # Remove stale temporary tests from interrupted runs.
 find "$ROOT_DIR" -maxdepth 1 -type f -name '.tmp_roundtrip_corpus_*.mbt' \
@@ -74,8 +77,6 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
   [ -e "$in_bin" ] || continue
   found=1
   base="$(basename "$in_bin" .j2k)"
-  out_hex="$OUT_DIR/${base}.roundtrip.hex"
-  out_bin="$OUT_DIR/${base}.roundtrip.j2k"
   size_bytes="$(wc -c < "$in_bin" | tr -d ' ')"
 
   if [ "$size_bytes" -gt "$HEX_ARG_LIMIT_BYTES" ]; then
@@ -89,14 +90,19 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
   fi
 
   hex_from_file="$(xxd -p -c 1000000 "$in_bin" | tr -d '\n\r')"
-  moon run cmd/main -- roundtrip-hex "$hex_from_file" | tr -d '\n\r' > "$out_hex"
-  xxd -r -p "$out_hex" > "$out_bin"
-
-  if cmp -s "$in_bin" "$out_bin"; then
+  out_hex="$(moon run cmd/main -- roundtrip-hex "$hex_from_file" | tr -d '\n\r')"
+  if [ "$out_hex" = "$hex_from_file" ]; then
     echo "[$base] roundtrip: OK"
   else
     echo "[$base] roundtrip: FAILED" >&2
     exit 1
+  fi
+
+  if [ "$WRITE_ROUNDTRIP_ARTIFACTS" = "1" ]; then
+    out_hex_file="$OUT_DIR/${base}.roundtrip.hex"
+    out_bin_file="$OUT_DIR/${base}.roundtrip.j2k"
+    printf '%s' "$out_hex" > "$out_hex_file"
+    xxd -r -p "$out_hex_file" > "$out_bin_file"
   fi
 done
 
