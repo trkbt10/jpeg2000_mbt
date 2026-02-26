@@ -1,0 +1,7 @@
+# Known strict failures for external corpus (basename only)
+# Updated: 2026-02-26
+p0_02.j2k
+p1_03.j2k
+p1_05.j2k
+p1_06.j2k
+g1_colr.j2c
