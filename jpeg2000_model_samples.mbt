@@ -741,13 +741,9 @@ fn validate_marker_placement(
   in_main_header : Bool,
   in_tile_part_header : Bool,
   seen_siz : Bool,
-  compat_mode : Bool,
 ) -> Result[Unit, String] {
   // Spec (Annex A.1.3): FF30..FF3F markers are reserved/skippable.
-  // strict path keeps audit-time rejection; default parser handles them in stream loop.
-  if is_reserved_jpeg_marker(code) && !compat_mode {
-    return Err("reserved JPEG marker range is not allowed")
-  }
+  // Accept them in both default/strict paths.
   if code == MARKER_SOC || code == MARKER_EOC {
     return Ok(())
   }

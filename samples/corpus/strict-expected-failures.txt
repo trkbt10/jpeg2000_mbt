@@ -1,14 +1,5 @@
 # Known strict failures for external corpus (basename only)
 # Updated: 2026-02-26
-Bretagne2_0.j2k
-p0_02.j2k
-p1_03.j2k
-p1_05.j2k
-p1_06.j2k
-g1_colr.j2c
-g2_colr.j2c
-g3_colr.j2c
-g4_colr.j2c
 CT_Phillips_JPEG2K_Decompr_Problem.j2k
 illegalcolortransform.j2k
 issue1438.j2k

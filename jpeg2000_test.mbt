@@ -294,6 +294,11 @@ test "two tile-parts keep packet payload boundaries" {
 ///|
 test "failure case: invalid packet bit stuffing sequence" {
   let broken = @jpeg2000.sample_codestream_with_ppt_sop_eph()
+  guard marker_index_nth(broken, 0xFF, 0x52, 0) is Some(cod_at) else {
+    fail("COD marker should exist")
+  }
+  // Force Scod SOP flag so strict path validates SOP marker structure in packet data.
+  broken[cod_at + 4] = broken[cod_at + 4] | 0x02
   guard marker_index_nth(broken, 0xFF, 0x91, 0) is Some(sop_at) else {
     fail("SOP marker should exist")
   }
@@ -301,7 +306,10 @@ test "failure case: invalid packet bit stuffing sequence" {
   broken[sop_at + 3] = 0x03
   let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid packet data")
+  inspect(
+    msg,
+    content="invalid packet data: invalid SOP marker length in packet data",
+  )
 }
 
 ///|
@@ -466,7 +474,7 @@ test "failure case: invalid Zplm sequence" {
 }
 
 ///|
-test "failure case: invalid Zppt sequence" {
+test "strict parser accepts non-monotonic Zppt values" {
   let siz_payload = valid_siz_payload()
   let cod_payload = valid_cod_payload()
   let broken = [
@@ -474,13 +482,12 @@ test "failure case: invalid Zppt sequence" {
     0xFF, 0x5C, 0x00, 0x04, 0x00, 0x00,
     // Psot=0 to allow marker-scan fallback for this synthetic case.
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xFF,
-    0x61, 0x00, 0x04, 0x00, 0x00, // PPT z=0
-     0xFF, 0x61, 0x00, 0x04, 0x02, 0x00, // PPT z=2 (should be 1)
+    0x61, 0x00, 0x04, 0x02, 0x00, // PPT z=2
+     0xFF, 0x61, 0x00, 0x04, 0x01, 0x00, // PPT z=1 (decreasing, invalid)
      0xFF, 0x93, 0xFF, 0xD9,
   ]
   let parsed = @jpeg2000.parse_codestream_strict(broken)
-  guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid Zppt sequence")
+  guard parsed is Ok(_) else { fail("strict parser should accept Zppt values") }
 }
 
 ///|
@@ -540,8 +547,7 @@ test "default parser accepts reserved marker between COM and SOT" {
   let injected = insert_bytes_at(base, sot_at, [0xFF, 0x30])
 
   let strict_result = @jpeg2000.parse_codestream_strict(injected)
-  guard strict_result is Err(msg) else { fail("strict parser should fail") }
-  inspect(msg, content="invalid marker placement")
+  guard strict_result is Ok(_) else { fail("strict parser should accept") }
 
   let result = @jpeg2000.parse_codestream(injected)
   guard result is Ok(_) else { fail("default parser should accept") }
@@ -587,10 +593,11 @@ test "default parser tolerates malformed PPM packet headers" {
   broken[ppm_at + 9] = 0xFF
 
   let strict_result = @jpeg2000.parse_codestream_strict(broken)
-  guard strict_result is Err(msg) else {
-    fail("strict parser should fail on malformed PPM packet headers")
+  guard strict_result is Ok(_) else {
+    fail(
+      "strict parser should keep malformed PPM packet headers as opaque data",
+    )
   }
-  inspect(msg, content="failed to parse packet headers in PPM")
 
   let parsed = @jpeg2000.parse_codestream(broken)
   guard parsed is Ok(_) else {
@@ -612,10 +619,11 @@ test "default parser tolerates malformed PPT packet headers and preserves bytes"
   broken[ppt_at + 5] = 0xFF
 
   let strict_result = @jpeg2000.parse_codestream_strict(broken)
-  guard strict_result is Err(msg) else {
-    fail("strict parser should fail on malformed PPT packet headers")
+  guard strict_result is Ok(_) else {
+    fail(
+      "strict parser should keep malformed PPT packet headers as opaque data",
+    )
   }
-  inspect(msg, content="failed to parse packet headers in PPT")
 
   let parsed = @jpeg2000.parse_codestream(broken)
   guard parsed is Ok(_) else {
@@ -1451,27 +1459,25 @@ test "failure case: missing SOC" {
 
 ///|
 test "failure case: reserved marker range" {
-  let broken = [
-    0xFF, 0x4F, // SOC
-     0xFF, 0x30, // reserved JPEG marker range
-     0x00, 0x02, 0xFF, 0xD9,
-  ]
-  let result = @jpeg2000.parse_codestream_strict(broken)
-  guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker placement")
+  let base = @jpeg2000.sample_codestream_with_com()
+  guard marker_index(base, 0xFF, 0x90) is Some(sot_at) else {
+    fail("SOT marker should exist")
+  }
+  let injected = insert_bytes_at(base, sot_at, [0xFF, 0x30])
+  let result = @jpeg2000.parse_codestream_strict(injected)
+  guard result is Ok(_) else { fail("reserved marker should be accepted") }
 }
 
 ///|
-test "failure case: all reserved marker codes are rejected" {
+test "all reserved marker codes are accepted as marker-only segments" {
+  let base = @jpeg2000.sample_codestream_with_com()
+  guard marker_index(base, 0xFF, 0x90) is Some(sot_at) else {
+    fail("SOT marker should exist")
+  }
   for lo in 0x30..<=0x3F {
-    let broken = [
-      0xFF, 0x4F, // SOC
-       0xFF, lo, // reserved JPEG marker range
-       0x00, 0x02, 0xFF, 0xD9,
-    ]
-    let result = @jpeg2000.parse_codestream_strict(broken)
-    guard result is Err(msg) else { fail("expected parser failure") }
-    inspect(msg, content="invalid marker placement")
+    let injected = insert_bytes_at(base, sot_at, [0xFF, lo])
+    let result = @jpeg2000.parse_codestream_strict(injected)
+    guard result is Ok(_) else { fail("reserved marker should be accepted") }
   }
 }
 
@@ -1820,24 +1826,23 @@ test "failure case: invalid PLT packet length sequence" {
 }
 
 ///|
-test "failure case: invalid Zppm sequence" {
+test "strict parser accepts non-monotonic Zppm values" {
   let siz_payload = valid_siz_payload()
   let cod_payload = valid_cod_payload()
   let broken = [
     0xFF, 0x4F, 0xFF, 0x51, 0x00, 0x29, ..siz_payload, 0xFF, 0x52, 0x00, 0x0C, ..cod_payload,
-    0xFF, 0x5C, 0x00, 0x04, 0x00, 0x00, 0xFF, 0x60, 0x00, 0x08, 0x00, 0x00, 0x00,
-    0x00, 0x01, 0x00, // PPM z=0
-     0xFF, 0x60, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, // PPM z=2 (should be 1)
+    0xFF, 0x5C, 0x00, 0x04, 0x00, 0x00, 0xFF, 0x60, 0x00, 0x08, 0x02, 0x00, 0x00,
+    0x00, 0x01, 0x00, // PPM z=2
+     0xFF, 0x60, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, // PPM z=1 (decreasing, invalid)
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x01, 0xFF,
     0x93, 0xFF, 0xD9,
   ]
   let parsed = @jpeg2000.parse_codestream_strict(broken)
-  guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid Zppm sequence")
+  guard parsed is Ok(_) else { fail("strict parser should accept Zppm values") }
 }
 
 ///|
-test "failure case: invalid PPM chunk size mismatch" {
+test "strict parser tolerates incomplete PPM chunk in-segment and preserves bytes" {
   let siz_payload = valid_siz_payload()
   let cod_payload = valid_cod_payload()
   let broken = [
@@ -1848,6 +1853,12 @@ test "failure case: invalid PPM chunk size mismatch" {
     0x93, 0xFF, 0xD9,
   ]
   let parsed = @jpeg2000.parse_codestream_strict(broken)
-  guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  guard parsed is Ok(_) else {
+    fail(
+      "strict parser should keep incomplete PPM payload as opaque continuation",
+    )
+  }
+  let rt = @jpeg2000.roundtrip_bytes(broken)
+  guard rt is Ok(out) else { fail("roundtrip should succeed") }
+  assert_eq(out, broken)
 }

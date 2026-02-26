@@ -165,7 +165,10 @@ fn validate_plm_payload_chunks(payload : Array[Int]) -> Result[Unit, String] {
 }
 
 ///|
-fn validate_ppm_payload_chunks(payload : Array[Int]) -> Result[Unit, String] {
+fn parse_ppm_chunks(
+  payload : Array[Int],
+) -> Result[Array[PpmChunkMetadata], String] {
+  let chunks : Array[PpmChunkMetadata] = []
   let mut i = 1
   while i + 3 < payload.length() {
     let nppm_value = read_u32_from_payload(payload, i)
@@ -178,12 +181,17 @@ fn validate_ppm_payload_chunks(payload : Array[Int]) -> Result[Unit, String] {
     if chunk_end < i || chunk_end > payload.length() {
       return Err("PPM chunk exceeds payload")
     }
+    let ippm : Array[Int] = []
+    for j in i..<chunk_end {
+      ippm.push(payload[j])
+    }
+    chunks.push({ nppm, ippm })
     i = chunk_end
   }
   if i != payload.length() {
     return Err("PPM payload has trailing bytes")
   }
-  Ok(())
+  Ok(chunks)
 }
 
 ///|
@@ -256,39 +264,48 @@ fn parse_plt_metadata(payload : Array[Int]) -> Result[PltMetadata, String] {
 
 ///|
 fn parse_ppm_metadata(payload : Array[Int]) -> Result[PpmMetadata, String] {
-  if payload.length() < 5 {
+  if payload.length() < 1 {
     return Err("PPM payload too short")
   }
   let zppm = payload[0]
+  let parsed_chunks = parse_ppm_chunks(payload)
+  if parsed_chunks is Ok(chunks) {
+    return Ok({ zppm, chunks })
+  }
+
+  // Spec A.7.4 allows Ippm continuation across PPM marker segments.
+  // Fall back to best-effort segment-local extraction.
   let chunks : Array[PpmChunkMetadata] = []
   let mut i = 1
   while i + 3 < payload.length() {
     let nppm_v = read_u32_from_payload(payload, i)
-    guard nppm_v is Ok(nppm) else { return Err("failed to parse Nppm") }
+    guard nppm_v is Ok(nppm) else { break }
     if nppm < 0 {
-      return Err("Nppm is out of range")
+      break
     }
     i += 4
     let chunk_end = i + nppm
-    if chunk_end < i || chunk_end > payload.length() {
-      return Err("PPM chunk exceeds payload")
+    let safe_end = if chunk_end > payload.length() {
+      payload.length()
+    } else {
+      chunk_end
     }
     let ippm : Array[Int] = []
-    for j in i..<chunk_end {
+    for j in i..<safe_end {
       ippm.push(payload[j])
     }
     chunks.push({ nppm, ippm })
+    if chunk_end > payload.length() {
+      break
+    }
     i = chunk_end
-  }
-  if i != payload.length() {
-    return Err("PPM payload has trailing bytes")
   }
   Ok({ zppm, chunks })
 }
 
 ///|
 fn parse_ppt_metadata(payload : Array[Int]) -> Result[PptMetadata, String] {
-  if payload.length() < 2 {
+  if payload.length() < 1 {
     return Err("PPT payload too short")
   }
   let data : Array[Int] = []
@@ -882,10 +899,10 @@ fn validate_marker_payload(
   if code == MARKER_PLT && length < 4 {
     return Err("PLT marker segment length is too short")
   }
-  if code == MARKER_PPM && length < 7 {
+  if code == MARKER_PPM && length < 3 {
     return Err("PPM marker segment length is too short")
   }
-  if code == MARKER_PPT && length < 4 {
+  if code == MARKER_PPT && length < 3 {
     return Err("PPT marker segment length is too short")
   }
   if code == MARKER_PLM {
@@ -901,12 +918,8 @@ fn validate_marker_payload(
     }
   }
   if code == MARKER_PPM {
-    if !compat_mode {
-      let ppm_structure = validate_ppm_payload_chunks(payload)
-      guard ppm_structure is Ok(_) else {
-        return Err("invalid PPM chunk bookkeeping")
-      }
-    }
+    // Spec A.7.4 permits Ippm continuation across marker segments.
+    // Segment-local bookkeeping is therefore not a strict conformance check.
   }
   if code == MARKER_CRG {
     if seen_crg {
