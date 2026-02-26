@@ -42,10 +42,6 @@ fn parse_codestream_impl(
   let tile_last_tpsot : Array[Int] = []
   let tile_declared_tnsot : Array[Int] = []
   let mut tile_count : Int? = None
-  let mut next_plm_index = 0
-  let mut next_ppm_index = 0
-  let mut next_plt_index = 0
-  let mut next_ppt_index = 0
   let mut siz_metadata : SizMetadata? = None
   let mut cod_metadata : CodMetadata? = None
   let mut qcd_metadata : QcdMetadata? = None
@@ -75,9 +71,14 @@ fn parse_codestream_impl(
       return Err("invalid marker prefix")
     }
     let placement = validate_marker_placement(
-      code, in_main_header, in_tile_part_header, seen_siz, compat_mode,
+      code, in_main_header, in_tile_part_header, seen_siz,
     )
-    guard placement is Ok(_) else { return Err("invalid marker placement") }
+    guard placement is Ok(_) else {
+      if placement is Err(msg) && !compat_mode {
+        return Err("invalid marker placement: \{msg}")
+      }
+      return Err("invalid marker placement")
+    }
 
     if code == MARKER_EOC {
       segments.push({ code, payload: [], position: i })
@@ -140,10 +141,21 @@ fn parse_codestream_impl(
       for j in packet_start..<packet_end {
         packet.push(data[j])
       }
-      let should_validate_packet_markers = !compat_mode
+      let should_validate_packet_markers = if compat_mode {
+        false
+      } else if cod_metadata is Some(codm) {
+        codm.uses_sop || codm.uses_eph
+      } else {
+        false
+      }
       if should_validate_packet_markers {
         let stuffing_check = validate_packet_bit_stuffing(packet)
-        guard stuffing_check is Ok(_) else { return Err("invalid packet data") }
+        guard stuffing_check is Ok(_) else {
+          if stuffing_check is Err(msg) {
+            return Err("invalid packet data: \{msg}")
+          }
+          return Err("invalid packet data")
+        }
       }
       let (found_sops, found_ephs) = extract_in_bitstream_markers(
         packet, packet_start,
@@ -163,7 +175,7 @@ fn parse_codestream_impl(
 
     if !has_explicit_length(code) {
       // Spec (Annex A.1.3): reserved markers are marker-only and decoder-skippable.
-      if compat_mode && is_reserved_jpeg_marker(code) {
+      if is_reserved_jpeg_marker(code) {
         segments.push({ code, payload: [], position: i })
         i += 2
         continue
@@ -203,6 +215,9 @@ fn parse_codestream_impl(
       compat_mode,
     )
     guard payload_validation is Ok(next_siz_components) else {
+      if payload_validation is Err(msg) && !compat_mode {
+        return Err("invalid marker payload: \{msg}")
+      }
       return Err("invalid marker payload")
     }
     siz_components = next_siz_components
@@ -357,12 +372,10 @@ fn parse_codestream_impl(
             1,
           )
           if decoded is Err(_) {
-            if compat_mode {
-              // Spec (Annex B): PPM relocates packet headers.
-              // Policy: keep payload opaque when local packet-header model cannot decode it.
-              continue
-            }
-            return Err("failed to parse packet headers in PPM")
+            // Spec (Annex B): PPM relocates packet headers.
+            // Parser-level conformance is marker/payload structure; packet-header semantic
+            // reconstruction here is implementation metadata and must remain non-fatal.
+            continue
           }
           guard decoded is Ok(headers) else {
             return Err("failed to parse packet headers in PPM")
@@ -371,12 +384,8 @@ fn parse_codestream_impl(
             packet_headers_ppm.push(h)
           }
         }
-      } else if compat_mode {
-        if payload.length() > 0 {
-          ppm_metadata.push({ zppm: payload[0], chunks: [] })
-        }
-      } else {
-        return Err("failed to parse PPM metadata")
+      } else if payload.length() > 0 {
+        ppm_metadata.push({ zppm: payload[0], chunks: [] })
       }
     }
     if code == MARKER_PPT {
@@ -388,33 +397,19 @@ fn parse_codestream_impl(
           1,
         )
         if decoded is Err(_) {
-          if compat_mode {
-            // Same policy as PPM path for PPT-relocated packet headers.
-            // Keep the original PPT marker segment payload for roundtrip safety.
-            // Spec basis:
-            // - Annex B (packet headers may be relocated by PPM/PPT)
-            //   /sections/annex-b-image-and-compressed-image-data-ordering.md:744-747
-            // Policy:
-            // - metadata decode failure must not drop raw PPT segment bytes.
-            // - strict mode still fails below.
-          } else {
-            return Err("failed to parse packet headers in PPT")
-          }
+          // Same policy as PPM path for PPT-relocated packet headers.
+          // Keep payload as source of truth; metadata decode failures are non-fatal.
         } else if decoded is Ok(headers) {
           for h in headers {
             packet_headers_ppt.push(h)
           }
         }
-      } else if compat_mode {
-        if payload.length() > 0 {
-          let data : Array[Int] = []
-          for idx in 1..<payload.length() {
-            data.push(payload[idx])
-          }
-          ppt_metadata.push({ zppt: payload[0], data })
+      } else if payload.length() > 0 {
+        let data : Array[Int] = []
+        for idx in 1..<payload.length() {
+          data.push(payload[idx])
         }
-      } else {
-        return Err("failed to parse PPT metadata")
+        ppt_metadata.push({ zppt: payload[0], data })
       }
     }
     if code == MARKER_COC || code == MARKER_QCC {
@@ -446,35 +441,6 @@ fn parse_codestream_impl(
         qcc_metadata.push(entry)
       }
     }
-    if code == MARKER_PLM {
-      let zplm = payload[0]
-      if !compat_mode && zplm != next_plm_index {
-        return Err("invalid Zplm sequence")
-      }
-      next_plm_index += 1
-    }
-    if code == MARKER_PPM {
-      let zppm = payload[0]
-      if !compat_mode && zppm != next_ppm_index {
-        return Err("invalid Zppm sequence")
-      }
-      next_ppm_index += 1
-    }
-    if code == MARKER_PLT {
-      let zplt = payload[0]
-      if !compat_mode && zplt != next_plt_index {
-        return Err("invalid Zplt sequence")
-      }
-      next_plt_index += 1
-    }
-    if code == MARKER_PPT {
-      let zppt = payload[0]
-      if !compat_mode && zppt != next_ppt_index {
-        return Err("invalid Zppt sequence")
-      }
-      next_ppt_index += 1
-    }
-
     segments.push({ code, payload, position: i })
     if code == MARKER_SOT {
       seen_sot = true
@@ -522,8 +488,6 @@ fn parse_codestream_impl(
       tile_seen_qcd = false
       header_coc_components = []
       header_qcc_components = []
-      next_plt_index = 0
-      next_ppt_index = 0
     }
     i = payload_end
   }
