@@ -54,15 +54,3 @@ pub fn hex_to_bytes(hex : String) -> Result[Array[Int], String] {
   }
   Ok(out)
 }
-
-///|
-pub fn roundtrip_bytes(data : Array[Int]) -> Result[Array[Int], String] {
-  let parsed = parse_codestream(data)
-  if parsed is Ok(stream) {
-    return encode_codestream(stream)
-  }
-  if parsed is Err(msg) {
-    return Err("parse failed in roundtrip: \{msg}")
-  }
-  Err("parse failed in roundtrip")
-}
