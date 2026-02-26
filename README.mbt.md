@@ -1,141 +1,86 @@
 # trkbt10/jpeg2000
 
-## Distribution Topology
+JPEG 2000 codestream parser/encoder library for MoonBit.
 
-- mooncakes package (library): `trkbt10/jpeg2000`
-- wasm CLI entrypoint package: `trkbt10/jpeg2000/cmd/wasm`
-- npm artifact package directory: `npm/wasm` (`@trkbt10/jpeg2000-wasm`)
-
-Why these files exist:
-
-- `jpeg2000_types.mbt`: public type re-exports (facade).
-- `jpeg2000.mbt`: public function entrypoint (facade).
-- `internal/core/`: implementation package. Internal logic lives here.
-- `jpeg2000_wbtest.mbt`: whitebox tests for package-internal invariants.
-  This is test-only and not part of distributed runtime API.
-
-## Public API (Library)
-
-Core APIs intended for library consumers:
-
-- `parse_codestream`
-- `parse_codestream_strict`
-- `encode_codestream`
-- `roundtrip_bytes`
-- `bytes_to_hex`
-- `hex_to_bytes`
-
-API guardrail check:
+## Install
 
 ```bash
-./tools/check_public_api.sh
+moon add trkbt10/jpeg2000
 ```
 
-This check verifies:
+## Quick Start
 
-1. required core APIs are exported
-2. CLI/file-I/O style APIs are not exported from the library package
+```moonbit nocheck
+import {
+  "trkbt10/jpeg2000" @j2k,
+}
 
-## Round-trip Sample Cycle
-
-Build and verify a minimal JPEG2000 codestream sample with file I/O cycle:
-
-```bash
-./tools/roundtrip_sample_cycle.sh
+///|
+fn main {
+  let bytes = @j2k.sample_codestream_minimal()
+  let parsed = @j2k.parse_codestream(bytes)
+  if parsed is Ok(stream) {
+    let encoded = @j2k.encode_codestream(stream)
+    // ...
+  }
+}
 ```
 
-Build and verify all registered samples:
+## Public API
 
-```bash
-./tools/roundtrip_samples_cycle.sh
-```
+Public functions are exported from [jpeg2000.mbt](jpeg2000.mbt).  
+Public types are exported from [jpeg2000_types.mbt](jpeg2000_types.mbt).
 
-Run round-trip for external `.j2k` corpus:
+Core API:
 
-```bash
-./tools/roundtrip_corpus_cycle.sh samples/corpus
-```
+- `parse_codestream`: interoperability-first parser
+- `parse_codestream_strict`: strict validation parser
+- `encode_codestream`: codestream encoder
+- `roundtrip_bytes`: parse + re-encode convenience
+- `bytes_to_hex` / `hex_to_bytes`: hex conversion helpers
 
-Probe external `.j2k` corpus compatibility (non-strict by default):
+Sample/model API:
 
-```bash
-./tools/probe_external_corpus_cycle.sh samples/corpus
-```
+- `sample_codestream_*`
+- `sample_codestream_by_name`
+- `sample_codestream_names`
+- `classify_marker`
 
-Disable large-file probe path (default is enabled):
+Packet-header/analysis API:
 
-```bash
-PROBE_LARGE_PATH=0 ./tools/probe_external_corpus_cycle.sh samples/corpus
-```
+- `decode_tag_tree_inclusion_flags`
+- `decode_codeblock_segment_lengths_from_bits`
+- `parse_packet_headers_*`
 
-Construct built-in `.j2k` corpus files:
+## Package Layout
 
-```bash
-./tools/build_sample_corpus.sh
-```
+- `trkbt10/jpeg2000`: library facade for mooncakes users
+- `trkbt10/jpeg2000/cmd/main`: native/file CLI entrypoint
+- `trkbt10/jpeg2000/cmd/wasm`: wasm-safe CLI entrypoint
+- `npm/wasm`: npm artifact package (`@trkbt10/jpeg2000-wasm`)
+- `internal/core`: internal implementation package
 
-Run all round-trip checks in one command:
+## WASM
 
-```bash
-./tools/roundtrip_full_cycle.sh
-```
-
-Enable strict external corpus byte-equality check:
-
-```bash
-STRICT_EXTERNAL_CORPUS=1 ./tools/roundtrip_full_cycle.sh
-```
-
-Parser API:
-
-- `parse_codestream`: default parser for practical codestream interoperability
-
-This runs:
-
-1. sample codestream generation (`sample-hex`)
-2. file construction (`samples/generated/minimal.j2k`)
-3. file loading + round-trip re-encoding (`roundtrip-hex`)
-4. output write and byte-level comparison
-
-## WASM Usage
-
-Build WASM target:
+Build:
 
 ```bash
 moon build --target wasm
 ```
 
-WASM entrypoint package (`cmd/wasm`) excludes file-I/O and supports:
+CLI commands (`cmd/wasm`):
 
 - `list-samples`
 - `parse-sample [name]`
 - `sample-hex [name]`
 - `roundtrip-hex <hex>`
 
-Run WASM smoke test:
-
-```bash
-./tools/wasm_smoke.sh
-```
-
-Run test suite on wasm-gc target:
-
-```bash
-moon test --target wasm-gc --jobs 1 --no-parallelize
-```
-
-## npm WASM Packaging
-
-Export wasm artifact for npm package:
+npm artifact packaging:
 
 ```bash
 ./tools/export_wasm_npm_package.sh
 ```
 
-Package directory:
+## Developer Docs
 
-- `npm/wasm/package.json`
-- `npm/wasm/index.mjs`
-- `npm/wasm/index.cjs`
-- `npm/wasm/dist/jpeg2000.wasm` (generated)
-- `npm/wasm/dist/manifest.json` (generated)
+- Development/testing commands are in [docs/dev-testing.md](docs/dev-testing.md).
