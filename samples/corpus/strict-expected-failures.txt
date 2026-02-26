@@ -1,10 +1,6 @@
 # Known strict failures for external corpus (basename only)
 # Updated: 2026-02-26
-CT_Phillips_JPEG2K_Decompr_Problem.j2k
-illegalcolortransform.j2k
 issue1438.j2k
 issue1472-bigloop.j2k
-issue226.j2k
 issue775-2.j2k
 issue775.j2k
-kakadu_v4-4_openjpegv2_broken.j2k
