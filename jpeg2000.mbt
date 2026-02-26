@@ -1,8 +1,7 @@
 ///|
-// The implementation has been split into focused files:
+// Public facade package:
+// - jpeg2000_types.mbt (re-exported public types)
 // - jpeg2000_public_api.mbt (public function entrypoint)
-// - jpeg2000_model_samples.mbt (public data types + sample builders + marker helpers)
-// - jpeg2000_packet_primitives.mbt
-// - jpeg2000_marker_validation.mbt
-// - jpeg2000_metadata_and_packet_api.mbt
-// - jpeg2000_codestream_codec.mbt
+//
+// Internal implementation package:
+// - internal/core/*.mbt

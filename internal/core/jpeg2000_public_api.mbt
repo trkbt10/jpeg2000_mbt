@@ -1,91 +1,93 @@
 ///|
+// Public entrypoint functions for mooncakes consumers.
+// Keep stable APIs here; internal implementations stay in focused files.
 pub fn parse_codestream(data : Array[Int]) -> Result[Codestream, String] {
-  @core.parse_codestream(data)
+  parse_codestream_impl_default(data)
 }
 
 ///|
 pub fn parse_codestream_strict(data : Array[Int]) -> Result[Codestream, String] {
-  @core.parse_codestream_strict(data)
+  parse_codestream_strict_impl(data)
 }
 
 ///|
 pub fn encode_codestream(stream : Codestream) -> Result[Array[Int], String] {
-  @core.encode_codestream(stream)
+  encode_codestream_impl(stream)
 }
 
 ///|
 pub fn roundtrip_bytes(data : Array[Int]) -> Result[Array[Int], String] {
-  @core.roundtrip_bytes(data)
+  roundtrip_bytes_impl(data)
 }
 
 ///|
 pub fn bytes_to_hex(data : Array[Int]) -> String {
-  @core.bytes_to_hex(data)
+  bytes_to_hex_impl(data)
 }
 
 ///|
 pub fn hex_to_bytes(hex : String) -> Result[Array[Int], String] {
-  @core.hex_to_bytes(hex)
+  hex_to_bytes_impl(hex)
 }
 
 ///|
 pub fn sample_codestream_minimal() -> Array[Int] {
-  @core.sample_codestream_minimal()
+  sample_codestream_minimal_impl()
 }
 
 ///|
 pub fn sample_codestream_with_com() -> Array[Int] {
-  @core.sample_codestream_with_com()
+  sample_codestream_with_com_impl()
 }
 
 ///|
 pub fn sample_codestream_with_coc_qcc() -> Array[Int] {
-  @core.sample_codestream_with_coc_qcc()
+  sample_codestream_with_coc_qcc_impl()
 }
 
 ///|
 pub fn sample_codestream_with_poc() -> Array[Int] {
-  @core.sample_codestream_with_poc()
+  sample_codestream_with_poc_impl()
 }
 
 ///|
 pub fn sample_codestream_with_ppt_sop_eph() -> Array[Int] {
-  @core.sample_codestream_with_ppt_sop_eph()
+  sample_codestream_with_ppt_sop_eph_impl()
 }
 
 ///|
 pub fn sample_codestream_two_tileparts() -> Array[Int] {
-  @core.sample_codestream_two_tileparts()
+  sample_codestream_two_tileparts_impl()
 }
 
 ///|
 pub fn sample_codestream_with_plm_plt() -> Array[Int] {
-  @core.sample_codestream_with_plm_plt()
+  sample_codestream_with_plm_plt_impl()
 }
 
 ///|
 pub fn sample_codestream_with_tlm() -> Array[Int] {
-  @core.sample_codestream_with_tlm()
+  sample_codestream_with_tlm_impl()
 }
 
 ///|
 pub fn sample_codestream_with_ppm() -> Array[Int] {
-  @core.sample_codestream_with_ppm()
+  sample_codestream_with_ppm_impl()
 }
 
 ///|
 pub fn sample_codestream_by_name(name : String) -> Array[Int]? {
-  @core.sample_codestream_by_name(name)
+  sample_codestream_by_name_impl(name)
 }
 
 ///|
 pub fn sample_codestream_names() -> Array[String] {
-  @core.sample_codestream_names()
+  sample_codestream_names_impl()
 }
 
 ///|
 pub fn classify_marker(code : Int) -> MarkerClass {
-  @core.classify_marker(code)
+  classify_marker_impl(code)
 }
 
 ///|
@@ -95,7 +97,7 @@ pub fn decode_tag_tree_inclusion_flags(
   height : Int,
   threshold : Int,
 ) -> Result[(Array[Bool], Int), String] {
-  @core.decode_tag_tree_inclusion_flags(data, width, height, threshold)
+  decode_tag_tree_inclusion_flags_impl(data, width, height, threshold)
 }
 
 ///|
@@ -104,7 +106,7 @@ pub fn decode_codeblock_segment_lengths_from_bits(
   initial_lblock : Int,
   added_passes : Array[Int],
 ) -> Result[(Array[Int], Int), String] {
-  @core.decode_codeblock_segment_lengths_from_bits(
+  decode_codeblock_segment_lengths_from_bits_impl(
     data, initial_lblock, added_passes,
   )
 }
@@ -113,7 +115,7 @@ pub fn decode_codeblock_segment_lengths_from_bits(
 pub fn parse_packet_headers_single_codeblock(
   data : Array[Int],
 ) -> Result[Array[PacketHeaderMetadata], String] {
-  @core.parse_packet_headers_single_codeblock(data)
+  parse_packet_headers_single_codeblock_impl(data)
 }
 
 ///|
@@ -121,7 +123,7 @@ pub fn parse_packet_headers_with_code_blocks(
   data : Array[Int],
   code_block_count : Int,
 ) -> Result[Array[PacketHeaderMetadata], String] {
-  @core.parse_packet_headers_with_code_blocks(data, code_block_count)
+  parse_packet_headers_with_code_blocks_impl(data, code_block_count)
 }
 
 ///|
@@ -131,7 +133,7 @@ pub fn parse_packet_header_single_packet_with_tag_tree(
   height : Int,
   layer_index : Int,
 ) -> Result[PacketHeaderMetadata, String] {
-  @core.parse_packet_header_single_packet_with_tag_tree(
+  parse_packet_header_single_packet_with_tag_tree_impl(
     data, width, height, layer_index,
   )
 }
@@ -144,7 +146,7 @@ pub fn parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
   layer_index : Int,
   added_passes_per_code_block : Array[Array[Int]],
 ) -> Result[PacketHeaderMetadata, String] {
-  @core.parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
+  parse_packet_header_single_packet_with_tag_tree_and_pass_splits_impl(
     data, width, height, layer_index, added_passes_per_code_block,
   )
 }
@@ -156,7 +158,7 @@ pub fn parse_packet_headers_with_tag_tree_sequence(
   height : Int,
   packet_count : Int,
 ) -> Result[Array[PacketHeaderMetadata], String] {
-  @core.parse_packet_headers_with_tag_tree_sequence(
+  parse_packet_headers_with_tag_tree_sequence_impl(
     data, width, height, packet_count,
   )
 }
@@ -169,7 +171,7 @@ pub fn parse_packet_headers_with_tag_tree_sequence_and_pass_splits(
   packet_count : Int,
   added_passes_per_packet_per_code_block : Array[Array[Array[Int]]],
 ) -> Result[Array[PacketHeaderMetadata], String] {
-  @core.parse_packet_headers_with_tag_tree_sequence_and_pass_splits(
+  parse_packet_headers_with_tag_tree_sequence_and_pass_splits_impl(
     data, width, height, packet_count, added_passes_per_packet_per_code_block,
   )
 }
