@@ -1,5 +1,27 @@
 # trkbt10/jpeg2000
 
+## Public API (Library)
+
+Core APIs intended for library consumers:
+
+- `parse_codestream`
+- `parse_codestream_strict`
+- `encode_codestream`
+- `roundtrip_bytes`
+- `bytes_to_hex`
+- `hex_to_bytes`
+
+API guardrail check:
+
+```bash
+./tools/check_public_api.sh
+```
+
+This check verifies:
+
+1. required core APIs are exported
+2. CLI/file-I/O style APIs are not exported from the library package
+
 ## Round-trip Sample Cycle
 
 Build and verify a minimal JPEG2000 codestream sample with file I/O cycle:
@@ -60,3 +82,30 @@ This runs:
 2. file construction (`samples/generated/minimal.j2k`)
 3. file loading + round-trip re-encoding (`roundtrip-hex`)
 4. output write and byte-level comparison
+
+## WASM Usage
+
+Build WASM target:
+
+```bash
+moon build --target wasm
+```
+
+WASM entrypoint package (`cmd/wasm`) excludes file-I/O and supports:
+
+- `list-samples`
+- `parse-sample [name]`
+- `sample-hex [name]`
+- `roundtrip-hex <hex>`
+
+Run WASM smoke test:
+
+```bash
+./tools/wasm_smoke.sh
+```
+
+Run test suite on wasm-gc target:
+
+```bash
+moon test --target wasm-gc --jobs 1 --no-parallelize
+```

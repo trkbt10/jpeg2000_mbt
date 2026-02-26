@@ -200,3 +200,17 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+Additional notices (test corpus/source attributions):
+
+1. `samples/corpus/*.j2k` and `samples/corpus/*.j2c` test files are copied
+   from the JPEG 2000 conformance/nonregression datasets used by OpenJPEG.
+   Upstream repositories:
+   - https://github.com/uclouvain/openjpeg
+   - https://github.com/uclouvain/openjpeg-data
+2. `` contains a local clone of the OpenJPEG source
+   tree used as a reference for compatibility testing and marker-behavior
+   analysis.
+3. See also:
+   - `LICENSE`
+   - `/tmp/openjpeg-data/input/nonregression/README.txt` (dataset notes)
