@@ -637,6 +637,15 @@
 - 変更要約: strict fail の根拠追跡を手作業から定常レポートへ移行し、仕様差分調査の起点を固定化
 - 継続課題: 分類済み5件のうち `invalid marker placement` 1件を Annex A.1.3 の実データ精査で、`PPM/PPT` 4件を Annex B.10 実装拡張で順次解消
 
+### 2026-02-26 / OpenJPEG本家テストケース運用導線
+
+- 完了要求ID: なし（Status変更なし、外部コーパス適用範囲の拡張）
+- 実施内容: `tools/openjpeg_repo_corpus_cycle.sh` を追加し、OpenJPEG本家リポジトリ配下の `.j2k/.j2c` を再帰走査して `default/strict/roundtrip` を検証可能化
+- 実施試験: スモークとして既存 `samples/corpus` 相当の運用互換を確認（本家repo実体はローカル配置後に実行）
+- 失敗ケース追加: なし（実行導線追加）
+- 変更要約: 「配布済み単一ディレクトリ」だけでなく「upstream repositoryの実テスト集合」へ検証対象を拡張する運用基盤を追加
+- 継続課題: OpenJPEG repo 実体を指定して matrix 実行し、strict fail 一覧を別マニフェスト化（必要なら `strict-expected-failures-openjpeg.txt` を追加）
+
 ### 2026-02-26 / 外部 corpus 導入（openjpeg-data p0/p1）
 
 - 完了要求ID: `R-0021..R-0055`（`Verified` 継続）
