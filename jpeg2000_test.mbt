@@ -299,7 +299,7 @@ test "failure case: invalid packet bit stuffing sequence" {
   }
   // SOP marker length must be 0x0004; break it.
   broken[sop_at + 3] = 0x03
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
   inspect(msg, content="invalid packet data")
 }
@@ -478,7 +478,7 @@ test "failure case: invalid Zppt sequence" {
      0xFF, 0x61, 0x00, 0x04, 0x02, 0x00, // PPT z=2 (should be 1)
      0xFF, 0x93, 0xFF, 0xD9,
   ]
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
   inspect(msg, content="invalid Zppt sequence")
 }
@@ -1831,7 +1831,7 @@ test "failure case: invalid Zppm sequence" {
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x01, 0xFF,
     0x93, 0xFF, 0xD9,
   ]
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
   inspect(msg, content="invalid Zppm sequence")
 }
@@ -1847,7 +1847,7 @@ test "failure case: invalid PPM chunk size mismatch" {
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x01, 0xFF,
     0x93, 0xFF, 0xD9,
   ]
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
   inspect(msg, content="invalid marker payload")
 }

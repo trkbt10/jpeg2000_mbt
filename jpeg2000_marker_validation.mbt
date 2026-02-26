@@ -167,12 +167,15 @@ fn validate_plm_payload_chunks(payload : Array[Int]) -> Result[Unit, String] {
 ///|
 fn validate_ppm_payload_chunks(payload : Array[Int]) -> Result[Unit, String] {
   let mut i = 1
-  while i < payload.length() {
+  while i + 3 < payload.length() {
     let nppm_value = read_u32_from_payload(payload, i)
     guard nppm_value is Ok(nppm) else { return Err("failed to parse Nppm") }
+    if nppm < 0 {
+      return Err("Nppm is out of range")
+    }
     i += 4
     let chunk_end = i + nppm
-    if chunk_end > payload.length() {
+    if chunk_end < i || chunk_end > payload.length() {
       return Err("PPM chunk exceeds payload")
     }
     i = chunk_end
@@ -259,12 +262,15 @@ fn parse_ppm_metadata(payload : Array[Int]) -> Result[PpmMetadata, String] {
   let zppm = payload[0]
   let chunks : Array[PpmChunkMetadata] = []
   let mut i = 1
-  while i < payload.length() {
+  while i + 3 < payload.length() {
     let nppm_v = read_u32_from_payload(payload, i)
     guard nppm_v is Ok(nppm) else { return Err("failed to parse Nppm") }
+    if nppm < 0 {
+      return Err("Nppm is out of range")
+    }
     i += 4
     let chunk_end = i + nppm
-    if chunk_end > payload.length() {
+    if chunk_end < i || chunk_end > payload.length() {
       return Err("PPM chunk exceeds payload")
     }
     let ippm : Array[Int] = []
@@ -273,6 +279,9 @@ fn parse_ppm_metadata(payload : Array[Int]) -> Result[PpmMetadata, String] {
     }
     chunks.push({ nppm, ippm })
     i = chunk_end
+  }
+  if i != payload.length() {
+    return Err("PPM payload has trailing bytes")
   }
   Ok({ zppm, chunks })
 }
@@ -892,9 +901,11 @@ fn validate_marker_payload(
     }
   }
   if code == MARKER_PPM {
-    let ppm_structure = validate_ppm_payload_chunks(payload)
-    guard ppm_structure is Ok(_) else {
-      return Err("invalid PPM chunk bookkeeping")
+    if !compat_mode {
+      let ppm_structure = validate_ppm_payload_chunks(payload)
+      guard ppm_structure is Ok(_) else {
+        return Err("invalid PPM chunk bookkeeping")
+      }
     }
   }
   if code == MARKER_CRG {
