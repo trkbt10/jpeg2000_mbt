@@ -29,9 +29,14 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
   found=1
   base="$(basename "$in_bin")"
 
-  out_verify="$(moon run cmd/main -- roundtrip-file-verify "$in_bin" | tr -d '\r\n')"
-  if [ "$out_verify" != "ok" ]; then
-    echo "[$base] roundtrip: FAILED ($out_verify)" >&2
+  out_hex="$(moon run cmd/main -- roundtrip-file "$in_bin" | tr -d '\r\n')"
+  if echo "$out_hex" | rg -q '^error:'; then
+    echo "[$base] roundtrip: FAILED ($out_hex)" >&2
+    exit 1
+  fi
+  hex_from_file="$(xxd -p -c 1000000 "$in_bin" | tr -d '\n\r')"
+  if [ "$out_hex" != "$hex_from_file" ]; then
+    echo "[$base] roundtrip: FAILED (mismatch)" >&2
     exit 1
   fi
   echo "[$base] roundtrip: OK"
@@ -39,11 +44,6 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
   if [ "$WRITE_ROUNDTRIP_ARTIFACTS" = "1" ]; then
     out_hex_file="$OUT_DIR/${base}.roundtrip.hex"
     out_bin_file="$OUT_DIR/${base}.roundtrip.j2k"
-    out_hex="$(moon run cmd/main -- roundtrip-file "$in_bin" | tr -d '\r\n')"
-    if echo "$out_hex" | rg -q '^error:'; then
-      echo "[$base] artifact export: FAILED ($out_hex)" >&2
-      exit 1
-    fi
     printf '%s' "$out_hex" > "$out_hex_file"
     xxd -r -p "$out_hex_file" > "$out_bin_file"
   fi
