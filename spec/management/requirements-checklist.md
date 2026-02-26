@@ -622,7 +622,7 @@
 ### 2026-02-26 / 仕様網羅監査 + 外部コーパス行列検証（運用改善）
 
 - 完了要求ID: なし（Status変更なし、監査/検証導線の追加）
-- 実施内容: `tools/report_requirements_coverage.sh`（要件台帳のMust進捗集計）と `tools/corpus_matrix_cycle.sh`（`default/strict/roundtrip` 行列）を追加
+- 実施内容: `tools/report_requirements_coverage.sh`（要件台帳のMust進捗集計）と `tools/corpus_matrix_cycle.sh`（`default/strict/roundtrip` 行列）を追加。`samples/corpus/strict-expected-failures.txt` で strict既知失敗を固定管理
 - 実施試験: `./tools/report_requirements_coverage.sh`（Must: 152件中 Verified 55, Planned 97）、`./tools/corpus_matrix_cycle.sh samples/corpus`（default 27/27, strict 22/27, roundtrip 27/27）
 - 失敗ケース追加: なし（本サイクルは監査導線/実測強化）
 - 変更要約: 外部コーパス運用を「default/strict/roundtrip を同時可視化する行列」へ拡張し、仕様網羅の未達（Annex C以降）を定量確認可能化
