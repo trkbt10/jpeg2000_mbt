@@ -3451,16 +3451,20 @@ fn parse_codestream_impl(
       if decoded is Err(_) {
         if compat_mode {
           // Same policy as PPM path for PPT-relocated packet headers.
-          i = payload_end
-          continue
+          // Keep the original PPT marker segment payload for roundtrip safety.
+          // Spec basis:
+          // - Annex B (packet headers may be relocated by PPM/PPT)
+          //   /sections/annex-b-image-and-compressed-image-data-ordering.md:744-747
+          // Policy:
+          // - metadata decode failure must not drop raw PPT segment bytes.
+          // - strict mode still fails below.
+        } else {
+          return Err("failed to parse packet headers in PPT")
         }
-        return Err("failed to parse packet headers in PPT")
-      }
-      guard decoded is Ok(headers) else {
-        return Err("failed to parse packet headers in PPT")
-      }
-      for h in headers {
-        packet_headers_ppt.push(h)
+      } else if decoded is Ok(headers) {
+        for h in headers {
+          packet_headers_ppt.push(h)
+        }
       }
     }
     if code == MARKER_COC || code == MARKER_QCC {
