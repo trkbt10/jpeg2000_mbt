@@ -9,7 +9,7 @@
 Why these files exist:
 
 - `jpeg2000_types.mbt`: public type re-exports (facade).
-- `jpeg2000_public_api.mbt`: public function entrypoint (facade).
+- `jpeg2000.mbt`: public function entrypoint (facade).
 - `internal/core/`: implementation package. Internal logic lives here.
 - `jpeg2000_wbtest.mbt`: whitebox tests for package-internal invariants.
   This is test-only and not part of distributed runtime API.
