@@ -53,9 +53,9 @@ done
 
 # Public function entrypoint discipline: keep pub fn definitions in one file.
 if [ "$pub_fn_defs" != "" ]; then
-  non_entry="$(printf '%s\n' "$pub_fn_defs" | rg -v '^.*/jpeg2000_public_api\.mbt:' || true)"
+  non_entry="$(printf '%s\n' "$pub_fn_defs" | rg -v '^.*/jpeg2000\.mbt:' || true)"
   if [ "$non_entry" != "" ]; then
-    echo "public function definitions must stay in jpeg2000_public_api.mbt" >&2
+    echo "public function definitions must stay in jpeg2000.mbt" >&2
     echo "$non_entry" >&2
     exit 1
   fi
