@@ -10,3 +10,4 @@ spec/references/**/*.pdf
 spec/references/jpeg2000/
 spec.md
 roundtrip/
+__pycache__/

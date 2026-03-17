@@ -2704,7 +2704,7 @@ test "decode_samples accepts synthetic multi-codeblock HT causal MagRef codestre
 ///|
 test "decode_samples decodes Bretagne1_ht fixture when available" {
   let fixture = htj2k_fixture_bytes(
-    "/tmp/openjpeg-data/input/nonregression/htj2k/Bretagne1_ht.j2k",
+    "samples/corpus/Bretagne1_ht.j2k",
   )
   guard fixture is Some(bytes) else { return }
   let decoded = @jpeg2000.decode_samples(bytes)
@@ -2721,7 +2721,7 @@ test "decode_samples decodes Bretagne1_ht fixture when available" {
 ///|
 test "decode_samples decodes Bretagne1_ht_lossy fixture when available" {
   let fixture = htj2k_fixture_bytes(
-    "/tmp/openjpeg-data/input/nonregression/htj2k/Bretagne1_ht_lossy.j2k",
+    "samples/corpus/Bretagne1_ht_lossy.j2k",
   )
   guard fixture is Some(bytes) else { return }
   let decoded = @jpeg2000.decode_samples(bytes)
@@ -2748,7 +2748,7 @@ test "decode_samples decodes Bretagne1_ht_lossy fixture when available" {
 ///|
 test "decode_samples matches byte.jph component0 prefix when available" {
   let fixture = htj2k_fixture_bytes(
-    "/tmp/openjpeg-data/input/nonregression/htj2k/byte.jph",
+    "samples/corpus/byte.jph",
   )
   guard fixture is Some(bytes) else { return }
   let decoded = @jpeg2000.decode_samples(bytes)
@@ -2772,7 +2772,7 @@ test "decode_samples matches byte.jph component0 prefix when available" {
 ///|
 test "decode_samples matches byte_causal.jhc component0 prefix when available" {
   let fixture = htj2k_fixture_bytes(
-    "/tmp/openjpeg-data/input/nonregression/htj2k/byte_causal.jhc",
+    "samples/corpus/byte_causal.jhc",
   )
   guard fixture is Some(bytes) else { return }
   let decoded = @jpeg2000.decode_samples(bytes)

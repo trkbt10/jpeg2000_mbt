@@ -32,14 +32,16 @@ Run round-trip for external `.j2k` corpus:
 ./tools/roundtrip_cycle.sh corpus samples/corpus
 ```
 
+Run recursive external probe on an openjpeg-data clone:
 
 ```bash
 bash tools/probe_external_corpus_cycle.sh /tmp/openjpeg-data/input/conformance
 ```
 
+Compare an external conformance corpus against the reference implementation:
 
 ```bash
-python3 tools/openjpeg_compare.py --corpus-dir /tmp/openjpeg-data/input/conformance \
+python3 tools/reference_compare.py --corpus-dir /tmp/openjpeg-data/input/conformance \
   --out /tmp/openjpeg-data-conformance.tsv --jobs 4
 ```
 
@@ -49,6 +51,7 @@ Write `decode(original)` and `decode(roundtrip(codestream))` artifacts for one f
 ./tools/roundtrip_cycle.sh decode-fixture samples/corpus/p1_05.j2k
 ```
 
+Refresh the latest reference implementation expected vs MoonBit actual visual compare set:
 
 ```bash
 ./tools/decode_to_roundtrip.sh
