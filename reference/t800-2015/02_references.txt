@@ -1,0 +1,55 @@
+2            References
+The following Recommendations and International Standards contain provisions which, through reference in this text,
+constitute provisions of this Recommendation | International Standard. At the time of publication, the editions indicated
+were valid. All Recommendations and Standards are subject to revision, and parties to agreements based on this
+Recommendation | International Standard are encouraged to investigate the possibility of applying the most recent edition
+of the Recommendations and Standards listed below. Members of IEC and ISO maintain registers of currently valid
+International Standards. The Telecommunication Standardization Bureau of the ITU maintains a list of currently valid
+ITU-T Recommendations.
+
+2.1          Identical Recommendations | International Standards
+             –    Recommendation ITU-T T.81 (1992) | ISO/IEC 10918-1:1994, Information technology – Digital
+                  compression and coding of continuous-tone still images: Requirements and guidelines.
+             –    Recommendation ITU-T T.84 (1996) | ISO/IEC 10918-3:1997, Information technology – Digital
+                  compression and coding of continuous-tone still images: Extensions.
+             –    Recommendation ITU-T T.84 (1996)/Amd.1 (1999) | ISO/IEC 10918-3:1997/Amd.1:1999, Information
+                  technology – Digital compression and coding of continuous-tone still images: Extensions – Amendment 1:
+                  Provisions to allow registration of new compression types and versions in the SPIFF header.
+             –    Recommendation ITU-T T.86 (1998) | ISO/IEC 10918-4:1999, Information technology – Digital
+                  compression and coding of continuous-tone still images: Registration of JPEG Profiles, SPIFF Profiles,
+                  SPIFF Tags, SPIFF colour Spaces, APPn Markers, SPIFF Compression types and Registration
+                  Authorities (REGAUT).
+             –    Recommendation ITU-T T.87 (1998) | ISO/IEC 14495-1:2000, Lossless and near-lossless compression of
+                  continuous-tone still images – Baseline.
+             –    Recommendation ITU-T T.88 (2000) | ISO/IEC 14492:2001, Information technology – Lossy/lossless
+                  coding of bi-level images.
+             –    Recommendation ITU-T T.810 (2006) | ISO/IEC 15444-11:2007, Information technology – JPEG 2000
+                  image coding system: Wireless.
+             –    ISO/IEC 646:1991, Information technology – ISO 7-bit coded character set for information interchange.
+             –    ISO 8859-15:1999, Information technology – 8-bit single-byte coded graphic character sets – Part 15:
+                  Latin alphabet No. 9.
+
+2.2          Additional references
+             –    Recommendation ITU-R BT.601-6 (2007), Studio encoding parameters of digital television for
+                  standard 4:3 and wide screen 16:9 aspect ratios.
+
+
+                                                                                           Rec. ITU-T T.800 (11/2015)                 1
+ISO/IEC 15444-1:2016 (E)
+
+          –      Recommendation ITU-R BT.709-5 (2002), Parameter values for the HDTV standards for production and
+                 international programme exchange.
+          –      IEC 61966-2-1:1999, Multimedia systems and equipment – Colour measurement and management –
+                 Part 2-1: Colour management – Default RGB colour space – sRGB.
+          –      IEC 61966-2-1:1999/Amd.1:2003, Multimedia systems and equipment – Colour measurement and
+                 management – Part 2-1: Colour management – Default RGB colour space – sRGB.
+          –      IETF RFC 2279 (1998), UTF-8, a transformation format of ISO 10646.
+          –      ISO 11664-1:2007 (CIE S 014-1/E:2006), Colorimetry – Part 1: CIE standard colorimetric observers.
+          –      ISO 14721, Space data and information transfer systems – Open archival information system – Reference
+                 model.
+          –      ISO 15076-1, Image technology colour management – Architecture, profile format and data structure –
+                 Part 1: Based on ICC.1:2010.
+          –      ISO 26428-1:2008, Digital cinema (D-cinema) distribution master – Part 1: Image characteristics.
+          –      ISO/IEC 11578:1996, Information technology – Open Systems Interconnection – Remote Procedure Call.
+
+

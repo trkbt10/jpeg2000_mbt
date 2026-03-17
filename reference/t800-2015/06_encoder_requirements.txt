@@ -1,0 +1,8 @@
+6         Encoder requirements
+An encoding process converts source image data to compressed image data. Annexes A, B, C, D, E, F, G and H describe
+the encoding process. All encoding processes are specified informatively.
+An encoder is an embodiment of the encoding process. In order to conform to this Recommendation | International
+Standard, an encoder shall convert source image data to compressed image data that conform to the codestream syntax
+specified in Annex A.
+
+

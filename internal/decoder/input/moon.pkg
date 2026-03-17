@@ -1,0 +1,10 @@
+// T.800-2015 Annex I: Input handling
+import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

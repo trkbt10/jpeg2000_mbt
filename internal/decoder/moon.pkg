@@ -1,0 +1,25 @@
+import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/a8" @a8,
+  "trkbt10/jpeg2000/internal/decoder/codeblock" @codeblock,
+  "trkbt10/jpeg2000/internal/decoder/geometry" @geometry,
+  "trkbt10/jpeg2000/internal/decoder/ht" @ht,
+  "trkbt10/jpeg2000/internal/decoder/input" @input,
+  "trkbt10/jpeg2000/internal/decoder/layer" @layer,
+  "trkbt10/jpeg2000/internal/decoder/mct" @mct,
+  "trkbt10/jpeg2000/internal/decoder/mq" @mq,
+  "trkbt10/jpeg2000/internal/decoder/orchestrate" @orchestrate,
+  "trkbt10/jpeg2000/internal/decoder/precinct" @precinct,
+  "trkbt10/jpeg2000/internal/decoder/profile" @profile,
+  "trkbt10/jpeg2000/internal/decoder/t1" @t1,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+import {
+  "moonbitlang/x/fs" @fs,
+} for "test"
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

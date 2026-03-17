@@ -1,0 +1,90 @@
+4         Abbreviations and symbols
+
+4.1       Abbreviations
+For the purposes of this Recommendation | International Standard, the following abbreviations apply:
+          1D-DWT         One-dimensional Discrete Wavelet Transformation
+          CCITT          International Telegraph and Telephone Consultative Committee, now ITU-T
+          CPRL           Component, Position, Resolution and Layer data packet progression order within a tile
+          CSF            Contrast Sensitivity Function
+          DCP            Digital Cinema Package
+          FDWT           Forward Discrete Wavelet Transformation
+          FEC            Forward Error Correction
+          ICC            International Color Consortium
+          ICT            Irreversible Component Transform
+          IDWT           Inverse Discrete Wavelet Transformation
+          IEC            International Electrotechnical Commission
+          ISO            International Organization for Standardization
+          ITTF           Information Technology Task Force
+          ITU            International Telecommunication Union
+          ITU-T          International Telecommunication Union – Telecommunication Standardization Sector (formerly
+                         the CCITT)
+
+
+
+
+6          Rec. ITU-T T.800 (11/2015)
+                                                                                              ISO/IEC 15444-1:2016 (E)
+
+         JPEG           Joint Photographic Experts Group – The joint ISO/ITU committee responsible for developing
+                        standards for continuous-tone still picture coding. It also refers to the standards produced by this
+                        committee: Rec. ITU-T T.81 | ISO/IEC 10918-1, Rec. ITU-T T.83 | ISO/IEC 10918-2,
+                        Rec. ITU-T T.84 | ISO/IEC 10918-3 and Rec. ITU-T T.87 | ISO/IEC 14495.
+         JURA           JPEG Utilities Registration Authority
+         LRCP           Layer, Resolution, Component and Position data packet progression order within a tile
+         LSB            Least Significant Bit
+         MSB            Most Significant Bit
+         MSE            Mean Squared Error
+         PCRL           Position, Component, Resolution and Layer data packet progression order within a tile
+         PCS            Profile Connection Space
+         RCT            Reversible Component Transform
+         RLCP           Resolution, Layer, Component and Position data packet progression order within a tile
+         ROI            Region Of Interest
+         RPCL           Resolution, Position, Component and Layer data packet progression order within a tile
+         SNR            Signal-to-Noise Ratio
+         TCP            Transmission Control Protocol
+         UCS            Universal Character Set
+         URI            Uniform Resource Identifier
+         URL            Uniform Resource Locator
+         UTF-8          UCS Transformation Format 8
+         UUID           Universal Unique Identifier
+         XML            Extensible Markup Language
+         W3C            Worldwide web Consortium
+
+4.2      Symbols
+For the purposes of this Recommendation | International Standard, the following symbols apply:
+         0x----         Denotes a hexadecimal number
+         \nnn           A three-digit number preceded by a backslash indicates the value of a single byte within a
+                        character string, where the three digits specify the octal value of that byte
+         b             Exponent of the quantization value for a sub-band defined in QCD and QCC
+         b             Mantissa of the quantization value for a sub-band defined in QCD and QCC
+         Mb             Maximum number of bit-planes coded in a given code-block
+         NL             Number of decomposition levels as defined in COD and COC
+         Rb             Dynamic range of a component sample as defined in SIZ
+         COC            Coding style component marker
+         COD            Coding style default marker
+         COM            Comment marker
+         CRG            Component registration marker
+         EPH            End of packet header marker
+         EOC            End of codestream marker
+         PLM            Packet length, main header marker
+         PLT            Packet length, tile-part header marker
+         POC            Progression order change marker
+         PPM            Packed packet headers, main header marker
+         PPT            Packed packet headers, tile-part header marker
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)              7
+ISO/IEC 15444-1:2016 (E)
+
+          QCC             Quantization component marker
+          QCD             Quantization default marker
+          RGN             Region-of-interest marker
+          SIZ             Image and tile size marker
+          SOC             Start of codestream marker
+          SOP             Start of packet marker
+          SOD             Start of data marker
+          SOT             Start of tile-part marker
+          TLM             Tile-part lengths marker
+
+

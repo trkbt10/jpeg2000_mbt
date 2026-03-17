@@ -1,0 +1,11 @@
+// T.800-2015 Annex E: Quantization
+import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/subband" @subband,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

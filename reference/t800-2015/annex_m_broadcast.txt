@@ -1,0 +1,380 @@
+                                                       Annex M
+
+                               Elementary stream for broadcast applications
+                  (This annex forms an integral part of this Recommendation | International Standard.)
+
+M.1       Introduction
+The broadcast application profiles are the Broadcast Contribution Single Tile Profile, the Broadcast Contribution
+Multi-tile Profile, and the Broadcast Contribution Multi-tile Reversible Profile. Support for this annex is required for a
+decoder that supports the broadcast application profiles, and is optional for other decoders. Decoders supporting the
+broadcast application profiles use JPEG 2000 for timed sequences of images, hereafter called video. Such a target decoder
+shall support certain characteristics defined within this annex.
+
+M.2       Definitions
+JPEG 2000 access unit: The JPEG 2000 codestream or codestreams comprising a decodable and randomly accessible
+image.
+
+M.3       Access unit construction
+The access unit defines a series of boxes forming an elementary stream header preceding one or more contiguous
+codestreams. This header is in a box structure where each box is structured as defined in I.4, including a length field, a
+box type field, an extended box length field, and the box contents. The possible box types are defined in Table M.1.
+A particular order of these boxes in the access unit is not generally implied. Other boxes may be found between the boxes
+defined in this Recommendation | International Standard. However, all information contained within an access unit shall
+be in the box format, such that a decoder can skip unknown boxes.
+All conforming access units shall contain all boxes required by this Recommendation | International Standard, and those
+boxes shall be as defined in this Recommendation | International Standard. Also, all conforming readers shall correctly
+interpret all required boxes defined in this Recommendation | International Standard, and thus shall correctly interpret all
+conforming access units.
+
+
+                       Elementary Stream Header box (Superbox)
+
+                          Frame Rate Coding box
+                          Maximun Bit Rate box
+
+                          Field Coding box
+
+                          Time Code box
+                          Broadcast Colour Specification box
+
+
+                          Contiguous Codestream box (I.5.4) 0
+
+
+                          Contiguous Codestream box (I.5.4) 1
+
+
+
+
+                   Figure M.1 – Elementary stream structure for broadcast application profiles –
+                                     boxes with dashed borders are optional
+
+
+A set of parameters for each box of Figure M.1 is defined in M.4 using the graphical notation introduced in I.3.6.
+
+
+
+
+216        Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+                                 Table M.1 – Definitions of elementary stream boxes
+
+        Box name                    Type                   Required                             Comments
+ Elementary stream                  'elsm'          Required if an            This marker precedes a series of boxes that
+ Marker                         (0x656c736d)        Elementary stream is      contain header type information about the
+                                                    defined.                  JPEG 2000 elementary stream
+ Frame Rate Coding Box              'frat'          Required                  This box specifies the frame rate
+                                (0x66726174)
+ Maximum Bit Rate Box               'brat'          Required                  This box specifies the compressed bit rate
+                                (0x62726174)
+ Field Coding Box                   'fiel'          Optional                  This box specifies interlacing
+                                (0x6669656c)
+ Time Code Box                      'tcod'          Required                  This box specifies time code
+                                (0x74636f64)
+ Broadcast Colour                   'bcol'          Required                  This box specifies the broadcast colour
+ Specification Box              (0x62636f6c)                                  specification
+ Mastering Display                 ‘dmon’           Required                  This box describes the display characteristics of
+ Metadata Box                   (0x646d6f6e)                                  the mastering display
+
+
+M.4       Elementary stream marker box (superbox)
+This superbox specifies all parameters required to define an elementary JPEG 2000 access unit. If this superbox exists, it
+shall contain one frame rate coding box, one maximum bit rate box, one time code box and one broadcast colour
+specification box.
+This superbox may contain other optional boxes. One or two contiguous codestreams must immediately follow the elsm
+superbox as defined by the coding boxes contained in the elsm superbox.
+The type of an elementary stream marker box shall be 'elsm' (0x656c 736d). The contents of the elementary stream marker
+box are as in Figure M.1.
+         frat: Frame Rate Box. This box specifies the frame rate in frames per second. The format of this box is specified
+         in M.4.1.
+         brat: Maximum Bit Rate Box. This box specifies the maximum bit rate of the elementary stream in bits per
+         second. The format of this box is specified in M.4.2.
+         fiel: Field Coding Box. This box specifies the field order if the access unit contains two fields. The format of
+         this box is specified in M.4.3. This box is optional.
+         tcod: Time Code Box. This box specifies the time code of the access unit in the elementary stream marker
+         superbox. The format of this box is specified in M.4.4.
+         bcol: Broadcast Colour Specification Box. This box specifies the colourspace of the access unit. The format of
+         this box is specified in M.4.5.
+         dmon: Mastering Display Metadata Box. This box specifies the characteristics of the content mastering display.
+         The format of this box is specified in M.4.6.
+
+M.4.1     Frame Rate Coding box (required)
+This box specifies the frame rate in frames per second. It contains two fields: denominator and numerator. If either is
+zero, the frame rate is variable or undefined. Otherwise, the frame rate is expressed by a rational number of the form
+numerator/denominator. If the frame rate is an integer, the denominator shall be equal to 1. If there are two fields per
+access unit, then the field rate is twice the frame rate. The type of the Frame Rate box shall be 'frat' (0x6672 6174). This
+field is specified by a four-byte string of ISO/IEC 646 characters. The contents of this box shall be as in Figure M.2.
+
+
+
+                                                     DEM        NUM
+
+
+                                    Figure M.2 – Frame Rate Coding box content
+
+
+
+                                                                                   Rec. ITU-T T.800 (11/2015)               217
+ISO/IEC 15444-1:2016 (E)
+
+          DEM       This parameter is defined as a 2-byte big-endian unsigned integer. This parameter specifies the
+                    denominator used to calculate the frame rate.
+          NUM       The parameter is defined as a 2-byte big-endian unsigned integer. This parameter specifies the
+                    numerator used to calculate the frame rate.
+   NOTE – The NTSC frame rate is correctly expressed as 30000/1001. A frame rate of 24 frames/s is coded as 24/1 and the frame
+   rate typically referred to as 23.98 frames/s is coded as 24000/1001.
+
+M.4.2     Maximum Bit Rate box (required)
+This box specifies the maximum bit rate of the elementary stream and the actual access unit size. The type of the maximum
+bit rate box shall be 'brat' (0x6272 6174) and contents of the box shall have the format shown in Figure M.3:
+
+
+
+                                     MaxBr                   AUF1                    AUF2
+
+
+
+                                      Figure M.3 – Maximum Bit Rate box content
+          MaxBr This parameter is defined as a 4-byte big-endian unsigned integer which specifies a maximum
+                instantaneous bit rate that is not to be exceeded, expressed in bits per second for the elementary stream
+                at the frame rate specified in M.4.1. The maximum bit rate shall not exceed the bit rate specified for
+                a given profile and level.
+          AUF1      This parameter is defined as a 4-byte big-endian unsigned integer which specifies the size of the
+                    contiguous codestream corresponding to the first field.
+          AUF2      This parameter is defined as a 4-byte big-endian unsigned integer which specifies the size of the
+                    contiguous codestream corresponding to the second field. If there is only one field per access unit,
+                    this field is set to '0x0000 0000'.
+   NOTE – The access unit sizes of each field are defined to help determine the size of each field codestream in advance of reading
+   the Contiguous Codestream boxes for hardware implementations.
+
+M.4.3     Field Coding box (optional)
+This box specifies the field order if the access unit contains two fields as is the case with interlaced video.
+If there is no field coding box present, or the field count is 1, the JPEG 2000 access unit shall contain precisely one
+codestream. If the field count is 2, then there shall be two contiguous codestreams. The type of the field coding box shall
+be 'fiel' (0x6669 656c) and contents of the box shall have the format shown in Figure M.4.
+
+
+
+
+                                                            Fic    Fio
+
+
+
+                                          Figure M.4 – Field Coding box content
+          Fic This parameter is defined as a 1-byte unsigned integer which specifies the number of fields in the access
+              unit and shall be 1 or 2. If Fic equals one, there shall be exactly one contiguous codestream. If Fi c equals
+              two, there shall be exactly two contiguous codestreams. No other values are permitted.
+          Fio This parameter is defined as a 1-byte unsigned integer which describes the order of the two fields and is
+              only relevant if Fic equals 2:
+               0    field coding unknown;
+               1    field with the topmost line is stored first in the access unit; fields are in temporal order;
+               6    field with the topmost line is stored second in the access unit; fields are in temporal order.
+
+
+
+
+218        Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+M.4.4    Time Code box (required)
+The Time Code box specifies the time code of the access unit in the superbox using a 32-bit field. The type of the Time
+Code box shall be 'tcod' (0x7463 6f64) and the contents of the box shall have the format shown in Figure M.5.
+
+
+
+                                                          HHMMSSFF
+
+
+
+                                           Figure M.5 – Time Code box content
+         HHMMSSFF             This parameter is a 4-byte unsigned integer field which specifies the hour (HH: 0-23), minutes
+                              (MM: 0-59), seconds (SS: 0-59) and frame count (FF: 1-60). The HH, MM, SS, and FF fields
+                              are individual bytes packed contiguously.
+
+M.4.5    Broadcast Colour Specification box (required)
+This box specifies the colourspace of the access unit. Each Broadcast Colour Specification Box defines one method by
+which an application can interpret the colourspace of the decompressed access unit. This colour specification is to be
+applied to the access unit after it has been decompressed and after any reverse decorrelating component transform has
+been applied to the image data. The type of the Broadcast Colour Specification Box shall be 'bcol' (0x6263 6f6c) and the
+contents of the box shall have the format shown in Figure M.6.
+
+
+
+
+                                                              ColrC
+
+
+
+                                Figure M.6 – Broadcast Colour Specification box content
+         ColrC     This parameter is a 1-byte integer which specifies the corresponding colour standard as defined in
+                   Table M.2.
+
+                                   Table M.2 – Code for identifying video specification
+
+                        Code                                           Video specification
+                        0x00                   Unspecified
+                        0x01                   IEC 61966-2-1:1999
+                        0x02                   Rec. ITU-R BT.601-6
+                        0x03                   Rec. ITU-R BT.709-5
+                        0x04                   See Tables M.3, M.4 and M.5
+                        0x05                   ISO 26428-1 (X'Y'Z')
+                        0x06                   Rec. ITU-R BT.2020
+                        0x07                   SMPTE ST 2084 with colour primaries and white point specified in
+                                               Rec. ITU-R BT.2020
+                      0x08-0xFF                Reserved
+
+
+                             Table M.3 – Colorimetric parameters and related characteristics
+
+                       Parameter                                              Values
+           1     Primaries                        CIE 1931 XYZ Tri-stimulus values (as defined in ISO 11664-1)
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)          219
+ISO/IEC 15444-1:2016 (E)
+
+                   Table M.4 – Real-valued intermediate luminance and chrominance equations
+
+                          Parameter                                                        Equations
+                                                                                                          1/ 
+            2    Luminance equation                                          L  1  log2 Y for Y  2
+                                                                                      L = 0 otherwise
+                                                                                        α = 77/1024
+            3    Chrominance equations                                                          4X
+                                                                                      u' 
+                                                                                           X  15Y  3Z
+                                                                                                9Y
+                                                                                      v' 
+                                                                                           X  15Y  3Z
+            4    Inverse transformation from                                          Y  2( L1) / 
+                 luminance and chrominance signals
+                                                                                              9u'
+                                                                                        X         Y
+                                                                                              4v '
+                                                                                        12  3u'20v'
+                                                                                     Z               Y
+                                                                                             4v '
+
+
+
+                  Table M.5 – Equations for integer luminance and chrominance representation
+                                using n bits for DL and m bits for Du and Dv
+                                  (where  denotes a vanishingly small positive number)
+
+                    Parameter                                                          Equations
+
+
+                                                                                                             
+       5     Luminance equation
+                                                                              L  (254  ) 1  2n 8
+                                                                           DL
+
+
+
+                                                                                                         
+       6     Chrominance equations
+                                                                              Du  S u' B   2m8
+
+
+                                                                                       
+                                                                              Dv  S v' B   2m8     
+                                                                                     S = 406 + 43/64
+                                                                                           B = 35/64
+
+M.4.6      Mastering Display Metadata Box (required)
+This box specifies the characteristics of the mastering display metadata. The type of the mastering display metadata box
+shall be 'dmon' (0x646d6f6e) and contents of the box shall have the format as in Figure M.7:
+
+
+                                     Xc0    Yc0   Xc1   Yc1   Xc2   Yc2   Xwp Ywp    Lmin     Lmax
+
+                                           Figure M.7 – Mastering Display Metadata
+
+
+Xc and Yc are 2-byte unsigned integers that specify the normalized x and y chromaticity coordinates, respectively, of the
+colour primary component c of the mastering display in increments of 0.00002, according to the CIE 1931 definition of
+x and y as specified in ISO 11664-1 (see also ISO 11664-3 and CIE 15). For describing mastering displays that use red,
+green, and blue colour primaries, it is suggested that index value c equal to 0 should correspond to the green primary,
+c equal to 1 should correspond to the blue primary, and c equal to 2 should correspond to the red colour primary. The
+values of Xc and Yc shall be in the range of 0 to 50 000, inclusive.
+Xwp and Ywp are 2-byte unsigned integers that specify the normalized x and y chromaticity coordinates, respectively, of
+the white point of the mastering display in normalized increments of 0.00002, according to the CIE 1931 definition of x
+and y as specified in ISO 11664-1 (see also ISO 11664-3 and CIE 15). The values of Xwp and Ywp shall be in the range of
+0 to 50 000.
+Lmin and Lmax are 4-byte unsigned integers that specify the nominal maximum and minimum display luminance,
+respectively, of the mastering display in units of 0.0001 candelas per square metre. Lmin shall be less than Lmax.
+At minimum luminance, the mastering display is considered to have the same nominal chromaticity as the white point.
+
+
+
+220        Rec. ITU-T T.800 (11/2015)
+                                                                                         ISO/IEC 15444-1:2016 (E)
+
+Default values
+If the mastering display is unknown, the default values should be taken from Rec. ITU-R BT.709-5.
+
+                          Table M.6 – Default values for mastering display parameters
+
+                                  Parameter                  Default value
+                                      Xc0                       0x3A98
+                                      Yc0                       0x7530
+                                      Xc1                       0x1D4C
+                                      Yc1                       0x0BB8
+                                      Xc2                       0x0C80
+                                      Yc2                       0x4074
+                                      Xwp                       0x3D13
+                                      Ywp                       0x4042
+                                     Lmin                     0x00000367
+                                     Lmax                     0x000F4240
+
+
+
+
+                                                                              Rec. ITU-T T.800 (11/2015)     221
+                    SERIES OF ITU-T RECOMMENDATIONS
+
+Series A   Organization of the work of ITU-T
+
+Series D   General tariff principles
+Series E   Overall network operation, telephone service, service operation and human factors
+Series F   Non-telephone telecommunication services
+
+Series G   Transmission systems and media, digital systems and networks
+
+Series H   Audiovisual and multimedia systems
+
+Series I   Integrated services digital network
+Series J   Cable networks and transmission of television, sound programme and other multimedia
+           signals
+Series K   Protection against interference
+
+Series L   Environment and ICTs, climate change, e-waste, energy efficiency; construction, installation
+           and protection of cables and other elements of outside plant
+Series M   Telecommunication management, including TMN and network maintenance
+Series N   Maintenance: international sound programme and television transmission circuits
+
+Series O   Specifications of measuring equipment
+Series P   Terminals and subjective and objective assessment methods
+Series Q   Switching and signalling
+Series R   Telegraph transmission
+
+Series S   Telegraph services terminal equipment
+
+Series T   Terminals for telematic services
+Series U   Telegraph switching
+
+Series V   Data communication over the telephone network
+Series X   Data networks, open system communications and security
+
+Series Y   Global information infrastructure, Internet protocol aspects, next-generation networks,
+           Internet of Things and smart cities
+Series Z   Languages and general software aspects for telecommunication systems
+
+
+
+
+                                                                                  Printed in Switzerland
+                                                                                          Geneva, 2016

@@ -1,0 +1,1070 @@
+                                                        Annex F
+
+                            Discrete wavelet transformation of tile-components
+                  (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex, the flow charts and tables are normative only in the sense that they are defining an output that alternative
+implementations shall duplicate.
+This annex describes the forward discrete wavelet transformation applied to one tile-component and specifies the inverse
+discrete wavelet transformation used to reconstruct the tile-component.
+
+F.1       Tile-component parameters
+Consider the tile-component defined by the coordinates, tcx0, tcx1, tcy0 and tcy1 given in Equation (B-12), in B.3. Then
+the coordinates (x, y) of the tile-component (with sample values I(x, y) lie in the range defined by:
+
+                                       tcx0  x  tcx1 and tcy0  y  tcy1                                           (F-1)
+
+F.2       Discrete wavelet transformations
+F.2.1     Low-pass and high-pass filtering (informative)
+To perform the forward discrete wavelet transformation (FDWT), this Recommendation | International Standard uses a
+one-dimensional sub-band decomposition of a one-dimensional array of samples into low-pass coefficients, representing
+a downsampled low-resolution version of the original array, and high-pass coefficients, representing a downsampled
+residual version of the original array, needed to perfectly reconstruct the original array from the low-pass array.
+To perform the inverse discrete wavelet transformation (IDWT), this Recommendation | International Standard uses a
+one-dimensional sub-band reconstruction of a one-dimensional array of samples from low-pass and high-pass
+coefficients.
+
+F.2.2     Decomposition levels
+Each tile-component is transformed into a set of two-dimensional sub-band signals (called sub-bands), each representing
+the activity of the signal in various frequency bands, at various spatial resolutions. NL denotes the number of
+decomposition levels.
+
+F.2.3     Discrete wavelet filters (informative)
+This Recommendation | International Standard specifies one reversible transformation and one irreversible
+transformation. Given that tile-component samples are integer-valued, a reversible transformation requires the
+specification of a rounding procedure for intermediate non-integer-valued transform coefficients.
+
+F.3       Inverse discrete wavelet transformation
+F.3.1     The IDWT procedure
+The inverse discrete wavelet transformation (IDWT) transforms a set of sub-bands, ab(ub, vb) into a DC-level shifted tile-
+component, I(x, y) (IDWT procedure). The IDWT procedure also takes as input a parameter NL, which represents the
+number of decomposition levels (see Figure F.1). The number of decomposition levels NL is signalled in the COD or COC
+markers (see A.6.1 and A.6.2).
+
+
+
+
+                               Figure F.1 – Inputs and outputs of the IDWT procedure
+
+
+
+
+110        Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+The sub-bands are labelled in the following way: an index lev corresponding to the decomposition level, followed by two
+letters which are either LL, HL, LH or HH.
+The sub-band b = levLL corresponds to a downsampled version of sub-band (lev – 1)LL which has been low-pass filtered
+vertically and low-pass filtered horizontally. The sub-band b = 0LL corresponds to the original tile-component. The
+sub-band b = levHL corresponds to a downsampled version of sub-band (lev – 1)LL which has been low-pass filtered
+vertically and high-pass filtered horizontally. The sub-band b = levLH corresponds to a downsampled version of sub-band
+(lev – 1)LL which has been high-pass filtered vertically and low-pass filtered horizontally. The sub-band b = levHH
+corresponds to a downsampled version of sub-band (lev – 1)LL which has been high-pass filtered vertically and high-pass
+filtered horizontally.
+For a given value of NL, only the following sub-bands are present in the codestream, and in the following order (these
+sub-bands are sufficient to fully reconstruct the original tile-component):
+            NLLL, NLHL, NLLH, NLHH, (NL – 1)HL, (NL – 1)LH, (NL – 1)HH,..., 1HL, 1LH, 1HH.
+For a given sub-band b, the number nb represents the decomposition level at which it has been generated at the time of
+encoding, and is given in Table F.1:
+
+                                         Table F.1 – Decomposition level nb for sub-band b
+ b          NLLL         NLHL     NLLH        NLHH       (NL – 1)HL     (NL – 1)HL   (NL – 1)HL   ...    1HL      1LH       1HH
+ nb          NL           NL        NL         NL          NL – 1         NL – 1       NL – 1     ...         1    1          1
+
+The sub-bands for the case where NL = 2 are illustrated in Figure F.2.
+
+                    a2LL (u2LL, v2LL)
+                                    a2HL (u2HL, v2HL)
+                                            a2HH (u2HH, v2HH)
+     a2LH (u2LH, v2LH)
+
+
+                                                     a1HL(u1HL, v1HL)
+                                                                          IDWT
+                                                                                                    I(x, y)
+
+
+                           a1LH(u1LH, v1LH)          a1HH(u1HH, v1HH)
+
+
+                                                                                                                       T.800_FF-2
+
+
+                                                    Figure F.2 – The IDWT (NL = 2)
+
+
+The IDWT procedure starts with the initialization of the variable lev (the current decomposition level) to NL. The 2D_SR
+procedure (see F.3.2) is performed at every level lev, where the level lev decreases at each iteration, until NL iterations are
+performed. The 2D_SR procedure is iterated over the levLL sub-band produced at each iteration. Finally, the sub-band
+a0LL (u0LL, v0LL) is the output array I(x, y).
+As defined in Equation (B-15), the indices (ub, vb) of sub-band coefficients ab(ub, vb) for a given sub-band b lie in the
+range defined by:
+
+                                           tbx0  ub  tbx1 and tby0  vb  tby1                                             (F-2)
+
+
+
+
+                                                                                        Rec. ITU-T T.800 (11/2015)              111
+ISO/IEC 15444-1:2016 (E)
+
+Figure F.3 describes the IDWT procedure.
+
+
+                                                                   IDWT
+
+
+
+
+                                                                  lev = NL                               Done
+
+
+
+
+                                                                                   Yes
+                                                                   lev = 0                        I(x, y) =a0LL (x, y)
+
+
+                                                                             No
+
+
+                                     a(lev – 1)LL = 2D_SR(alevLL, alevHL, alevLH, alevHH, u0, u1, v0, v1)
+
+
+
+
+                                                                lev = lev – 1
+                                                                                                                    T.800_FF-3
+
+
+
+
+                                             Figure F.3 – The IDWT procedure
+
+F.3.2     The 2D_SR procedure
+The 2D_SR procedure performs a reconstruction of sub-band a(lev – 1)LL (u, v) from the four sub-bands, alevLL(u, v),
+alevHL(u, v), alevLH(u, v) and alevHH(u, v) (see Figure F.4). The total number of coefficients of the reconstructed levLL
+sub-band is equal to the sum of the total number of coefficients of the four sub-bands input to the 2D_SR procedure
+(see Figure F.5).
+
+
+
+
+                                Figure F.4 – Inputs and outputs of the 2D_SR procedure
+
+
+                                    alevLL      alevHL
+                                                              2D_SR
+                                                                                   a(lev – 1)LL
+                                    alevLH      alevHH
+
+                                                                                            T.800_FF-5
+
+
+         Figure F.5 – One level of reconstruction from four sub-bands (2D_SR procedure) into sub-bands
+
+
+First, the four sub-bands alevLL(u, v), alevHL(u, v), alevLH(u, v) and alevHH(u, v) are interleaved to form an array a(u, v) using
+the 2D_INTERLEAVE procedure. The 2D_SR procedure then applies the HOR_SR procedure to all rows of a(u, v), and
+finally applies the VER_SR procedure to all columns of a(u, v) to produce the reconstructed sub-band
+a(lev – 1)LL(u, v). Figure F.6 describes the 2D_SR procedure.
+
+
+112         Rec. ITU-T T.800 (11/2015)
+                                                                                                  ISO/IEC 15444-1:2016 (E)
+
+
+                                                           2D_SR
+
+
+
+
+                              a = 2D_INTERLEAVE(alevLL, alevHL, alevLH, alevHH, u0, u1, v0, v1)
+
+
+
+
+                                               a = HOR_SR(a, u0, u1, v0, v1)
+
+
+
+
+                                           a(lev – 1)LL= VER_SR(a, u0 u1, v0, v1)
+
+
+
+
+                                                            Done
+                                                                                           T.800_FF-6
+
+
+                                          Figure F.6 – The 2D_SR procedure
+
+F.3.3    The 2D_INTERLEAVE procedure
+As illustrated in Figure F.7, the 2D_INTERLEAVE procedure interleaves the coefficients of four sub-bands alevLL, alevHL,
+alevLH, alevHH to form a(u, v). The values of u0, u1, v0, v1 used by the 2D_INTERLEAVE procedure are those of tbx0, tbx1,
+tby0, tby1 corresponding to sub-band b = (lev – 1)LL (see definition in Equation (B-15)).
+The way these sub-bands are interleaved to form the output a(u, v) is described by the 2D_INTERLEAVE procedure
+given in Figure F.8.
+
+
+
+
+                             Figure F.7 – Parameters of 2D_INTERLEAVE procedure
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)        113
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                      2D_INTERLEAVE
+
+
+
+
+                                 b = levLL                                               b = levHL
+                                ub = u0/2                                              ub = u0/2
+                                vb = v0/2                                              vb = v0/2
+
+
+
+
+                           a(2ub, 2vb) = ab(ub, vb)                               a(2ub+ 1, 2vb) = ab(ub,vb)
+
+
+
+                                 ub = ub+ 1                                              ub = ub+ 1
+
+
+
+                    No                                                     No
+                                 ub  u1/2                                             ub  u1/2
+
+                                                Yes                                                    Yes
+      ub = u0/2                                                ub = u0/2
+                                 vb = v b + 1                                            vb = vb+ 1
+
+
+
+                    No                                 Yes                No
+                                 vb  v1/2                                             vb  v1/2
+
+                                                                                                  Yes
+
+
+                                b = levLH                                                b = levHH
+                                ub = u0/2                                              ub = u0/2
+                                 vb = v0/2                                             vb = v0/2
+
+
+
+
+                         a(2ub, 2vb+ 1) = ab(ub, vb)                            a(2ub+ 1, 2vb+ 1) = ab(ub, vb)
+
+
+
+                                 ub = ub+ 1                                              ub = ub+ 1
+
+
+
+                    No                                                     No
+                                 ub  u1/2                                             ub  u1/2
+
+                                            Yes                                                    Yes
+      ub = u0/2                                                ub = u0/2
+                                 vb = v b + 1                                            vb = vb+ 1
+
+
+
+                    No                                 Yes                No                                 Yes
+                                 vb  v1/2                                             vb  v1/2               Done
+
+                                                                                                                     T.800_FF-8
+
+
+                                          Figure F.8 – The 2D_INTERLEAVE procedure
+
+
+
+114         Rec. ITU-T T.800 (11/2015)
+                                                                                               ISO/IEC 15444-1:2016 (E)
+
+F.3.4     The HOR_SR procedure
+The HOR_SR procedure performs a horizontal sub-band reconstruction of a two-dimensional array of coefficients. It
+takes as input a two-dimensional array a(u, v), the horizontal and vertical extent of its coefficients as indicated by
+u0  u <u1 and v0  v < v1 (see Figure F.9) and produces as output a horizontally filtered version of the input array, row by
+row.
+As illustrated in Figure F.10, the HOR_SR procedure applies the one-dimensional sub-band reconstruction (1D_SR
+procedure) to each row v of the input array a(u, v), and stores the result back in each row.
+
+
+
+
+                             Figure F.9 – Inputs and outputs of the HOR_SR procedure
+
+
+
+
+                                                                                   Rec. ITU-T T.800 (11/2015)            115
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                                   HOR_SR
+
+
+
+
+                                                                     v = v0
+                                                                    i0 = u0
+                                                                    i1 = u1
+
+
+
+
+                                                                 Y(u) = a(u, v)
+
+
+
+
+                                                           X(u) = 1D_SR(Y(u), i0, i1)
+
+
+
+
+                                                                 a(u, v) = X(u)
+
+
+
+
+                                                                    v=v+1
+
+
+
+
+                                                         No
+                                                                     v v1
+
+                                                                              Yes
+
+
+                                                                     Done
+
+                                                                                    T.800_FF-10
+
+
+                                        Figure F.10 – The HOR_SR procedure
+
+F.3.5     The VER_SR procedure
+The VER_SR procedure performs a vertical sub-band reconstruction of a two-dimensional array of coefficients. It takes
+as input a two-dimensional array a(u, v), the horizontal and vertical extent of its coefficients as indicated by u0  u <u1
+and v0  v < v1 (see Figure F.11) and produces as output a vertically filtered version of the input array, column by column.
+As illustrated in Figure F.12, the VER_SR procedure applies the one-dimensional sub-band reconstruction (1D_SR
+procedure) to each column u of the input array a(u, v) and stores the result back in each column.
+
+
+
+
+116        Rec. ITU-T T.800 (11/2015)
+                                                                   ISO/IEC 15444-1:2016 (E)
+
+
+
+
+Figure F.11 – Inputs and outputs of the VER_SR procedure
+
+
+                                  VER_SR
+
+
+
+
+                                    u = u0
+                                    i 0 = v0
+                                    i 1 = v1
+
+
+
+
+                                Y(v) = a(u, v)
+
+
+
+
+                          X(v) = 1D_SR(Y(v), i0, i1)
+
+
+
+
+                                a(u, v) = X(v)
+
+
+
+
+                                  u=u+1
+
+
+
+
+                        No
+                                    u u1
+
+                                               Yes
+
+
+                                    Done
+
+                                                     T.800_FF-12
+
+
+          Figure F.12 – The VER_SR procedure
+
+
+
+
+                                                      Rec. ITU-T T.800 (11/2015)       117
+ISO/IEC 15444-1:2016 (E)
+
+F.3.6     The 1D_SR procedure
+As illustrated in Figure F.13, the 1D_SR procedure takes as input a one-dimensional array Y(i), the extent of its
+coefficients as indicated by i0  i < il. It produces as output an array X, with the same indices (i0, il).
+
+
+
+
+                                    Figure F.13 – Parameters of the 1D_SR procedure
+
+
+For signals of length one (i.e., i0 = il – 1), the 1D_SR procedure sets the value of X(i0) to Y(i0) if i0 is an even integer, and
+X(i0) to Y(i0)/2 if i0 is an odd integer.
+For signals of length greater than or equal to two (i.e., i0 < il – 1), as illustrated in Figure F.14, the 1D_SR procedure first
+uses the 1D_EXTR procedure to extend the signal Y beyond its left and right boundaries resulting in the extended signal
+Yext, and then uses the 1D_FILTR procedure to inverse filter the extended signal Yext and produce the desired filtered
+signal X. The 1D_EXTR and 1D_FILTR procedures depend on whether the 9-7 irreversible wavelet transform
+(irreversible transformation) or 5-3 reversible wavelet transform (reversible transformation) is selected: this is signalled
+in the COD or COC markers (see A.6.1 and A.6.2).
+
+
+                                                             1D_SR
+
+
+
+
+                                                    Yext = 1D_EXTR(Y, i0, i1)
+
+
+
+
+                                                    X = 1D_FILTR(Yext, i0, i1)
+
+
+
+
+                                                              Done
+
+
+                                                                      T.800_FF-14
+
+
+                                            Figure F.14 – The 1D_SR procedure
+
+F.3.7     The 1D_EXTR procedure
+As illustrated in Figure F.15, the 1D_EXTR procedure extends signal Y by ileft coefficients to the left and iright coefficients
+to the right. The extension of the signal is needed to enable filtering at both boundaries of the signal.
+
+
+
+
+                                  Figure F.15 – Periodic symmetric extension of signal
+
+
+The first coefficient of Y is coefficient i0, and the last coefficient of signal Y is coefficient i1 – 1. This extension procedure
+is known as "periodic symmetric extension". Symmetric extension consists of extending the signal with the signal
+
+
+118         Rec. ITU-T T.800 (11/2015)
+                                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+coefficients obtained by a reflection of the signal centred on the first coefficient (coefficient i0) for extension to the left,
+and in extending the signal with the signal coefficients obtained by a reflection of the signal centred on the last coefficient
+(coefficient i1 – 1) for extension to the right. Periodic symmetric extension is a generalization of symmetric extension for
+the more general case where the number of coefficients by which to extend the signal on any one side may exceed the
+signal length i1 – i0: this case may happen at higher decomposition levels.
+The 1D_EXTR procedure calculates the values of Yext(i) for values of i beyond the range i0  i < il, as given in
+Equation (F-3):
+
+                                                         Yext i   Y PSEO i, i0 , il                                            (F-3)
+
+where PSEO(i, i0, il) is given by Equation (F-4):
+
+           PSEO i, i0 , il   i0  minmodi  i0 , 2il  i0  1, 2il  i0  1   modi  i0 , 2il  i0  1                (F-4)
+
+Two extension procedures are defined, depending on whether it is the 5-3 wavelet transformation (1D_EXTR5-3
+procedure) or 9-7 wavelet transformation (1D_EXTR9-7 procedure). The procedures only differ in the minimum values of
+the extension parameters ( ileft5-3 and iright 5-3 for the 5-3 wavelet transformation, and ileft9-7 and iright 9-7 for the 9-7
+wavelet transformation) which are given in Tables F.2 and F.3, and depend on the parity of the indices i0 and il. Values
+equal to or greater than those given in Tables F.2 and F.3 will produce the same array X at the output of the 1D_FILTR
+procedure of Figure F.14.
+
+                                                   Table F.2 – Extension to the left
+
+                                    i0                               ileft 5-3                         ileft 9-7
+
+                                  even                                  1                                 3
+                                   odd                                  2                                 4
+
+
+                                                  Table F.3 – Extension to the right
+
+                                    il                               iright5-3                        iright9-7
+
+                                   odd                                  1                                 3
+                                  even                                  2                                 4
+
+F.3.8     The 1D_FILTR procedure
+One reversible filtering procedure 1D_FILTR5-3R and one irreversible filtering procedure 1D_FILTR9-7I are specified,
+depending on whether the 5-3 reversible or 9-7 irreversible wavelet transformation is used.
+As illustrated in Figure F.16, both procedures take as input an extended 1D signal Yext, the index of the first coefficient i0,
+and the index of the coefficient i1 immediately following the last coefficient (i1 – 1). They both produce as output, signal X.
+
+
+
+
+                                    Figure F.16 – Parameters of the 1D_FILTR procedure
+
+
+Both procedures use lifting-based filtering, which consists of applying to the signal a sequence of very simple filtering
+operations called lifting steps, which alternately modify odd-indexed coefficient values of the signal with a weighted sum
+of even-indexed coefficient values, and even-indexed coefficient values with a weighted sum of odd-indexed coefficient
+values.
+
+F.3.8.1   The 1D_FILTR5-3R procedure
+The 1D_FILT5-3R procedure uses lifting-based filtering in conjunction with rounding operations. Equation (F-5) is first
+performed for all values of n indicated, followed by Equation (F-6) which uses values calculated from Equation (F-5):
+
+                                                                                                Rec. ITU-T T.800 (11/2015)             119
+ISO/IEC 15444-1:2016 (E)
+
+                                                Y 2n  1  Yext 2n  1  2       i0        il 
+                          X 2n  Yext 2n   ext                             for  2   n   2   1               (F-5)
+                                                             4                                 
+
+                                                          X 2n   X 2n  2      i         i 
+                            X 2n  1  Yext 2n  1                         for  0   n   l                    (F-6)
+                                                                    2               2         2
+
+The values of X(k) are such that i0  k < il form the output of the 1D_FILTR5-3R procedure.
+
+F.3.8.2   The 1D_FILTR9-7I procedure
+The 1D-FILTR9-7I procedure uses lifting-based filtering (there is no rounding operation). The lifting parameters (, ,
+, ) and the scaling parameter K for all filtering steps are defined in F.3.8.2.1.
+Equation (F-7) describes the two scaling steps (1 and 2) and the four lifting steps (3 to 6) of the 1D filtering performed
+on the extended signal Yext(n) to produce the i1 – i0 coefficients of signal X. These steps are performed in the following
+order.
+
+                                                           i             i 
+Firstly, step 1 is performed for all values of n such that  0   1  n   l   2 , and step 2 is performed for all values of
+                                                            
+                                                             2             2
+             i            i 
+n such that  0   2  n   l   2 .
+              
+               2            2
+
+                                                        i             i 
+Then, step 3 is performed for all values of n such that  0   1  n   l   2 , and uses values calculated in steps 1 and 2.
+                                                        2             2
+
+                                                        i             i 
+Then, step 4 is performed for all values of n such that  0   1  n   l   1 , and uses values calculated in steps 2 and 3.
+                                                        2             2
+
+                                                        i         i 
+Then, step 5 is performed for all values of n such that  0   n   l   1 , and uses values calculated in steps 3 and 4.
+                                                         
+                                                          2         2
+
+                                                           i         i 
+Finally, step 6 is performed for all values of n such that  0   n   l  , and uses values calculated in steps 4 and 5.
+                                                           2         2
+
+                                                    X 2n   KYext 2n                   STEP1
+                                              X 2n  1  1 / K Yext 2n  1           STEP2
+                                  
+                                   X 2n   X 2n    X 2n  1  X 2n  1        STEP3
+                                                                                                                         (F-7)
+                                    X 2n  1  X 2n  1    X 2n   X 2n  2    STEP4
+                                    X 2n   X 2n    X 2n  1  X 2n  1        STEP5
+                                   
+                                    X 2n  1  X 2n  1   X 2n   X 2n  2    STEP6
+where the values of the lifting parameters (, , , ) and K are defined in Table F.4.
+
+                       Table F.4 – Definition of lifting parameters for the 9-7 irreversible filter
+
+                       Parameter                    Exact expression                       Approximate value
+                                                        –g4 / g3                     –1.586 134 342 059 924
+                                                         g 3 / r1                    –0.052 980 118 572 961
+                                                         r1 / s0                      0.882 911 075 530 934
+                                                         s0 / t0                      0.443 506 852 043 971
+                            K                             1 / t0                       1.230 174 104 914 001
+
+The values of X(k) are such that i0  k < i1 form the output of the 1D_FILTR9-7I procedure.
+
+
+
+
+120         Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+F.3.8.2.1 Filtering parameters for the 1D_FILTR9-7I procedure
+The filtering parameters (, , , , K) are defined in Table F.4, in terms of parameters gn from Table F.5, and parameters
+                                                                                                              2
+(r0, rl, s0, t0) from Table F.6. The parameters gn are defined in terms of parameters x1, x2 and x2 given in Table F.7.
+All tables give a closed-form expression for all parameters, including approximations up to 15 decimal points.
+
+                                              Table F.5 – Definition of coefficients gn
+
+                            n                            Coefficients gn             Approximate value of gn
+
+                                                  5 x1 48 x2  16x2  3 / 32
+                                                              2
+                            0                                                        –0.602 949 018 236 360
+                                                                          
+
+                                                      5 x1 8 x2  x2  / 8
+                                                                  2
+                            1                                                         0.266 864 118 442 875
+                                                                         
+
+                                                   5 x1 4 x2  4 x2  1 / 16
+                                                              2
+                            2                                                         0.078 223 266 528 990
+                                                                          
+
+                            3                                5x1x2  / 8          –0.016 864 118 442 875
+
+                            4                                  5x1 / 64              –0.026 748 757 410 810
+
+
+                                         Table F.6 – Intermediate expressions (r0, r1, s0, t0)
+
+                           Parameter                          Exact expression         Approximate value
+                                    r0                         – g0 + 2g1g4 / g3      1.449 513 704 087 943
+                                    r1                       – g2 + g4 + g1g4 / g3    0.318 310 318 985 991
+                                    s0                         g1 – g3 – g3r0 / r1    0.360 523 644 801 462
+                                    t0                                   r0 – 2r1     0.812 893 066 115 961
+
+
+                                               Table F.7 – Intermediate expressions
+
+                      Parameter                        Exact expression                Approximate value
+
+                                                             63  14 15
+                           A                             3                            0.128 030 244 703 494
+                                                              1080 15
+
+                                                              63  14 15
+                           B                            3                           –0.303 747 672 895 197
+                                                               1080 15
+                           x1                            A+B–1/6                     –0.342 384 094 858 369
+
+                                                         
+                                                             A  B  1
+                          x2                                                        –0.078 807 952 570 815
+                                                                 2           6
+
+                                                  A  B 1      3 A  B 2
+                                                                     2
+                                2
+                          x2                      2                                0.146 034 820 982 800
+                                                           6         4
+
+
+F.4       Forward transformation (informative)
+F.4.1     The FDWT procedure (informative)
+The forward discrete wavelet transformation (FDWT) transforms DC-level shifted tile-component samples I(x, y) into a
+set of sub-bands with coefficients ab(ub, vb) (FDWT procedure). The FDWT procedure (see Figure F.17) also takes as
+input the number of decomposition levels NL signalled in the COD or COC markers (see A.6.1 and A.6.2).
+
+
+
+
+                                                                                        Rec. ITU-T T.800 (11/2015)      121
+ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                              Figure F.17 – Inputs and outputs of the FDWT procedure
+
+
+As illustrated in Figure F.18, all the sub-bands in the case where NL = 2 can be represented in the following way:
+
+                                                       a2LL(u2LL, v2LL)
+
+
+                                                      a2HL(u2HL, v2HL)
+                                                      a2LH(u2LH, v2LH)                                a1HL(u1HL, v1HL)
+                                                     a2HH(u2HH, v2HH)
+                    I(x, y)
+                                                          FDWT
+                                                                                  a1LH(u1LH, v1LH)   a1HH(u1HH, v1HH)
+
+
+                                                                                                              T.800_FF-18
+
+
+                                           Figure F.18 – The FDWT (NL = 2)
+
+
+The FDWT procedure starts with the initialization of the variable lev (the current decomposition level) to zero, and setting
+the sub-band a0LL(u0LL, v0LL) to the input array I(u, v). The 2D_SD procedure is performed at every level lev, where the
+level lev increases by one at each iteration, and until NL iterations are performed. The 2D_SD procedure is iterated over
+the levLL sub-band produced at each iteration.
+As defined in Annex B (see Equation (B-15)), the coordinates of the sub-band alevLL(u, v) lie in the range defined by:
+
+                                         tbx0  u  tbx1 and tby0  v  tby1                                             (F-8)
+
+Figure F.19 describes the FDWT procedure.
+
+
+
+
+122        Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                                          Figure F.19 – The FDWT procedure
+
+F.4.2     The 2D_SD procedure (informative)
+The 2D_SD procedure performs a decomposition of a two-dimensional array of coefficients or samples a(lev – 1)LL(u, v)
+into four groups of sub-band coefficients alevLL(u, v), alevHL(u, v), alevLH(u, v), and alevHH(u, v).
+The total number of coefficients of the levLL sub-band is equal to the sum of the total number of coefficients of the four
+sub-bands resulting from the 2D_SD procedure.
+Figure F.20 describes the input and output parameters of the 2D_SD procedure.
+
+                                                                                  alevLL
+                                  a(lev – 1)LL
+                                                                                  alevHL
+
+                                                          2D_SD                   alevLH
+                                 u0, u1, v0, v1
+
+                                                                                  alevHH
+
+                                                                 T.800_FF-20
+
+
+                             Figure F.20 – Inputs and outputs of the 2D_SD procedure
+
+
+Figure F.21 illustrates the sub-band decomposition performed by the 2D_SD procedure.
+
+
+                                                                         alevLL      alevHL
+                                     a(lev – 1)LL        2D_SD
+
+                                                                         alevLH      alevHH
+
+                                                                                     T.800_FF-21
+
+
+                  Figure F.21 – One-level decomposition into four sub-bands (2D_SD procedure)
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)         123
+ISO/IEC 15444-1:2016 (E)
+
+The 2D_SD procedure first applies the VER_SD procedure to all columns of a(u, v). It then applies the HOR_SD
+procedure to all rows of a(u, v). The coefficients thus obtained from a(u, v) are de-interleaved into the four sub-bands
+using the 2D_DEINTERLEAVE procedure.
+Figure F.22 describes the 2D_SD procedure.
+
+
+
+                                                            2D_SD
+
+
+
+
+                                            a = VER_SD(a(lev – 1)LL, u0, u1, v0, v1)
+
+
+
+
+                                                a = HOR_SD(a, u0, u1, v0, v1)
+
+
+
+
+                             (alevLL, alevHL, alevLH, alevHH) = 2D_DEINTERLEAVE(a, u0, u1, v0, v1)
+
+
+                                                                                             T.800_FF-22
+
+
+
+                                                             Done
+
+
+
+                                          Figure F.22 – The 2D_SD procedure
+
+F.4.3     The VER_SD procedure (informative)
+The VER_SD procedure performs a vertical sub-band decomposition of a two-dimensional array of coefficients. It takes
+as input the two-dimensional array a(lev – 1)LL(u, v), the horizontal and vertical extent of its coefficients as indicated by
+u0  u < u1 and v0  v < v1 (see Figure F.23) and produces as output a vertically filtered version a(u, v) of the input array,
+column by column. The values of u0, u1, v0, v1 used by the VER_SD procedure are those of tbx0, tbx1, tby0, tby1
+corresponding to sub-band b = (lev – 1)LL (see definition in Equation (B-15)).
+
+
+
+
+                             Figure F.23 – Inputs and outputs of the VER_SD procedure
+
+
+As illustrated in Figure F.24, the VER_SD procedure applies the one-dimensional sub-band decomposition (1D_SD
+procedure) to each column of the input array a(u, v), and stores the result back into each column.
+
+
+
+
+124        Rec. ITU-T T.800 (11/2015)
+                                                                                               ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                                        Figure F.24 – The VER_SD procedure
+
+F.4.4     The HOR_SD procedure (informative)
+The HOR_SD procedure performs a horizontal sub-band decomposition of a two-dimensional array of coefficients. It
+takes as input a two-dimensional array a(u, v), the horizontal and vertical extent of its coefficients as indicated by
+u0  u < u1 and v0  v < v1 (see Figure F.25) and produces as output a horizontally filtered version of the input array, row
+by row.
+
+
+
+
+                            Figure F.25 – Inputs and outputs of the HOR_SD procedure
+
+
+As illustrated in Figure F.26, the HOR_SD procedure applies the one-dimensional sub-band decomposition (1D_SD
+procedure) to each row of the input array a(u, v) and stores the result back in each row.
+
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)            125
+ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                                       Figure F.26 – The HOR_SD procedure
+
+F.4.5    The 2D_DEINTERLEAVE procedure (informative)
+As illustrated in Figure F.27, the 2D_DEINTERLEAVE procedure de-interleaves the coefficients of a(u, v) into four
+sub-bands. The arrangement is dependent on the coordinates (u0, v0) of the first coefficient of a(u, v).
+The way these sub-bands are formed from the output a(u, v) of the HOR_SD procedure is described by the
+2D_DEINTERLEAVE procedure illustrated in Figure F.28.
+
+                                                                                   alevLL
+
+                         a(u, v)                                                   alevHL
+
+                                                2D_DEINTERLEAVE                    alevLH
+                      u0, u1, v0, v1
+
+                                                                                   alevHH
+
+                                                                     T.800_FF-27
+
+
+                          Figure F.27 – Parameters of 2D_DEINTERLEAVE procedure
+
+
+
+
+126       Rec. ITU-T T.800 (11/2015)
+                                               ISO/IEC 15444-1:2016 (E)
+
+
+
+
+Figure F.28 – The 2D_DEINTERLEAVE procedure
+
+
+
+
+                                     Rec. ITU-T T.800 (11/2015)    127
+ISO/IEC 15444-1:2016 (E)
+
+F.4.6     The 1D_SD procedure (informative)
+As illustrated in Figure F.29, the 1D_SD procedure takes as input a one-dimensional array X(i), the extent of its
+coefficients as indicated by i0  i < il. It produces as output an array Y(i), with the same indices (i0, i1).
+
+
+
+
+                                     Figure F.29 – Parameters of the 1D_SD procedure
+
+
+For signals of length one (i.e., i0 = il – 1), the 1D_SD procedure sets the value of Y(i0) to Y(i0) = X(i0) if i0 is an even
+integer, and to Y(i0) = 2X(i0) if i0 is an odd integer.
+For signals of a length greater than or equal to two (i.e., i0 < il – 1), as illustrated in Figure F.30, the 1D_SD procedure
+first uses the 1D_EXTD procedure to extend the signal X beyond its left and right boundaries resulting in the extended
+signal Xext, and then uses the 1D_FILTD procedure to filter the extended signal Xext and produce the desired filtered
+signal Y.
+
+
+                                                          1D_SD
+
+
+
+
+                                                 Xext = 1D_EXTD(X, i0, i1)
+
+
+
+
+                                                Yext = 1D_FILTD(Xext, i0, i1)
+
+                                                                       T.800_FF-30
+
+
+
+
+                                                           Done
+
+
+
+                                           Figure F.30 – The 1D_SD procedure
+
+F.4.7     The 1D_EXTD procedure (informative)
+The 1D_EXTD procedure is identical to the 1D_EXTR procedure, except for the values of the ileft9-7 , iright9-7 , ileft5-3
+and iright 5-3 parameters, which are given in Tables F.8 and F.9.
+
+
+                                             Table F.8 – Extension to the left
+
+                                i0                         ileft 5-3                    ileft 9-7
+
+                              even                            2                            4
+                               odd                            1                            3
+
+
+                                            Table F.9 – Extension to the right
+
+                                il                         iright5-3                   iright9-7
+
+                               odd                            2                            4
+
+
+
+128        Rec. ITU-T T.800 (11/2015)
+                                                                                                      ISO/IEC 15444-1:2016 (E)
+
+                                even                              1                               3
+
+F.4.8     The 1D_FILTD procedure (informative)
+This Recommendation | International Standard specifies one irreversible procedure (1D_FILTD 9-7I) and one reversible
+filtering procedure (1D_FILTD5-3R), depending on whether the 9-7 irreversible or 5-3 reversible wavelet transformation
+is selected.
+As illustrated in Figure F.31, both procedures take as input an extended 1D signal Xext, the index of the first coefficient i0,
+and the index of the coefficient i1 immediately following the last coefficient (i1 – 1). They both produce an output signal, Y.
+The even-indexed coefficients of the Y signal are a low-pass downsampled version of the extended signal Xext, while the
+odd-indexed coefficients of the signal Y are a high-pass downsampled version of the extended signal Xext.
+
+
+
+
+                                 Figure F.31 – Parameters of the 1D_FILTD procedure
+
+F.4.8.1   The 1D_FILTD5-3R procedure (informative)
+The reversible transformation described in this clause is the reversible lifting-based implementation of filtering by the 5-3
+reversible wavelet filter. The reversible transformation is defined using lifting-based filtering. The odd-indexed
+                                                                                           i            i 
+coefficients of output signal Y are computed first for all values of n such that  0   1  n   l  as given in
+                                                                                            
+                                                                                             2            2
+Equation (F-9):
+
+                                                               X 2n   X ext 2n  2
+                                Y 2n  1  X ext 2n  1   ext                                                        (F-9)
+                                                                         2             
+
+Then the even-indexed coefficients of output signal Y are computed from the even-indexed values of extended signal Xext
+                                                                           i         i 
+and the odd-indexed coefficients of signal Y for all values of n such that  0   n   l  as given in Equation (F-10):
+                                                                           2         2
+
+                                                                 Y 2n  1  Y 2n  1  2 
+                                        Y 2n   X ext 2n                                                         (F-10)
+                                                                              4              
+
+The values of Y(k) are such that i0  k< il form the output of the 1D_FILTD5-3R procedure.
+
+F.4.8.2   The 1D_FILTD9-7I procedure (informative)
+The irreversible transformation described in this clause is the lifting-based DWT implementation of filtering by the 9-7
+irreversible filter.
+Equation (F-11) describes the four lifting steps (1 to 4) and the two scaling steps (5 and 6) of the 1D filtering performed
+on the extended signal Xext(n) to produce the i1 – i0 coefficients of signal Y. These steps are performed in the following
+order.
+
+                                                           i             i 
+Firstly, step 1 is performed for all values of n such that  0   2  n   l   1 .
+                                                           2             2
+
+                                                        i             i 
+Then, step 2 is performed for all values of n such that  0   1  n   l   1 , and uses values calculated at step 1.
+                                                        2             2
+
+                                                        i             i 
+Then, step 3 is performed for all values of n such that  0   1  n   l  , and uses values calculated at steps 1 and 2.
+                                                         
+                                                          2             2
+
+
+
+
+                                                                                           Rec. ITU-T T.800 (11/2015)        129
+ISO/IEC 15444-1:2016 (E)
+
+                                                        i         i 
+Then, step 4 is performed for all values of n such that  0   n   l  , and uses values calculated at steps 2 and 3.
+                                                        2         2
+
+                                                             i       i 
+Finally, step 5 is performed for all values of n such that  0   n   l  and uses values calculated at step 3, and step 6
+                                                              
+                                                               2       2
+                                           i         i 
+is performed for all values of n such that  0   n   l  and uses values calculated at step 4.
+                                            
+                                             2         2
+
+                              Y 2n  1  X ext 2n  1   X ext 2n   X ext 2n  2   STEP1
+                                   Y 2n   X ext 2n   Y 2n  1  Y 2n  1          STEP2
+                              
+                               Y 2n  1  Y 2n  1   Y 2n   Y 2n  2             STEP3
+                                                                                                                      (F-11)
+                                    Y 2n   Y 2n   Y 2n  1  Y 2n  1             STEP4
+                                              Y 2n  1  KY 2n  1                         STEP5
+                               
+                                              Y 2n   1 / K  Y 2n                       STEP6
+where the values of the lifting parameters , , , , and K are defined in Table F.4.
+The values of X(k) are such that i0  k < il form the output of the 1D_FILTD9-7I procedure.
+
+
+
+
+130        Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+

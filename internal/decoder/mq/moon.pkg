@@ -1,0 +1,9 @@
+// T.800-2015 Annex C: MQ Arithmetic Coding
+import {
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

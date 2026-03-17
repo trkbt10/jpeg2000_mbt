@@ -1,0 +1,10 @@
+// Profile validation and decode capability gates
+import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/geometry" @geometry,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

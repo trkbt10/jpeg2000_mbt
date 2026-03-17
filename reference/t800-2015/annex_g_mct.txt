@@ -1,0 +1,155 @@
+                                                           Annex G
+
+                        DC level shifting and multiple component transformations
+                  (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex, the flow charts and tables are normative only in the sense that they are defining an output that alternative
+implementations shall duplicate.
+This annex specifies DC level shifting that converts the signed values resulting from the decoding process to the proper
+reconstructed samples.
+This annex also describes two different multiple component transformations. These multiple component transformations
+are used to improve compression efficiency. They are not related to multiple component transformations used to map
+colour values for display purposes. One multiple component transformation is reversible and may be used for lossy or
+lossless coding. The other is irreversible and may only be used for lossy coding.
+
+G.1       DC level shifting of tile-components
+Figure G.1 shows the flow of DC level shifting in the system with a multiple component transformation.
+
+                                                                                                                         reconstructed
+sample    Forward           Forward          Forward                   Inverse          Inverse                             sample
+                                                                                                        Inverse DC
+          DC level         component         wavelet      coding       wavelet        component
+                                                                                                         level shift
+           shift             trans.           trans.                    trans.           trans.
+                                                                                                            T.800_FG-1
+
+
+                  Figure G.1 – Placement of the DC level shifting with component transformation
+
+
+Figure G.2 shows the flow of DC level shifting in the system without a multiple component transformation.
+
+                                                                                                                         reconstructed
+sample    Forward                             Forward                  Inverse                                              sample
+                                                                                                        Inverse DC
+          DC level                            wavelet     coding       wavelet
+                                                                                                         level shift
+            shift                              trans.                   trans.
+                                                                                                            T.800_FG-2
+
+
+                Figure G.2 – Placement of the DC level shifting without component transformation
+
+G.1.1     DC level shifting of tile-components (informative)
+DC level shifting is performed on samples of components that are unsigned only. It is performed prior to the computation
+of a forward multiple component transformation (RCT or ICT), if one is used. Otherwise it is performed prior to the
+wavelet transformation described in Annex F. If the MSB of Ssiz i from the SIZ marker segment (see A.5.1) is zero, all
+samples I(x, y) of the ith component are level shifted by subtracting the same quantity from each sample as follows:
+
+                                                  I x, y   I x, y   2Ssiz
+                                                                                  i
+                                                                                                                               (G-1)
+
+G.1.2     Inverse DC level shifting of tile-components
+Inverse DC level shifting is performed on reconstructed samples of components that are unsigned only. It is performed
+after the computation of the inverse multiple component transformation (RCT or ICT), if one is used. Otherwise it is
+performed after the inverse wavelet transformation described in Annex F. If the MSB of Ssiz i from the SIZ marker
+segment (see A.6.1) is zero, all samples I(x, y) of the ith component are level shifted by adding the same quantity from
+each sample as follows:
+
+                                                  I x, y   I x, y   2Ssiz
+                                                                                 i
+                                                                                                                               (G-2)
+
+   NOTE – Due to quantization effects, the reconstructed samples I(x, y) may exceed the dynamic range of the original samples. There
+   is no normative procedure for this overflow or underflow situation. However, clipping the value to the nearest value within the
+   original dynamic range is a typical solution.
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)                 131
+ISO/IEC 15444-1:2016 (E)
+
+G.2       Reversible multiple component transformation (RCT)
+The use of the reversible multiple component transformation is signalled in the COD marker segment (see A.6.1). The
+RCT shall be used only with the 5-3 reversible filter. The RCT is a decorrelating transformation applied to the first three
+components of an image (indexed as 0, 1 and 2). The three components input into the RCT shall have the same separation
+on the reference grid and the same bit-depth.
+   NOTE – While the RCT is reversible, and thus capable of lossless compression, it may be used in truncated codestreams to provide
+   lossy compression.
+
+G.2.1     Forward RCT (informative)
+Prior to applying the Forward RCT, the image component samples are DC level shifted, for unsigned components.
+The Forward RCT is applied to components I0(x, y), I1(x, y), I2(x, y) as follows:
+
+                                                     I x, y   2 I1 x, y   I 2 x, y 
+                                       Y0 x, y    0                                                                   (G-3)
+                                                                      4
+
+                                                Y1 x, y   I 2 x, y  – I1 x, y                                        (G-4)
+
+                                                Y2 x, y   I 0 x, y  – I1 x, y                                        (G-5)
+
+If I0, I1, and I2 are normalized to the same precision, then Equations (G-4) and (G-5) result in a numeric precision of Y1
+and Y2 that is one bit greater than the precision of the original components. This increase in precision is necessary to
+ensure reversibility.
+
+G.2.2     Inverse RCT
+After the inverse wavelet transformation is preformed as described in Annex F, the following Inverse RCT is applied:
+
+                                                                   Y x, y   Y1 x, y 
+                                        I1 x, y   Y0 x, y    2                                                     (G-6)
+                                                                             4
+
+                                                I 0 x, y   Y2 x, y   I1 x, y                                        (G-7)
+
+                                                I 2 x, y   Y1 x, y   I1 x, y                                        (G-8)
+
+After applying the Inverse RCT, the unsigned image components are inverse DC level shifted.
+
+G.3       Irreversible multiple component transformation (ICT)
+This clause specifies an irreversible multiple component transformation. The use of the irreversible component
+transformation is signalled in the COD marker segment (see A.6.1). The ICT shall be used only with the 9-7 irreversible
+filter. The ICT is a decorrelating transformation applied to the first three components of an image (indexed as 0, 1 and 2).
+The three components input into the ICT shall have the same separation on the reference grid and the same bit-depth.
+
+G.3.1     Forward ICT (informative)
+The Forward ICT is applied to image component samples I0(x, y), I1(x, y), I2(x, y), as follows:
+
+                                Y0 x, y   0.299 I 0 x, y   0.587 I1 x, y   0.114 I 2 x, y                        (G-9)
+
+                           Y1 x, y    0.16875 I 0 x, y   0.331260 I1 x, y   0.5 I 2 x, y                      (G-10)
+
+                             Y2 x, y   0.5 I 0 x, y   0.41869 I1 x, y   0.08131 I 2 x, y                       (G-11)
+
+   NOTE – If the first three components are Red, Green and Blue components, then the Forward ICT is of a YCbCr transformation.
+
+
+
+
+132        Rec. ITU-T T.800 (11/2015)
+                                                                                                  ISO/IEC 15444-1:2016 (E)
+
+G.3.2    Inverse ICT
+After inverse wavelet transformation is performed as described in Annex F, the following Inverse ICT is applied:
+
+                                          I 0 x, y   Y0 x, y   1.402 Y2 x, y                                 (G-12)
+
+                              I1 x, y   Y0 x, y   0.34413 Y1 x, y   0.71414 Y2 x, y                       (G-13)
+
+                                          I 2 x, y   Y0 x, y   1.772 Y1 x, y                                 (G-14)
+
+Equations (G-12), (G-13) and (G-14) do not imply a required precision for the coefficients. After applying the Inverse
+ICT, the unsigned image component samples are inverse DC level shifted.
+
+G.4      Chrominance component sub-sampling and the reference grid
+The relationship between the components and the reference grid is signalled in the SIZ marker (see A.5.1) and described
+in B.2.
+
+
+
+
+                                                                                        Rec. ITU-T T.800 (11/2015)     133
+ISO/IEC 15444-1:2016 (E)
+

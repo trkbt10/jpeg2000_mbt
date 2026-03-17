@@ -1,0 +1,288 @@
+I n t e r n a t i o n a l   T e l e c o m m u n i c a t i o n   U n i o n
+
+
+
+
+ITU-T                                                           T.800
+TELECOMMUNICATION                                                (11/2015)
+STANDARDIZATION SECTOR
+OF ITU
+
+
+
+
+SERIES T: TERMINALS FOR TELEMATIC SERVICES
+Still-image compression – JPEG 2000
+
+
+Information technology – JPEG 2000 image
+coding system: Core coding system
+
+
+
+
+Recommendation ITU-T T.800
+                                           ITU-T T-SERIES RECOMMENDATIONS
+                                       TERMINALS FOR TELEMATIC SERVICES
+
+
+       Facsimile – Framework                                                T.0–T.19
+       Still-image compression – Test charts                                T.20–T.29
+       Facsimile – Group 3 protocols                                        T.30–T.39
+       Colour representation                                                T.40–T.49
+       Character coding                                                     T.50–T.59
+       Facsimile – Group 4 protocols                                        T.60–T.69
+       Telematic services – Framework                                       T.70–T.79
+       Still-image compression – JPEG-1, Bi-level and JBIG                  T.80–T.89
+       Telematic services – ISDN Terminals and protocols                    T.90–T.99
+       Videotext – Framework                                                T.100–T.109
+       Data protocols for multimedia conferencing                           T.120–T.149
+       Telewriting                                                          T.150–T.159
+       Multimedia and hypermedia framework                                  T.170–T.189
+       Cooperative document handling                                        T.190–T.199
+       Telematic services – Interworking                                    T.300–T.399
+       Open document architecture                                           T.400–T.429
+       Document transfer and manipulation                                   T.430–T.449
+       Document application profile                                         T.500–T.509
+       Communication application profile                                    T.510–T.559
+       Telematic services – Equipment characteristics                       T.560–T.649
+       Still-image compression – JPEG 2000                                  T.800–T.829
+       Still-image compression | JPEG XR                                    T.830–T.849
+       Still-image compression – JPEG-1 extensions                          T.850–T.899
+
+
+For further details, please refer to the list of ITU-T Recommendations.
+    INTERNATIONAL STANDARD ISO/IEC 15444-1
+    RECOMMENDATION ITU-T T.800
+
+               Information technology – JPEG 2000 image coding system: Core coding system
+
+
+
+
+    Summary
+    This Recommendation | International Standard defines a set of lossless (bit-preserving) and lossy compression methods
+    for coding bi-level, continuous-tone grey-scale, palletized colour, or continuous-tone colour digital still images.
+    This Recommendation | International Standard:
+               –   specifies decoding processes for converting compressed image data to reconstructed image data;
+               –   specifies a codestream syntax containing information for interpreting the compressed image data;
+               –   specifies a file format;
+               –   provides guidance on encoding processes for converting source image data to compressed image data;
+               –   provides guidance on how to implement these processes in practice.
+       NOTE – As this specification was first published as common text only after ISO/IEC JTC1 had approved the first edition in 2000,
+       edition numbers in the ITU and ISO/IEC versions are offset by one. This is the second edition of ITU-T T.800 and the third edition
+       of ISO/IEC 15444-1.
+
+
+
+
+    History
+     Edition   Recommendation                     Approval      Study Group          Unique ID*
+       1.0     ITU-T T.800                       2002-08-29          16        11.1002/1000/5281
+       1.1        ITU-T T.800 (2002) Amd. 1      2005-09-13          16        11.1002/1000/8576
+       1.2         ITU-T T.800 (2002) Cor. 1     2007-01-13          16        11.1002/1000/9048
+       1.3         ITU-T T.800 (2002) Cor. 2     2007-08-29          16        11.1002/1000/9231
+       1.4         ITU-T T.800 (2002) Amd. 2     2009-03-16          16        11.1002/1000/9719
+       1.5         ITU-T T.800 (2002) Amd. 3     2010-06-22          16        11.1002/1000/11002
+       1.6         ITU-T T.800 (2002) Amd. 4     2011-05-14          16        11.1002/1000/11313
+       1.7         ITU-T T.800 (2002) Amd. 5     2012-01-13          16        11.1002/1000/11469
+       1.8         ITU-T T.800 (2002) Amd. 6     2013-03-16          16        11.1002/1000/11882
+       1.9         ITU-T T.800 (2002) Cor. 3     2014-10-14          16        11.1002/1000/12301
+      1.10         ITU-T T.800 (2002) Cor.4      2014-10-14          16        11.1002/1000/12302
+      1.11         ITU-T T.800 (2002) Amd. 7     2014-10-14          16        11.1002/1000/12300
+       2.0     ITU-T T.800                       2015-11-29          16        11.1002/1000/12682
+
+
+
+
+
+
+
+*    To access the Recommendation, type the URL http://handle.itu.int/ in the address field of your web browser, followed by the
+     Recommendation's unique ID. For example, http://handle.itu.int/11.1002/1000/11830-en.
+
+
+                                                                                          Rec. ITU-T T.800 (11/2015)                 i
+                                               FOREWORD
+The International Telecommunication Union (ITU) is the United Nations specialized agency in the field of
+telecommunications, information and communication technologies (ICTs). The ITU Telecommunication
+Standardization Sector (ITU-T) is a permanent organ of ITU. ITU-T is responsible for studying technical,
+operating and tariff questions and issuing Recommendations on them with a view to standardizing
+telecommunications on a worldwide basis.
+The World Telecommunication Standardization Assembly (WTSA), which meets every four years, establishes
+the topics for study by the ITU-T study groups which, in turn, produce Recommendations on these topics.
+The approval of ITU-T Recommendations is covered by the procedure laid down in WTSA Resolution 1.
+In some areas of information technology which fall within ITU-T's purview, the necessary standards are
+prepared on a collaborative basis with ISO and IEC.
+
+
+
+
+                                                   NOTE
+In this Recommendation, the expression "Administration" is used for conciseness to indicate both a
+telecommunication administration and a recognized operating agency.
+Compliance with this Recommendation is voluntary. However, the Recommendation may contain certain
+mandatory provisions (to ensure, e.g., interoperability or applicability) and compliance with the
+Recommendation is achieved when all of these mandatory provisions are met. The words "shall" or some other
+obligatory language such as "must" and the negative equivalents are used to express requirements. The use of
+such words does not suggest that compliance with the Recommendation is required of any party.
+
+
+
+
+                                  INTELLECTUAL PROPERTY RIGHTS
+ITU draws attention to the possibility that the practice or implementation of this Recommendation may involve
+the use of a claimed Intellectual Property Right. ITU takes no position concerning the evidence, validity or
+applicability of claimed Intellectual Property Rights, whether asserted by ITU members or others outside of
+the Recommendation development process.
+As of the date of approval of this Recommendation, ITU had received notice of intellectual property, protected
+by patents, which may be required to implement this Recommendation. However, implementers are cautioned
+that this may not represent the latest information and are therefore strongly urged to consult the TSB patent
+database at http://www.itu.int/ITU-T/ipr/.
+
+
+
+
+                                                 ITU 2016
+All rights reserved. No part of this publication may be reproduced, by any means whatsoever, without the prior
+written permission of ITU.
+
+
+
+
+ii        Rec. ITU-T T.800 (11/2015)
+                                                                                 CONTENTS
+                                                                                                                                                                                 Page
+1         Scope ..............................................................................................................................................................      1
+2         References ......................................................................................................................................................         1
+          2.1   Identical Recommendations | International Standards ........................................................................                                        1
+          2.2   Additional references ..........................................................................................................................                    1
+3         Definitions ......................................................................................................................................................        2
+4         Abbreviations and symbols ............................................................................................................................                    6
+          4.1   Abbreviations ......................................................................................................................................                6
+          4.2   Symbols ...............................................................................................................................................             7
+5         General description .........................................................................................................................................             8
+          5.1   Purpose ................................................................................................................................................            8
+          5.2   Codestream..........................................................................................................................................                8
+          5.3   Coding principles ................................................................................................................................                  9
+6         Encoder requirements .....................................................................................................................................               10
+7         Decoder requirements .....................................................................................................................................               10
+          7.1  Codestream syntax requirements.........................................................................................................                             11
+          7.2  Optional file format requirements .......................................................................................................                           11
+8         Implementation requirements .........................................................................................................................                    11
+Annex A – Codestream syntax ..................................................................................................................................                     12
+      A.1 Markers, marker segments, and headers..............................................................................................                                      12
+      A.2 Information in the marker segments ....................................................................................................                                  14
+      A.3 Construction of the codestream ...........................................................................................................                               15
+      A.4 Delimiting markers and marker segments ...........................................................................................                                       19
+      A.5 Fixed information marker segment .....................................................................................................                                   20
+      A.6 Functional marker segments ................................................................................................................                              23
+      A.7 Pointer marker segments .....................................................................................................................                            32
+      A.8 In-bit-stream marker and marker segments .........................................................................................                                       36
+      A.9 Informational marker segments ...........................................................................................................                                37
+      A.10 Codestream restrictions conforming to this Recommendation | International Standard......................                                                                39
+Annex B – Image and compressed image data ordering ............................................................................................                                    55
+      B.1 Introduction to image data structure concepts .....................................................................................                                      55
+      B.2 Component mapping to the reference grid ..........................................................................................                                       55
+      B.3 Image area division into tiles and tile-components .............................................................................                                         57
+      B.4 Example of the mapping of components to the reference grid (informative) ......................................                                                          58
+      B.5 Transformed tile-component division into resolution levels and sub-bands .......................................                                                         61
+      B.6 Division of resolution levels into precincts .........................................................................................                                   62
+      B.7 Division of the sub-bands into code-blocks ........................................................................................                                      63
+      B.8 Layers ..................................................................................................................................................                64
+      B.9 Packets ................................................................................................................................................                 65
+      B.10 Packet header information coding .......................................................................................................                                66
+      B.11 Tile and tile-parts ................................................................................................................................                    71
+      B.12 Progression order ................................................................................................................................                      72
+Annex C – Arithmetic entropy coding .......................................................................................................................                        77
+      C.1 Binary encoding (informative) ............................................................................................................                               77
+      C.2 Description of the arithmetic encoder (informative) ...........................................................................                                          78
+      C.3 Arithmetic decoding procedure ...........................................................................................................                                89
+Annex D – Coefficient bit modelling.........................................................................................................................                       97
+      D.1 Code-block scan pattern within code-blocks .......................................................................................                                       97
+      D.2 Coefficient bits and significance .........................................................................................................                              97
+      D.3 Decoding passes over the bit-planes ...................................................................................................                                  98
+      D.4 Initializing and terminating .................................................................................................................                          102
+      D.5 Error resilience segmentation symbol .................................................................................................                                  103
+
+
+                                                                                                                           Rec. ITU-T T.800 (11/2015)                              iii
+                                                                                                                                                                      Page
+          D.6       Selective arithmetic coding bypass .....................................................................................................           103
+          D.7       Vertically causal context formation ....................................................................................................           104
+          D.8       Flow diagram of the code-block coding ..............................................................................................               105
+Annex E – Quantization.............................................................................................................................................    107
+      E.1 Inverse quantization procedure ...........................................................................................................                   107
+      E.2 Scalar coefficient quantization (informative) ......................................................................................                         108
+Annex F – Discrete wavelet transformation of tile-components................................................................................                           110
+      F.1    Tile-component parameters .................................................................................................................               110
+      F.2    Discrete wavelet transformations ........................................................................................................                 110
+      F.3    Inverse discrete wavelet transformation ..............................................................................................                    110
+      F.4    Forward transformation (informative) .................................................................................................                    121
+Annex G – DC level shifting and multiple component transformations ....................................................................                                131
+      G.1 DC level shifting of tile-components ..................................................................................................                      131
+      G.2 Reversible multiple component transformation (RCT) .......................................................................                                   132
+      G.3 Irreversible multiple component transformation (ICT) .......................................................................                                 132
+      G.4 Chrominance component sub-sampling and the reference grid ..........................................................                                         133
+Annex H – Coding of images with regions of interest ...............................................................................................                    134
+      H.1 Decoding of ROI .................................................................................................................................            134
+      H.2 Description of the Maxshift method ....................................................................................................                      134
+      H.3 Remarks on region of interest coding (informative) ...........................................................................                               135
+Annex I – JP2 file format syntax ...............................................................................................................................       138
+      I.1    File format scope .................................................................................................................................       138
+      I.2    Introduction to the JP2 file format ......................................................................................................                138
+      I.3    Greyscale/Colour/Palettized/multi-component specification architecture ..........................................                                         140
+      I.4    Box definition......................................................................................................................................      142
+      I.5    Defined boxes......................................................................................................................................       144
+      I.6    Adding intellectual property rights information in JP2 .......................................................................                            159
+      I.7    Adding vendor-specific information to the JP2 file format .................................................................                               159
+      I.8    Dealing with unknown boxes ..............................................................................................................                 162
+Annex J – Examples and guidelines ..........................................................................................................................           163
+      J.1    Software conventions adaptive entropy decoder .................................................................................                           163
+      J.2    Selection of quantization step sizes for irreversible transformations ..................................................                                  164
+      J.3    Filter impulse responses corresponding to lifting-based irreversible filtering procedures ..................                                              165
+      J.4    Example of discrete wavelet transformation .......................................................................................                        166
+      J.5    Row-based wavelet transform .............................................................................................................                 169
+      J.6    Scan-based coding ...............................................................................................................................         178
+      J.7    Error resilience ....................................................................................................................................     178
+      J.8    Implementing the Restricted ICC method outside of a full ICC colour management engine .............                                                       179
+      J.9    An example of the interpretation of multiple components ..................................................................                                183
+      J.10 An example of decoding showing intermediate steps .........................................................................                                 183
+      J.11 Visual frequency weighting ................................................................................................................                 187
+      J.12 Encoder sub-sampling of components.................................................................................................                         189
+      J.13 Rate control .........................................................................................................................................      190
+      J.14 Guidelines on handling YCC codestream ...........................................................................................                           194
+      J.15 Guidelines for digital cinema applications ..........................................................................................                       195
+Annex K – Bibliography ............................................................................................................................................    211
+      K.1 General ................................................................................................................................................     211
+      K.2 Quantization and entropy coding ........................................................................................................                     211
+      K.3 Wavelet transformation .......................................................................................................................               211
+      K.4 Region of interest coding ....................................................................................................................               212
+      K.5 Visual frequency weighting ................................................................................................................                  212
+      K.6 Error resilience ....................................................................................................................................        212
+      K.7 Scan-based coding ...............................................................................................................................            213
+
+
+iv              Rec. ITU-T T.800 (11/2015)
+                                                                                                                                                                               Page
+          K.8       Colour..................................................................................................................................................    213
+          K.9       Guidelines for digital cinema applications ..........................................................................................                       213
+Annex L – Patent statement .......................................................................................................................................              215
+Annex M – Elementary stream for broadcast applications ........................................................................................                                 216
+      M.1 Introduction .........................................................................................................................................                216
+      M.2 Definitions ...........................................................................................................................................               216
+      M.3 Access unit construction......................................................................................................................                        216
+      M.4 Elementary stream marker box (superbox) .........................................................................................                                     217
+
+
+
+
+                                                                                                                         Rec. ITU-T T.800 (11/2015)                               v
+                                                                                                        ISO/IEC 15444-1:2016 (E)
+
+INTERNATIONAL STANDARD
+ITU-T RECOMMENDATION
+
+            Information technology – JPEG 2000 image coding system: Core coding system
+
+

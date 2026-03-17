@@ -1,0 +1,1301 @@
+                                                          Annex B
+
+                                 Image and compressed image data ordering
+                  (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex and all of its subclauses, the flow charts and tables are normative only in the sense that they are defining an
+output that alternative implementations shall duplicate.
+This annex describes the various structural entities and their organization in the codestream: components, tiles, sub-bands,
+and their divisions.
+
+B.1       Introduction to image data structure concepts
+The reference grid provides a mechanism for co-registering components and for defining subsets of the reference grid,
+e.g., the image area and tiles.
+The components consist of two-dimensional arrays of samples. Each component, c, has parameters XRsizc, YRsizc
+(see A.5.1) which define the mapping between component samples and the reference grid points. Every component
+sample is associated with a reference grid point (though not vice versa). This mapping induces a registration of
+components with each other used for coding only.
+Each component is divided into tiles corresponding to the tiling of the reference grid. These tile-components are coded
+independently. Each tile-component is wavelet transformed into several decomposition levels which are related to
+resolution levels (see Annex F). Each resolution level consists of either the HL, LH, and HH sub-bands from one
+decomposition level or the NLLL sub-band. Thus, there is one more resolution level than there are decomposition levels.
+Each sub-band has its own origin. The sub-band boundary conditions are unique for each HL, LH, and HH sub-band.
+   NOTE – This convention differs from the usual wavelet diagrams which place all sub-bands for a component in a single space.
+
+Precincts and code-blocks are defined at the resolution level and sub-band. Consequently they can vary over tile-
+components. Precincts are defined so that code-blocks fit neatly, i.e., they "line up" with each other.
+In the accompanying figures, boundaries and coordinate axes are shown. In each case, the samples or coefficients
+coincident with the left and upper boundaries are included in a given region, while samples or coefficients along the right
+and/or lower boundaries are not included in that region.
+Also, in the accompanying formulae, many of the variables have values that can change as a function of component, tile,
+or resolution level. These values may change explicitly (through the syntax described in Annex A) or implicitly (through
+propagation). For convenience of notation, some dependencies are suppressed in the discussion that follows.
+
+B.2       Component mapping to the reference grid
+All components (and many other structures in this annex) are defined with respect to the reference grid. The various
+parameters defining the reference grid appear in Figure B.1. The reference grid is a rectangular grid of points with the
+indices from (0, 0) to (Xsiz – 1, Ysiz – 1). An "image area" is defined on the reference grid by the dimensional parameters,
+(Xsiz, Ysiz) and (XOsiz, YOsiz). Specifically, the image area on the reference grid is defined by its upper left hand
+reference grid point at location (XOsiz, YOsiz), and its lower right hand reference grid point at location
+(Xsiz – 1, Ysiz – 1).
+The samples of component c are at integer multiples of (XRsizc, YRsizc) on the reference grid. Each component domain
+is a sub-sampled version of the reference grid with the (0, 0) coordinate as a common point for each component. Row
+samples are located reference grid points that are at integer multiples of XRsizc and column samples are located reference
+grid points that are at integer multiples of YRsizc. Only those samples which fall within the image area actually belong to
+the image component. Thus, the samples of component c are mapped to the rectangle which has the upper left hand sample
+with coordinates (x0, y0) and lower right hand sample with coordinates (x1 – 1, y1 – 1), with x0, y0, x1, y1 as defined in
+equation (B-1):
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)                  55
+ISO/IEC 15444-1:2016 (E)
+
+                                                     Xsiz
+
+                                XOsiz
+                   (0, 0)
+                                                                                   (Xsiz – 1, 0)
+
+                     YOsiz
+                                                                                  The rows in the figure correspond to boundary
+                                                                                  reference grid points. The image area includes
+                                         (XOsiz,
+                                                                                  reference grid points at locations (XOsiz,
+                                          YOsiz)
+                                                                                  YOsiz) and (Xsiz – 1, Ysiz – 1), as well as all
+            Ysiz
+                                                                                  reference grid points in between.
+                                                   Image area
+
+
+
+
+                                                                                    (Xsiz – 1, Ysiz – 1)
+                                                                     T.800_FB-1
+
+                     (0, Ysiz – 1)
+
+                                                     Figure B.1 – Reference grid diagram
+
+                                    XOsiz              Xsiz           YOsiz              Ysiz 
+                              x0        c
+                                                   x1        c
+                                                                    y0        c
+                                                                                         y1        c
+                                                                                                                                    (B-1)
+                                    XRsiz              XRsiz          YRsiz              YRsiz 
+
+Thus, the dimensions of component c are given by:
+
+                                                     width, height  x1  x0 , y1  y0                                          (B-2)
+
+The parameters, Xsiz, Ysiz, XOsiz, YOsiz, XRsizc and YRsizc are all defined in the SIZ marker segment (see A.5.1).
+     NOTE 1 – The fact that all components share the image offset (XOsiz, YOsiz) and size (Xsiz, Ysiz) induces a registration of the
+     components.
+     NOTE 2 – Figure B.2 shows an example of three components mapped to the reference grid. Figure B.3 shows the image area from
+     a particular image offset with different (XRsiz, YRsiz) values. The upper left sample coordinate in the image component domain
+     that is included in the image area, is also illustrated.
+
+                             (0, 0)                                                                    Reference grid
+
+
+
+
+                                                                                          T.800_FB-2
+
+                                        (XRsiz, YRsiz) = (1, 1)
+                                        (XRsiz, YRsiz) = (2, 2)
+                                        (XRsiz, YRsiz) = (3, 2)
+
+        Figure B.2 – Component sample locations on the reference grid for different XRsiz and YRsiz values
+
+
+
+
+56           Rec. ITU-T T.800 (11/2015)
+                                                                                                         ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                            Figure B.3 – Example of upper left component sample locations
+
+B.3       Image area division into tiles and tile-components
+The reference grid is partitioned into a regular-sized rectangular array of tiles. The tile size and tiling offset are defined,
+on the reference grid, by dimensional pairs (XTsiz, YTsiz) and (XTOsiz, YTOsiz), respectively. These are all parameters
+from the SIZ marker segment (see A.5.1).
+Every tile is XTsiz reference grid points wide and YTsiz reference grid points high. The top left corner of the first tile
+(tile 0) is offset from the top left corner of the reference grid by (XTOsiz, YTOsiz). The tiles are numbered in raster order.
+This is the tile index in the Isot parameter from the SOT marker segment in A.4.2. Thus, the first tile's upper left
+coordinates relative to the reference grid are (XTOsiz, YTOsiz). Figure B.4 shows this relationship.
+
+                                                 XTOsiz
+                                                                 XTsiz
+
+
+                               YTOsiz
+
+
+                (XTOsiz,                                   T0     T1       T2        T3                     Tile index
+                                                                                              T4
+                YTOsiz)                                                                                     number
+
+                                        YTsiz              T5     T6       T7        T8       T9
+
+
+
+                                                           T10   T11      T12       T13       T14
+
+
+
+
+                                                          T15    T16      T17       T18      T19
+
+                                                                                            T.800_FB-4
+
+
+                                                Figure B.4 – Tiling of the reference grid diagram
+
+
+The tile grid offsets (XTOsiz, YTOsiz) are constrained to be no greater than the image area offsets. This is expressed by
+the following ranges:
+
+                                                0  XTOsiz  XOsiz              0  YTOsiz  YOsiz                           (B-3)
+
+Also, the tile size plus the tile offset shall be greater than the image area offset. This ensures that the first tile (tile 0) will
+contain at least one reference grid point from the image area. This is expressed by the following ranges:
+
+                               XTsiz  XTOsiz  XOsiz                           YTsiz  YTOsiz  YOsiz                       (B-4)
+
+
+
+
+                                                                                            Rec. ITU-T T.800 (11/2015)           57
+ISO/IEC 15444-1:2016 (E)
+
+The number of tiles in the X direction (numXtiles) and the Y direction (numYtiles) is the following:
+
+                                  Xsiz  XTOsiz                                     Ysiz  YTOsiz 
+                     numXtiles                                        numYtiles                                     (B-5)
+                                       XTsiz                                             YTsiz    
+
+For the purposes of this description, it is useful to have tiles indexed in terms of horizontal and vertical position. Let p be
+the horizontal index of a tile, ranging from 0 to numXtiles – 1, and q be the vertical index of a tile, ranging from 0 to
+numYtiles – 1, determined from the tile index as follows:
+
+                                                                                 t      
+                                       p mod (t ,numXtiles)              q                                           (B-6)
+                                                                              numXtiles 
+
+where t is the index of the tile in Figure B.4.
+The coordinates of a particular tile on the reference grid are described by the following equations:
+
+                                      tx0  p, q   max XTOsiz  p  XTsiz, XOsiz                                     (B-7)
+
+                                        ty0  p, q   maxYTOsiz  q  YTsiz, YOsiz                                    (B-8)
+
+                                     tx1  p, q   min XTOsiz   p  1  XTsiz, Xsiz                                (B-9)
+
+                                      ty1  p, q   minYTOsiz  q  1  YTsiz, Ysiz                                (B-10)
+
+where tx0(p, q) and ty0(p, q) are the coordinates of the upper left corner of the tile, tx1(p, q) – 1 and ty1(p, q) – 1 are the
+coordinates of the lower right corner of the tile. We will often drop the tile's coordinates in referring to a specific tile and
+refer to the coordinates (tx0, ty0) and (tx1, ty1).
+Thus the dimensions of a tile in the reference grid are:
+
+                                                    (tx1  tx0 , ty1  ty0 )                                            (B-11)
+
+Within the domain of image component i, the coordinates of the upper left hand sample are given by (tcx0, tcy0) and the
+coordinates of the lower right hand sample are given by (tcx1 – 1, tcy1 – 1), where:
+
+                             tx0                  tx1                  ty0                ty1 
+                     tcx0                tcx1               tcy 0              tcy1                         (B-12)
+                             XRsiz i              XRsiz i              YRsizi             YRsizi 
+
+so that the dimensions of the tile-component are:
+
+                                                  (tcx1  tcx0 , tcy1  tcy0 )                                          (B-13)
+
+B.4       Example of the mapping of components to the reference grid (informative)
+The following example is included to illustrate the mapping of image components to the reference grid and the area
+induced by tiling across components with different sub-sampling factors. The example assumes an application in which
+an original image with an aspect ratio 16:9 is to be compressed with this Recommendation | International Standard.
+Choices of the image size, image offset, tile size and tile offset are used such that an image with aspect ratio 4:3 can be
+cropped from the centre of the original image. Figure B.5 shows the reference grid and image areas along with the tiling
+structure that will be imposed in this example.
+
+
+
+
+58          Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+                                                               1432
+
+             (0, 0)
+
+                       234
+
+                 152
+                             (152, 234)
+
+
+
+
+ 954
+
+
+
+                                                                                                                                720
+
+
+
+
+       297
+
+
+
+
+                                                        396
+                                                                         1280
+                                            All coordinates in this figure are in the component domain             T.800_FB-5
+
+
+                                           Figure B.5 – Reference grid example
+
+
+Let the reference grid size (Xsiz, Ysiz) be (1432, 954). In this example, the image will contain two components
+(component indices will be represented by i = 0, 1). The sub-sampling factors XRsizi and YRsizi of the two components
+with respect to the reference grid will be XRsiz0 = YRsiz0 = 1 and XRsiz1 = YRsiz1 = 2. The image offset is set to be
+(XOsiz, YOsiz) = (152, 234). Given these parameters, the sizes of the two image components can be determined from
+Equation (B-1). The upper left corner of component 0 is found at (152/1, 234/1) = (152, 234). The lower right corner
+of component 0 is found at (1432/1 – 1, 954/1 – 1) = (1431, 953). The actual size of component 0 is therefore
+1280 samples in width by 720 samples in height. The upper left corner of component 1 is found at (152/2, 234/2) =
+(76, 117), while the lower right corner of that component is found at (1432/2 – 1, 954/2 – 1) = (715, 476). The actual
+size of component 1 is therefore 640 samples in width by 360 samples in height.
+The tiles are chosen to have an aspect ratio of 4:3. In this example, (XTsiz, YTsiz) will be set to (396, 297) and the tile
+offsets (XTOsiz, YTOsiz) will be set to (0, 0). The number of tiles in the x and y directions are then determined from
+Equation (B-5) numXtiles = 1432/396= 4, numYtiles = 954/297 = 4. The tiled image components will therefore
+contain a total of t = 16 tiles, with tile grid indices p and q in the range 0  p, q < 4. It is now possible to compute the
+locations of the tiles in each image component. To do so, the values of tx0, tx1, ty0, and ty1 are determined from
+Equations (B-7), (B-8), (B-9), and (B-10). Since p and q share the same set of admissible values, the notation '0:3' will be
+used to refer to the sequence of values {0, 1, 2, 3}, and the notation '*' will be used to denote that the result is valid for all
+admissible values. The values of tx0 are found as tx0(0:3, *) = {152, 396, 792, 1188}, and the values of tx1 are given by
+tx1(0:3, *) = {396, 792, 1188, 1432}. The values of ty0 are ty0(*, 0:3) = {234, 297, 594, 891}, and the values of ty1 are
+ty1(*, 0:3) = {297, 594, 891, 954}.
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)                59
+ISO/IEC 15444-1:2016 (E)
+
+     (0, 0)
+
+
+
+
+                                                                                                                          (1432, 234)
+                (152, 234)               (396, 234)                     (792, 234)                    (1188, 234)
+                              244 × 63                       396 × 63                        396 × 63            244 × 63 (1432, 297)
+                (152, 297)               (396, 297)                     (792, 297)                      (1188, 297)
+
+
+
+                             244 × 297                      396 × 297                       396 × 297             244 × 297
+
+
+
+
+                (152, 594)               (396, 594)                     (792, 594)                      (1188, 594)           (1432, 594)
+
+
+
+                             244 × 297                      396 × 297                       396 × 297             244 × 297
+
+
+
+
+                (152, 891)               (396, 891)                     (792, 891)                      (1188, 891)         (1432, 891)
+                              244 × 63                       396 × 63                        396 × 63              244 × 63
+                (152, 954)               (396, 954)                     (792, 954)                      (1188, 954)           (1432, 954)
+
+
+                             Tiling for component 0. All coordinates in this figure are in the component domain                T.800_FB-6
+
+
+                                 Figure B.6 – Example tile sizes and locations for component 0
+
+
+With the values of tx0, tx1, ty0, and ty1 now known, the locations and sizes of all tiles can be determined for each of the
+components. To do so, Equation (B-12) is used. The relevant locations and sizes for component 0 are shown in Figure B.6,
+while the same information is provided for component 1 in Figure B.7. Of particular interest are the 'interior' tiles in the
+figures (tiles (1, 1), (1, 2), (2, 1), and (2, 2)). These tiles are not limited in extent by the image area. In component 0, all
+of these tiles are the same size. This regularity is a result of the fact that the sub-sampling factors for this component are
+(XRsiz0, YRsiz0) = (1, 1). However, in component 1, these tiles are not all the same size because (XRsiz 1, YRsiz1) =
+(2, 2). Notice that tiles (1, 1) and (2, 1) are both of size 198 by 148, while tiles (1, 2) and (2, 2) are both of size 198 by
+149. This illustrates that the number of samples in the interior tiles of a component can vary depending upon the particular
+combination of tile size and component sub-sampling factors.
+With these choices of reference grid, image offset, tile size and tile offset, the coded image can be cropped directly to the
+desired interior region. The four interior tiles from each component can be retained and will represent a cropped image
+of reference grid size (792, 594). When such a cropping is performed, it will not be necessary to recode the tiles, but the
+values of some of the reference grid parameters must change. The image offsets must be set to the coordinates of the
+cropping locations, so that (XOsiz´, YOsiz´) = (396, 297) where (XOsiz´, YOsiz´) are the image offsets of the cropped
+image. Similarly, the image size must be adjusted to reflect the cropped size (Xsiz´, Ysiz´) = (1188, 891) where
+(Xsiz´, Ysiz´) are the sizes of the cropped reference grid. Finally, the tile offsets are no longer zero and instead must be
+set to (XTOsiz´, YTOsiz´) = (396, 297) where (XTOsiz´, YTOsiz´) are the tile offsets of the cropped reference grid.
+
+
+
+
+60            Rec. ITU-T T.800 (11/2015)
+                                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+      (0, 0)
+
+
+
+
+                                                                                                                                           (716, 117)
+                   (76, 117)               (198, 117)                        (396, 117)                           (594, 117)
+                                122 × 32                          198 × 32                             198 × 32                 122 × 32
+                                                                                                                                           (716, 149)
+                   (76, 149)               (198, 149)                        (396, 149)                           (594, 149)
+
+
+
+                               122 × 148                         198 × 148                         198 × 148                   122 × 148
+
+
+
+
+                   (76, 297)               (198, 297)                        (396, 297)                           (594, 297)               (716, 297)
+
+
+
+                               122 × 149                         198 × 149                         198 × 149                   122 × 149
+
+
+
+
+                   (76, 446)               (198, 446)                        (396, 446)                           (594, 446)               (716, 446)
+                                122 × 31                          198 × 31                             198 × 31                 122 × 31
+                   (76, 477)               (198, 477)                        (396, 477)                           (594, 477)               (716, 477)
+
+
+                               Tiling for component 1. All coordinates in this figure are in the component domain                          T.800_FB-7
+
+
+
+                                   Figure B.7 – Example tile sizes and locations for component 1
+
+B.5            Transformed tile-component division into resolution levels and sub-bands
+Each tile-component is wavelet transformed with NL decomposition levels as explained in Annex F. Thus, there are NL + 1
+distinct resolution levels, denoted r = 0,1,...,NL. The lowest resolution level, r = 0, is represented by the NLLL band. In
+general, a reduced resolution version of a tile-component with resolution level, r, is the sub-band nLL, where n = NL – r.
+This clause describes the dimensions of this reduced resolution.
+The given tile-component's coordinates with respect to the reference grid at a particular resolution level, r, yield upper
+left hand sample coordinates, (trx0, try0) and lower right hand sample coordinates, (trx1 – 1, try1 – 1), where:
+
+                                 tcx0                          tcy0                  tcx1                     tcy1 
+                         trx0                        try 0                 trx1                    try1                            (B-14)
+                                 2 NL  r                      2 NL  r              2 NL  r                 2 NL  r 
+
+In a similar manner, the tile coordinates may be mapped into any particular sub-band, b, yielding upper left hand sample
+coordinates (tbx0, tby0) and lower right hand sample coordinates (tbx1 – 1, tby1 – 1) where:
+
+                                                    
+                                   tcx  2 nb  1  xo 
+                          tbx0   0                   b
+                                                           
+                                                                                                  
+                                                                                        tcy  2 nb  1  yo 
+                                                                              tby0   0                     b
+                                                                                                                 
+                                                                                                                           
+                                              nb                                                  nb
+                                          2                                               2                
+
+                                                                                                                    
+                                                                                                                                               (B-15)
+                                  tcx  2 nb  1  xo                              tcy  2 nb  1  yo 
+                          tbx1   1                  b
+                                                                            tby1   1                    b
+                                                                                                              
+                                             nb                                                  nb
+                                         2                                               2              
+
+where nb is the decomposition level associated with sub-band b, as discussed in Annex F, and the quantities (xob, yob) are
+given by the Table B.1.
+
+
+
+
+                                                                                                Rec. ITU-T T.800 (11/2015)                              61
+ISO/IEC 15444-1:2016 (E)
+
+                                            Table B.1 – Quantities (xob, yob) for sub-band b
+
+                                           Sub-band                                     xob                         yob
+                                              nbLL                                       0                           0
+                                 nbHL (horizontal high-pass)                             1                           0
+                                  nbLH (vertical high-pass)                              0                           1
+                                              nbHH                                       1                           1
+
+     NOTE – Each sub-band is different as mentioned in B.1.
+
+For each sub-band, these coordinates define tile boundaries in distinct sub-band domains. Furthermore, the width of each
+sub-band within its domain (at the current decomposition level) is given by tbx1 – tbx0, and the height is given
+by tby1 – tby0.
+
+B.6        Division of resolution levels into precincts
+Consider a particular tile-component and resolution level whose bounding sample coordinates in the reduced resolution
+image domain are (trx0, try0) and (trx1 – 1, try1 – 1), as already described. Figure B.8 shows the partitioning of this
+tile-component resolution level into precincts.The precinct is anchored at location (0, 0), so that the upper left hand corner
+of any given precinct in the partition is located at integer multiples of (2PPx, 2PPy) where PPx and PPy are signalled in the
+COD or COC marker segments (see A.6.1 and A.6.2). PPx and PPy may be different for each tile-component and
+resolution level. PPx and PPy must be at least 1 for all resolution levels except r = 0 where they are allowed to be zero.
+
+                                                      2PPx
+
+             (0, 0)
+
+
+
+        (trx0, try0)
+
+
+
+
+              2PPy
+                                                          K0            K1            K2              K3
+
+
+
+
+                                                          K4            K5             K6             K7
+
+
+
+
+                                                          K8            K9            K10            K11
+                                                                                                                            (trx1 – 1, try1 – 1)
+
+
+                                                                                                       T.800_FB8
+
+
+                                            Figure B.8 – Precincts of one reduced resolution
+
+
+The number of precincts which span the tile-component at resolution level, r, is given by:
+
+                                  trx1   trx0                                             try1   try0 
+                                                        trx1  trx0                                                try1  try0
+            numprecinc tswide    2 PPx   2 PPx                 numprec inctshigh    2 PPy   2 PPy                          (B-16)
+                                                    0 trx1  trx0                                               0 try1  try0
+                                                                                            
+
+
+
+
+62           Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+Even if Equation (B-16) indicates that both numprecinctswide and numprecinctshigh are non-zero, some, or all precincts
+may still be empty, as explained below. The precinct index runs from 0 to numprecincts – 1 where numprecincts =
+numprecinctswide * numprecinctshigh in raster order (see Figure B.8). This index is used in determining the order of
+appearance in the codestream, of packets corresponding to each precinct, as explained in B.12.
+It can happen that numprecincts is 0 for a particular tile-component and resolution level. When this happens, there are no
+packets for this tile-component and resolution level.
+It can happen that a precinct is empty, meaning that no sub-band coefficients from the relevant resolution level actually
+contribute to the precinct. This can occur, for example, at the lower right of a tile-component due to sampling with respect
+to the reference grid. When this happens, every packet corresponding to that precinct must still appear in the codestream
+(see B.9).
+
+B.7       Division of the sub-bands into code-blocks
+The sub-bands are partitioned into rectangular code-blocks for the purpose of coefficient modelling and coding. The size
+of each code-block is determined from two parameters, xcb and ycb, which are signalled in the COD or COC marker
+segments (see A.6.1 and A.6.2). The code-block size is the same from all resolution levels. However, at each resolution
+level, the code-block size is bounded by the precinct size. The code-block size for each sub-band at a particular resolution
+level is determined as 2xcb´ by 2ycb´ where:
+
+                                                     minxcb, PPx  1, for r  0
+                                           xcb´  
+                                                    minxcb, PPx, for r  0
+                                                                                                                           (B-17)
+
+
+and:
+
+                                                      min ycb, PPy  1, for r  0
+                                            ycb´  
+                                                     min ycb, PPy, for r  0
+                                                                                                                           (B-18)
+
+
+These equations reflect the fact that the code-block size is constrained both by the precinct size and the code-block size,
+whose parameters, xcb and ycb, are identical for all sub-bands in the tile-component. Like the precinct, the code-block
+partition is anchored at (0, 0), as illustrated in Figure B.9. Thus, all first rows of code-blocks in the code-block partition
+are located at y = m2ycb´ and all first columns of code-blocks are located at x = n2xcb´, where m and n are integers.
+   NOTE – Code-blocks in the partition may extend beyond the boundaries of the sub-band coefficients. When this happens, only the
+   coefficients lying within the sub-band are coded using the method described in Annex D. The first stripe coded using this method
+   corresponds to the first four rows of sub-band coefficients in the code-block or to as many such rows as are present.
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)               63
+ISO/IEC 15444-1:2016 (E)
+
+
+
+                               n2xcb   (n + 1)2xcb   (n + 2)2xcb
+                        2xcb
+                 0
+
+                0
+
+           2ycb
+
+          n2ycb
+
+     (n + 1)2ycb                                                                                                         Sub-band b
+                                                                                                                         in tile
+     (n + 2)2ycb                                                                                                         (q + 1, v)
+
+
+
+
+ Sub-band b
+      in tile                                                                                                            Sub-band
+      (q, v )                                                                                                            boundary
+
+
+(tbx0, tby0)
+                                                                                                                         Code-block
+
+
+
+
+Sub-band b                                                                                                               Precinct
+      in tile
+  (q, v + 1)
+
+
+
+
+                                                                                                            T.800_FB-9
+                                                                         (tbx1 – 1, tby1 – 1)
+
+                      Figure B.9 – Code-blocks and precincts in sub-band b from four different tiles
+
+B.8         Layers
+The compressed image data of each code-block is distributed across one or more layers in the codestream. Each layer
+consists of a number of consecutive bit-plane coding passes from each code-block in the tile, including all sub-bands of
+all components for that tile. The number of coding passes in the layer may vary from code-block to code-block and may
+be as little as zero for any or all code-blocks. The number of layers for the tile is signalled in the COD marker segment
+(see A.6.1).
+For a given code-block, the first coding pass, if any, in layer n is the coding pass immediately following the last coding
+pass for the code-block in layer n – 1, if any.
+     NOTE 1 – Each layer successively and monotonically improves the image quality.
+
+Layers are indexed from 0 to L – 1, where L is the number of layers in each tile-component.
+     NOTE 2 – Figure B.10 shows an example of nine precincts of resolution level m. Table B.2 shows the layer formation.
+
+
+
+
+64              Rec. ITU-T T.800 (11/2015)
+                                                                                                                             ISO/IEC 15444-1:2016 (E)
+
+
+                                                                                  Pm0             Pm1            Pm2
+
+                                              Resolution level
+                                              m           HL
+                                                                                  Pm3             Pm4            Pm5
+                                              LH               HH
+
+                                                                                  Pm6             Pm7            Pm8
+
+
+
+
+                                     Pm0           Pm1          Pm2              Pm0          Pm1               Pm2
+
+
+
+                                     Pm3           Pm4          Pm5              Pm3          Pm4               Pm5
+
+
+
+                                     Pm6           Pm7          Pm8              Pm6          Pm7               Pm8
+
+                                                                                                               T.800_FB-10
+
+
+                         Figure B.10 – Diagram of precincts of one resolution level of one component
+
+                              Table B.2 – Example of layer formation (only one component shown)
+
+ Resolution level                   0                    ...                            m                              ...                NL
+      Precinct             P00          P01        ...   ...          Pm0        Pm1        ...         Pm8            ...      PNl0       PNl1      ...
+      Layer 0            Packet 0   Packet 0       ...   ...        Packet 0   Packet 0     ...     Packet 0           ...     Packet 0   Packet 0   ...
+      Layer 1            Packet 1   Packet 1       ...   ...        Packet 1   Packet 1     ...     Packet 1           ...     Packet 1   Packet 1   ...
+         ...                ...                    ...   ...           ...        ...       ...          ...           ...        ...          ...   ...
+
+The basic building blocks of layers are packets. Packets are created from the code-block compressed image data from the
+precincts of different resolution levels (for a given tile-component).
+
+B.9            Packets
+All compressed image data representing a specific tile, layer, component, resolution level and precinct appears in the
+codestream in a contiguous segment called a packet. Packet data is aligned at 8-bit (one byte) boundaries.
+As defined in F.3.1, resolution level r = 0 contains the sub-band coefficients from the NLLL band, where NL is the number
+of decomposition levels. Each subsequent resolution level, r > 0, contains the sub-band coefficients from the nHL, nLH,
+and nHH sub-bands, as defined in Annex F, where n = NL – r + 1. There are NL + 1 resolution levels for a tile-component
+with NL decomposition levels.
+The compressed image data in a packet is ordered such that the contribution from the LL, HL, LH and HH sub-bands,
+appear in that order. This sub-band order is identical to the order defined in F.3.1. Within each sub-band, the code-block
+contributions appear in raster order, confined to the bounds established by the relevant precinct. Resolution level r = 0
+contains only the NLLL band and resolution levels r > 0 contain only the HL, LH and HH bands. Only those code-blocks
+that contain samples from the relevant sub-band, confined to the precinct, have any representation in the packet.
+   NOTE 1 – Figure B.11 shows the organization of code-blocks within a precinct that form a packet. Table B.3 shows an example
+   of code-block coding passes that form packets. In Table B.3 the variables a, b and c are code-block coding passes where
+   a = significance propagation pass, b = magnitude refinement pass and c = cleanup pass (see Annex D).
+
+
+
+
+                                                                                                        Rec. ITU-T T.800 (11/2015)                     65
+ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                             Resolution level
+                             m           HL                                 0     1
+
+                             LH              HH                             2     3
+
+
+
+                                                                                             Code-blocks within
+                                                                                           precinct 5 at resolution
+                                                                                                   level m
+
+
+
+
+                                             4    5                          8    9
+
+                                             6    7                         10    11
+
+
+
+
+                                                                            T.800_FB-11
+
+
+                        Figure B.11 – Diagram of code-blocks within precincts at one resolution level
+
+                                              Table B.3 – Example of packet formation
+             code-block 0         code-block 1        code-block 2   ...   code-block 10      code-block 11
+ MSB               c                   0                   0         ...         c                   0                packet 0
+                   a                   0                   0         ...         a                   0
+                   b                   0                   0         ...         b                   0
+                   c                   c                   0         ...         c                   0
+                   a                   a                   0         ...         a                   0                packet 1
+                   b                   b                   0         ...         b                   0
+                   c                   c                   c         ...         c                   c
+                  ...                  ...                 ...       ...         ...                 ...                etc.
+  LSB              a                   a                   a         ...         a                   a
+                   b                   b                   b         ...         b                   b
+                   c                   c                   c         ...         c                   c
+
+Packet data is introduced by a packet header whose syntax is described in B.10 and is followed by a packet body
+containing the actual code-bytes contributed by each of the relevant code-blocks. The order defined above is followed in
+constructing both the packet header and the packet body.
+As described in B.6, it can happen that a precinct contains no code-blocks from any of the sub-bands at particular
+resolution levels. When this occurs, all packets corresponding to that precinct must appear in the codestream as empty
+packets, in accordance with the packet header described in B.10.
+     NOTE 2 – Even when a precinct contains relevant code-blocks, an encoder might choose to not include any coding passes in the
+     corresponding packet at a given layer. In this case, an empty packet must still appear in the codestream.
+
+
+B.10       Packet header information coding
+The packets have headers with the following information:
+         – zero length packet;
+         – code-block inclusion;
+         – zero bit-plane information;
+         – number of coding passes;
+         – length of the code-block compressed image data from a given code-block.
+
+
+
+
+66           Rec. ITU-T T.800 (11/2015)
+                                                                                                  ISO/IEC 15444-1:2016 (E)
+
+Two items in the header are coded with a scheme called tag trees described below. The bits of the packet header are
+packed into a whole number of bytes with the bit-stuffing routine described in B.10.1.
+The packet headers appear in the codestream immediately preceding the packet data, unless one of the PPM or PPT
+marker segments has been used. If the PPM marker segment is used, all of the packet headers are relocated to the main
+header (see A.7.4). If the PPM is not used, then a PPT marker segment may be used. In this case, all of the packet headers
+in that tile are relocated to tile-part headers (see A.7.5).
+
+B.10.1      Bit-stuffing routine
+Bits are packed into bytes from the MSB to the LSB. Once a complete byte is assembled, it is appended to the packet
+header. If the value of the byte is 0xFF, the next byte includes an extra zero bit stuffed into the MSB. Once all bits of the
+packet header have been assembled, the last byte is packed to the byte boundary and emitted. The last byte in the packet
+header shall not be an 0xFF value (thus the single zero bit stuffed after a byte with 0xFF must be included even if the
+0xFF would otherwise have been the last byte).
+
+B.10.2      Tag trees
+A tag tree is a way of representing a two-dimensional array of non-negative integers in a hierarchical way. It successively
+creates reduced resolution levels of this two-dimensional array, forming a tree. At every node of this tree the minimum
+integer of the (up to four) nodes below it is recorded. Figure B.12 shows an example of this representation. The notation,
+qi(m, n), is the value at the node that is mth from the left and nth from the top, at the ith level. Level 0 is the lowest level
+of the tag tree; it contains the top node.
+
+    1        3        2
+                                   3          2        3
+ q3(0, 0) q3(1, 0) q (2, 0)
+                    3                                                         1                 1
+                                                                                                                    2
+                                                                          q2(0, 0)           q2(1, 0)
+    2          2              1    4          3        2
+
+
+
+    2          2              2    2          1        2                     2                   2                  1
+
+           a) Original array of numbers, level 3                          b) Minimum of four (or less) nodes, level 2
+
+
+
+
+                      1                                                                              1
+                                                   1
+                   q1(0, 0)                                                                    q0(0, 0)
+
+
+
+
+         c) Minimum of four (or less) nodes, level 1                      d) Minimum of four (or less) nodes, level 0
+
+                                                                                                                     T.800_FB-12
+
+
+                                       Figure B.12 – Example of a tag tree representation
+
+
+The elements of the array are traversed in raster order for coding. The coding is the answer to a series of questions. Each
+node has an associated current value, which is initialized to zero (the minimum). A 0 bit in the tag tree means that the
+minimum (or the value in the case of the highest level) is larger than the current value and a 1 bit means that the minimum
+(or the value in the case of the highest level) is equal to the current value. For each contiguous 0 bit in the tag tree the
+current value is incremented by one. Nodes at higher levels cannot be coded until lower level node values are fixed (i.e,
+a 1 bit is coded). The top node on level 0 (the lowest level) is queried first. The next corresponding node on level 1 is then
+queried, and so on.
+Only the information needed for the current code-block is stored at the current point in the packet header. The decoding
+of bits is halted when sufficient information has been obtained. Also, the hierarchical nature of the tag trees means that
+the answers to many questions will have been formed when adjacent code-blocks and/or layers were coded. This
+information is not coded again. Therefore, there is a causality to the information in packet headers.
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)               67
+ISO/IEC 15444-1:2016 (E)
+
+     NOTE – For example, in Figure B.12, the coding for the number at q3(0, 0) would be 01111. The two bits, 01, imply that the top
+     node at q0(0, 0) is greater than zero and is in fact one. The third bit, 1, implies that the node at q1(0, 0) is also one. The fourth bit,
+     1, implies that the node at q2(0, 0) is also one. And the final bit, 1, implies that the target node at q3(0, 0) is also one. To decode the
+     next node q3(1, 0) the nodes at q0(0, 0), q1(0, 0), and q2(0, 0) are already known. Thus, the bits coded are 001, the zero says that the
+     node at q3(1, 0) is greater than 1, the second zero says it is greater than 2, and the one bit implies that the value is 3. Now that
+     q3(0, 0) and q3(1, 0) are known, the code bits for q3(2, 0) will be 101. The first 1 indicates q2(1, 0) is one. The following 01 then
+     indicates q3(2, 0) is 2. This process continues for the entire array in Figure B.12a.
+
+B.10.3      Zero length packet
+The first bit in the packet header denotes whether the packet has a length of zero (empty packet). The value 0 indicates a
+zero length; no code-blocks are included in this case. The value 1 indicates a non-zero length; this case is considered
+exclusively hereinafter.
+     NOTE – If a packet is marked as empty, then no code-blocks may contribute to the corresponding layer. If the next packet is not
+     marked as empty, the code-block inclusion information (defined in B.10.4) for the previous layer with the empty bit set has to be
+     included. The code-block inclusion information for code-blocks which have not yet been included in any packet is encoded using
+     a tag tree whose entries are initialized with the layer number of the first layer to which the code-block contributes. Thus the tag
+     tree will have redundant information identifying whether or not the code-block contributes to both the current layer and the layer
+     in which the packet was marked as empty.
+
+B.10.4      Code-block inclusion
+Information concerning whether or not any compressed image data from each code-block is included in the packet is
+signalled in one of two different ways depending upon whether or not the same code-block has already been included in
+a previous packet (i.e., within a previous layer).
+For code-blocks that have been included in a previous packet, a single bit is used to represent the information, where
+a 1 means that the code-block is included in this layer and a 0 means that it is not.
+For code-blocks that have not been previously included in any packet, this information is signalled with a separate tag
+tree code for each precinct as confined to a sub-band. The values in this tag tree are the number of the layer in which the
+current code-block is first included. Although the exact sequence of bits that represent the inclusion tag tree appears in
+the bit stream, only the bits needed for determining whether the code-block is included are placed in the packet header. If
+some of the tag tree is already known from previous code-blocks or previous layers, it is not repeated. Likewise, only as
+much of the tag tree as is needed to determine inclusion in the current layer is included. If a code-block is not included
+until a later layer, then only a partial tag tree is included at that point in the bit stream.
+
+B.10.5      Zero bit-plane information
+If a code-block is included for the first time, the packet header contains information identifying the actual number of bit-
+planes used to represent coefficients from the code-block. The maximum number of bit-planes available for the
+representation of coefficients in any sub-band, b, is given by Mb as defined in Equation (E-2). In general however, the
+number of actual bit-planes for which coding passes are generated is Mb – P, where the number of missing most significant
+bit-planes, P, may vary from code-block to code-block; these missing bit-planes are all taken to be zero. The value of P
+is coded in the packet header with a separate tag tree for every precinct, in the same manner as the code-block inclusion
+information.
+
+B.10.6      Number of coding passes
+The number of coding passes included in this packet from each code-block is identified in the packet header using the
+codewords shown in Table B.4. This table provides for the possibility of signalling up to 164 coding passes.
+
+                        Table B.4 – Codewords for the number of coding passes for each code-block
+
+                                Number of coding passes                          Codeword in packet header
+                                              1                                                 0
+                                              2                                                 10
+                                              3                                               1100
+                                              4                                               1101
+                                              5                                               1110
+                                           6 to 36                                      1111 0000 0
+                                                                                             to
+                                                                                        1111 1111 0
+                                          37 to 164                               1111 11111 0000 000
+                                                                                           to
+                                                                                  1111 11111 1111 111
+
+
+68            Rec. ITU-T T.800 (11/2015)
+                                                                                                        ISO/IEC 15444-1:2016 (E)
+
+
+   NOTE – Since the value of Mb is limited to a maximum value of 37 by the constraints imposed by the syntax of the QCD and QCC
+   marker segments (see A.6.4, A.6.5, and Equation (E-4)), it is not possible for more than 109 coding passes to be employed by the
+   code-block coding algorithm described in Annex D.
+
+B.10.7    Length of the compressed image data from a given code-block
+The packet header identifies the number of bytes contributed by each included code-block. The sequence of bytes actually
+included for any given code-block must not end in a 0xFF. Thus, in the event that an 0xFF appears at the end of a code-
+block's contribution to a packet, the 0xFF may be safely moved to the subsequent packet which contains contributions
+from the code-block, or dropped if there is no such packet. The example coding pass length calculation algorithm
+described in Annex D ensures that no coding pass will ever be considered as ending with an 0xFF.
+   NOTE – This is, in fact, not a burdensome requirement, since 0xFFs are always synthesized as necessary by the arithmetic coder
+   described in Annex C.
+
+In signalling the number of bytes contributed by the code-block, there are two cases: the code-block contribution contains
+a single codeword segment; or the code-block contribution contains multiple codeword segments. Multiple codeword
+segments arise when a termination occurs between coding passes which are included in the packet, as shown in Tables D.8
+and D.9.
+
+B.10.7.1 Single codeword segment
+A codeword segment is the number of bytes contributed to a packet by a code-block. The length of a codeword segment
+is represented by a binary number of length:
+
+                                          bits  Lblock  log2 coding passes added                                          (B-19)
+
+where Lblock is a code-block state variable. A separate Lblock is used for each code-block in the precinct.
+The value of Lblock is initially set to three. The number of bytes contributed by each code-block is preceded by signalling
+bits that increase the value of Lblock, as needed. A signalling bit of zero indicates the current value of Lblock is sufficient.
+If there are k ones followed by a zero, the value of Lblock is incremented by k. While Lblock can only increase, the number
+of bits used to signal the length of the code-block contribution can increase or decrease depending on the number of
+coding passes included.
+   NOTE 1 – For example, say that in successive layers a code-block has 6 bytes, 31 bytes, 44 bytes and 134 bytes respectively.
+   Further assume that the number of coding passes is 1, 9, 2 and 5. The code for each would be 0 110 (0 delimits and 110 = 6),
+   0011111 (0 delimits, log2 9 = 3 bits for the 9 coding passes, 011111 = 31), 11 0 101100 (110 adds two bits to Lblock, log2 2 = 1,
+   101100 = 44), and 1 0 10000110 (10 adds one bit to Lblock, log2 5 = 2, 10000110 = 134).
+   NOTE 2 – There is no requirement that the minimum number of bits be used to signal length (any number is valid).
+
+B.10.7.2 Multiple codeword segments
+Let T be the set of indices of terminated coding passes included for the code-block in the packet as indicated in Tables D.8
+and D.9. If the index final coding pass included in the packet is not a member of T, then it is added to T. Let n1 < ... < nK
+be the indices in T. K lengths are signalled consecutively with each length using the mechanism described in B.10.7.1.
+The first length is the number of bytes from the start of the code-block's contribution in this packet to the end of coding
+pass n1. The number of added coding passes for the purposes of Equation (B-19) is the number of passes in the packet up
+through n1. The second length is the number of bytes from the end of coding pass, n1, to the end of coding pass, n2. The
+number of added coding passes for the purposes of Equation (B-19) is n2 – n1. This procedure is repeated for all K lengths.
+   NOTE – Consider the selective arithmetic coding bypass (see D.6). Say that the passes included in a packet for a given code-block
+   are the cleanup pass of bit-plane number 4 through the significance propagation pass of bit-plane number 6 (see Table D.9). These
+   passes are indexed as {0, 1, 2, 3, 4} and the lengths are given as {6, 31, 44, 134, 192} respectively. Then T = {0, 2, 3, 4} and K = 4
+   lengths are signalled. The set of lengths to be signalled is {6, 75, 134, 192} and the corresponding number of coding passes that
+   are added is {1, 2, 1, 1}. A valid code bit sequence is 11 1110 (Lblock increased to 8), 0000 0110 (log21 = 0, 8 bits used to code
+   length of 6), 0 0100 1011 (log22 = 1, 9 bits used to code the length of 75), 1000 0110 (log21 = 0, 8 bits used to code the length of
+   134), and 1100 0000 (log21 = 0, 8 bits used to code the length of 192). Notice that the value of Lblock is incremented only at the
+   start of the sequence.
+
+B.10.8    Order of information within packet header
+The following is the packet header information order for one packet of a specific layer, tile-component, resolution level
+and precinct.
+          bit for zero or non-zero length packet
+          for each sub-band (LL or HL, LH and HH)
+               for all code-blocks in this sub-band confined to the relevant precinct, in raster order
+
+
+                                                                                           Rec. ITU-T T.800 (11/2015)                 69
+ISO/IEC 15444-1:2016 (E)
+
+                          code-block inclusion bits (if not previously included then tag tree, else one bit)
+                          if code-block included
+                                if first instance of code-block
+                                zero bit-planes information
+                                number of coding passes included
+                                increase of code-block length indicator (Lblock)
+                                for each codeword segment
+                                length of codeword segment
+The packet header may be immediately followed by the EPH marker as described in A.8.2. The EPH marker may appear
+regardless of whether the packet contains any code-block contributions. In the event that the packet header appears in a
+PPM or PPT marker segment, the EPH marker (if used) must appear together with the packet header.
+     NOTE – Figure B.13 and Table B.5 show a brief example of packet header construction. Figure B.13 shows the information known
+     to the encoder. In particular the "inclusion information" shows the layer where each code-block first appears in a packet. The
+     decoder will receive this information via the inclusion tag tree in several packet headers. Table B.5 shows the resulting bit stream
+     (in part) from this information.
+
+     Inclusion information                       Zero bit-planes            # of coding passes (layer 0)   Length information (layer 0)
+
+      0             0     2                  3        4        7                  3       2         –           4        4        –
+
+
+      2             1     1                  3        3        6                  –       –         –           –        –        –
+
+
+
+      Inclusion tag tree                   Zero bit-planes tag tree         # of coding passes (layer 1)   Length information (layer 1)
+
+
+          0               1                       3                6              3       –         –          10       –         –
+
+
+                                                                                  –       1         1           –       1         2
+
+                                                                                                                             T.800_FB-13
+
+
+
+                    0                                  3
+
+
+
+
+                                  Figure B.13 – Example of the information known to the encoder
+
+
+                                            Table B.5 – Example packet header bit stream
+
+Bit stream (in order)                                                       Derived meaning
+               1              Packet non-zero in length
+              111             Code-block 0, 0 included for the first time (partial inclusion tag tree)
+          000111              Code-block 0, 0 insignificant for 3 bit-planes
+              1100            Code-block 0, 0 has 3 coding passes included
+               0              Code-block 0, 0 length indicator is unchanged
+              0100            Code-block 0, 0 has 4 bytes, 4 bits are used, 3 + floor(log2 3)
+               1              Code-block 1, 0 included for the first time (partial inclusion tag tree)
+               01             Code-block 1, 0 insignificant for 4 bit-planes
+               10             Code-block 1, 0 has 2 coding passes included
+               10             Code-block 1, 0 length indicator is increased by 1 bit (3 to 4)
+          00100               Code-block 1, 0 has 4 bytes, 5 bits are used 4 + floor(log2 2),
+
+
+
+70                 Rec. ITU-T T.800 (11/2015)
+                                                                                                           ISO/IEC 15444-1:2016 (E)
+
+
+                                        Table B.5 – Example packet header bit stream
+
+Bit stream (in order)                                                   Derived meaning
+                         (Note that while this is a legitimate entry, it is not minimal in code length.)
+          0              Code-block 2, 0 not yet included (partial tag tree)
+          0              Code-block 0, 1 not yet included
+          0              Code-block 1, 1 not yet included
+                         Code-block 2, 1 not yet included (no data needed, already conveyed by partial tag tree for code-block 2, 0)
+         •••             Packet header data for the other sub-bands, packet data
+                         Packet for the next layer
+          1              Packet non-zero in length
+          1              Code-block 0, 0 included again
+        1100             Code-block 0, 0 has 3 coding passes included
+          0              Code-block 0, 0 length indicator is unchanged
+        1010             Code-block 0, 0 has 10 bytes, 3 + log2 (3) bits used
+          0              Code-block 1, 0 not included in this layer
+         10              Code-block 2, 0 not yet included
+          0              Code-block 0, 1 not yet included
+          1              Code-block 1, 1 included for the first time
+          1              Code-block 1, 1 insignificant for 3 bit-planes
+          0              Code-block 1, 1 has 1 coding pass included
+          0              Code-block 1, 1 length information is unchanged
+         001             Code-block 1, 1 has 1 byte, 3 + log2 (1) bits used
+          1              Code-block 2, 1 included for the first time
+        00011            Code-block 2, 1 insignificant for 6 bit-planes
+          0              Code-block 2, 1 has 1 coding pass included
+          0              Code-block 2, 1 length indicator is unchanged
+         010             Code-block 2, 1 has 2 bytes, 3 + log2 1 bits used
+         •••             Packet header data for the other sub-bands, packet data
+
+
+B.11      Tile and tile-parts
+Each coded tile is represented by a sequence of packets. The rules governing the order that the packets of a tile appear
+within the codestream is specified in B.12. It is possible for a tile to contain no packets, in the event that no samples from
+any image component map to the region occupied by the tile on the reference grid.
+Any tile's representation may be truncated by discarding one or more trailing bytes. Also, any number of whole packets
+(in order) may be dropped and the final packet appearing in the tile may be partially truncated. The tile length marker
+segment parameters shall reflect this.
+The sequence of packets representing any particular tile may be divided into contiguous segments known as tile-parts.
+Any number of packets (including zero) may be contained in a tile-part. Each tile must contain at least one tile-part. The
+divisions between tile-parts must occur at packet boundaries. While tiles are coherent geometric areas, the tile-parts may
+be distributed throughout the codestream in any desired fashion, provided tile-parts from the same tile appear in the order
+that preserves the original packet sequence. Each tile-part commences with an SOT marker segment (see A.4.2),
+containing the index of the tile to which the tile-part belongs.
+   NOTE – It is possible to interleave tile-parts from different tiles, as long as the order of the tile-parts from every tile is preserved.
+   For example, a legitimate codestream might have the following order:
+         –  Tile number 0, tile-part number 0;
+         –  Tile number 1, tile-part number 0;
+         –  Tile number 0, tile-part number 1;
+         –  Tile number 1, tile-part number 1;
+         –  etc.
+
+If SOP marker segments are allowed (by signalling in the COD marker segment, see A.6.1), each packet in any given
+tile-part may be appended with an SOP marker segment (see A.8.1). However, whether or not the SOP marker segment
+
+
+                                                                                             Rec. ITU-T T.800 (11/2015)                  71
+ISO/IEC 15444-1:2016 (E)
+
+is used, the count in the Nsop is incremented for each packet. If the packet headers are moved to a PPM or to PPT marker
+segments (see A.7.4 and A.7.5), then the SOP marker segments may appear immediately before the packet body in the
+tile-part compressed image data portion.
+If EPH markers are required (by signalling in the COD marker segment, see A.6.1), each packet header in any given
+tile-part shall be postpended with an EPH marker segment (see A.8.2). If the packet headers are moved to a PPM or to
+PPT marker segments (see A.7.4 and A.7.5), then the EPH markers shall appear after the packet headers in the PPM or
+PPT marker segments.
+
+B.12        Progression order
+For a given tile-part, the packets contain all compressed image data from a specific layer, a specific component, a specific
+resolution level and a specific precinct. The order in which these packets are found in the codestream is called the
+progression order. The ordering of the packets can progress along four axes: layer, component, resolution level and
+precinct.
+It is possible that components have a different number of resolution levels. In this case, the resolution level that
+corresponds to the NLLL sub-band is the first resolution level (r = 0) for all components. The indices are synchronized
+from that point on.
+     NOTE – For example, take the case of resolution level-position-component-layer progression and two components with 7 resolution
+     levels (6 decomposition levels) and 3 resolution levels (2 decomposition levels) respectively. The r = 0 will correspond to the NLLL
+     sub-band of both components. From r = 0 to r = 2 the components will be interleaved as described below. From r = 3 to r = 6 only
+     component 0 will have packets.
+
+B.12.1      Progression order determination
+The COD marker segments signal which of the five progression orders are used (see A.6.1). The progression order can
+also be overridden with the POC marker segment (see A.6.6) in any tile-part header. For each of the possible progression
+orders the mechanism to determine the order in which packets are included is described below.
+
+B.12.1.1 Layer-resolution level-component-position progression
+Layer-resolution level-component-position progression is defined as the interleaving of the packets in the following order:
+            for each l = 0,..., L – 1
+                 for each r = 0,..., Nmax
+                       for each i = 0,..., Csiz – 1
+                             for each k = 0,..., numprecincts – 1
+                               packet for component i, resolution level r, layer l, and precinct k.
+Here, L is the number of layers and Nmax is the maximum number of decomposition levels, NL, used in any component of
+the tile. A progression of this type might be useful when low sample accuracy is most desirable, but information is needed
+for all components.
+
+B.12.1.2 Resolution level-layer-component-position progression
+Resolution level-layer-component-position progression is defined as the interleaving of the packets in the following order:
+            for each r = 0,..., Nmax
+                 for each l = 0,..., L – 1
+                       for each i = 0,..., Csiz – 1
+                             for each k = 0,..., numprecincts – 1
+                               packet for component i, resolution level r, layer l, and precinct k.
+A progression of this type might be useful in providing low resolution level versions of all image components.
+
+
+
+
+72           Rec. ITU-T T.800 (11/2015)
+                                                                                                                           ISO/IEC 15444-1:2016 (E)
+
+B.12.1.3 Resolution level-position-component-layer progression
+Resolution level-position-component-layer progression is defined as the interleaving of the packets in the following order:
+           for each r = 0,..., Nmax
+                  for each y = ty0,..., ty1 – 1,
+                         for each x = tx0,..., tx1 – 1,
+                               for each i = 0,..., Csiz – 1
+
+                                  if ((y divisible by YRsiz i   2 PPyr , i   N L i   r ) OR ((y = ty0) AND (try0 · 2 N L i   r NOT
+                                  divisible by 2 PPyr , i   N L i   r ))
+
+                                  if ((x divisible by XRsiz(i) · 2 PPxr , i   N L i   r ) OR ((x = tx0) AND (trx0 · 2 N L i   r NOT
+                                  divisible by 2 PPxr , i   N L i   r ))
+                         for the next precinct, k, if one exists,
+                               for each l = 0,..., L – 1
+                                  packet for component i, resolution level r, layer l, and precinct k.
+In the above, k can be obtained from:
+
+                x                                                                             y                                   
+                                                                                                                                       
+                          NL  r                                                                          NL  r  
+        XRsiz i   2                                                                 YRsizi   2                              
+  k                                                  numprecinc tswider , i                                 
+                                         trx                                                                                try
+                                                                                                                            PPy r , i   
+                                              0                                                                                  0
+             PPx r , i              PPx r , i                                            PPy r , i                                     (B-20)
+            2                         2                                                     2                        2              
+                                                                                                                    
+                                                                                                                                      
+                                                                                                                                      
+
+To use this progression, XRsiz and YRsiz values must be powers of two for each component. A progression of this type
+might be useful in providing low resolution level versions of all image components at a particular spatial location.
+   NOTE – The iteration of variables x and y in the above formulation is given for the simplicity only of expression, not
+   implementation. Most of the (x, y) pairs generated by this loop will generally result in the inclusion of no packets. More efficient
+   iterations can be found based upon the minimum of the dimensions of the various precincts, mapped into the reference grid. This
+   note also applies to the loops given for the following two progressions.
+
+B.12.1.4 Position-component-resolution level-layer progression
+Position-component-resolution level-layer progression is defined as the interleaving of the packets in the following order:
+           for each y = ty0,..., ty1 – 1,
+                  for each x = tx0,..., tx1 – 1,
+                         for each i = 0,..., Csiz – 1
+                               for each r = 0,..., NL where NL is the number of decomposition levels for component i,
+                                                                                           
+                                  if ((y divisible by YRsiz(i) · 2 PPy r , i  N L i  r ) OR ((y = ty0) AND (try0 · 2 N L i  r NOT
+                                                                                                                                               
+                                                                      
+                                  divisible by 2 PPy r , i  N L i  r ))
+                                                                                            
+                                    if ((x divisible by XRsiz(i) · 2 PPx r , i  N L i  r ) OR ((x = tx0) AND (trx0 · 2 N L i  r NOT
+                                                                                                                                               
+                                                                        
+                                    divisible by 2 PPx r , i  N L i  r ))
+                                       for the next precinct, k, if one exists, in the sequence shown in Figure B.8
+                                         for each l = 0,..., L – 1
+                                           packet for component i, resolution level r, layer l, and precinct k.
+In the above, k can be obtained from Equation (B-20). To use this progression, XRsiz and YRsiz values shall be powers
+of two for each component. A progression of this type might be useful in providing high sample accuracy for a particular
+spatial location in all components.
+
+
+
+
+                                                                                                           Rec. ITU-T T.800 (11/2015)                  73
+ISO/IEC 15444-1:2016 (E)
+
+B.12.1.5 Component-position-resolution level-layer progression
+Component-position-resolution level-layer progression is defined as the interleaving of the packets in the following order:
+            for each i = 0,..., Csiz – 1
+                 for each y = ty0,..., ty1 – 1,
+                       for each x = tx0,..., tx1 – 1,
+                             for each r = 0,..., NL where NL is the number of decomposition levels for component i,
+
+                               if ((y divisible by YRsiz(i) · 2 PPyr , i   N L i   r ) OR ((y = ty0) AND (try0 · 2 N L i   r NOT
+                               divisible by 2 PPyr , i   N L i   r ))
+
+                                 if ((x divisible by XRsiz(i) · 2 PPxr , i   N L i   r ) OR ((x = tx0) AND (trx0 · 2 N L i   r NOT
+                                 divisible by 2 PPxr , i   N L i   r ))
+                                   for the next precinct, k, if one exists, in the sequence shown in Figure B.8
+                                     for each l = 0,..., L – 1
+                                           packet for component i, resolution level r, layer l, and precinct k.
+In the above, k can be obtained from Equation (B-20). A progression of this type might be useful in providing high
+accuracy for a particular spatial location in a particular image component.
+
+B.12.2      Progression order volumes
+The progression order default is signalled in the COD marker segment in the main header or tile headers (see A.6.1). The
+progression loops of B.12.1 all go from zero to the maximum value.
+If this progression order is to be changed, the POC marker segment is used (see A.6.6). In this case, the "for loops"
+described in B.12.1 are limited by start points (CSpoc, RSpoc, Layer = 0, inclusive) and end points (CEpoc, REpoc and
+LEpoc, exclusive). This creates a progression order volume of packets. All the packets included in the entire progression
+order volume are found in order in the codestream before the next progression order change takes effect. No packet is
+ever repeated in the codestream. Therefore, the layer always starts with the next one for a given tile-component, resolution
+level and precinct. The decoder is required to determine the next layer.
+Thus, the variables in the above loops are bounded by the progression order volume as described in Equation (B-21).
+
+                                                           CSpod  i  CEpod
+                                                           RSpod  r  REpod                                                      (B-21)
+                                                                 0  l  LEpod
+
+     NOTE – Figure B.14 shows an example of two progression volumes for a single component image. First packets are sent in
+     resolution level-layer-component-position progression until the box labelled "First" in the figure is complete; then packets are sent
+     in layer-resolution level-component-position progression for the layers of all resolution levels which were not previously sent.
+
+
+
+
+74           Rec. ITU-T T.800 (11/2015)
+                                                                                                         ISO/IEC 15444-1:2016 (E)
+
+                                                               Resolution level
+                                   (0, 0)
+                                                       First
+                                                                                  Second
+
+
+
+
+                                      Layer
+
+
+
+
+                                                                                           T.800_FB-14
+
+
+                         Figure B.14 – Example of progression order volume in two dimensions
+
+B.12.3    Progression order change signalling
+If there is a progression order change, then at least one POC marker segment shall be used in the codestream (see A.6.6).
+There can only be one POC marker segment in a given header (main or tile-part) but that marker segment can describe
+many progression order changes.
+If the POC marker segment is found in the main header, it overrides the progression found in the COD for all tiles. The
+main header POC marker segment is used for tiles that do not have POC marker segments in their tile-part headers.
+If a POC marker segment is used for an individual tile, there shall be a POC marker in the first tile-part header of that tile
+and all of the progression order changes shall be signalled in the tile-part headers of that tile. The COD progression order
+and the main header POC marker segment (if there is one) are overridden.
+If there are progression order changes signalled by POC marker segments (whether in the main header or the tile-part
+headers), then all the order of all the packets in the codestream, or the affected tile-parts of the codestream shall be
+described by progression order volumes in the POC marker segments. There will never be the case where a progression
+order volume is filled and the next one is not defined. On the other hand, the POC marker segments may describe more
+progression order volumes than exist in the codestream. Also, the last progression order volume in each tile may be
+incomplete.
+The POC marker segments shall describe progression order volumes in order in any tile-part header before the first
+included packet appears. However, the POC marker may be, but is not required to be, in the tile-part header immediately
+before the progression order volume is used. It is possible to describe many progression order volumes in a tile-part header
+even though these progression order volumes do not appear until later tile-parts.
+   NOTE – For example, all of the progression order volumes can be described as one POC marker segment in the first tile-part header
+   of a tile. Figure B.15a shows this scenario. Equally acceptable, in this case, is describing two progression order volumes in the first
+   tile-part header and one in the third, as shown in Figure B.15b.
+
+
+
+
+                                                                                           Rec. ITU-T T.800 (11/2015)                  75
+ISO/IEC 15444-1:2016 (E)
+
+
+                    POV1              POV2                              POV2 cont.                                  POV3
+     POC
+                       Tile-part 0                                      Tile-part 1                              Tile-part 2
+
+           a) All of the progression order volumes are described in the POC marker segments in the first tile-part header
+
+
+
+     POC           POV1               POV2                               POV2 cont.                    POC          POV3
+
+                        Tile-part 0                                    Tile-part 1                                Tile-part 2
+                                                                                                                       T.800_FB-15
+
+
+           b) Progression order volumes 1 and 2 are described in the POC marker segments in the first tile-part header,
+             progression order volume 3 described in the third tile-part header
+
+                             Figure B.15 – Example of the placement of POC marker segments
+
+
+
+
+76             Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+

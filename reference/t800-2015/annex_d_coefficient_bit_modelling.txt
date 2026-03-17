@@ -1,0 +1,598 @@
+                                                              Annex D
+
+                                                   Coefficient bit modelling
+                   (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex, the flow charts and tables are normative only in the sense that they are defining an output that alternative
+implementations shall duplicate.
+This annex defines the modelling and scanning of transform coefficient bits.
+Code-blocks (see Annex B) are decoded a bit-plane at a time starting from the most significant bit-plane with a non-zero
+element to the least significant bit-plane. For each bit-plane in a code-block, a special code-block scan pattern is used for
+each of three coding passes. Each coefficient bit in the bit-plane appears in only one of the three coding passes called
+significance propagation, magnitude refinement, and cleanup. For each pass contexts are created which are provided to
+the arithmetic coder, CX, along with the bit stream, CD (see C.3).
+
+D.1       Code-block scan pattern within code-blocks
+Each bit-plane of a code-block is scanned in a particular order. Starting at the top left, the first four coefficients of the
+first column are scanned, followed by the first four coefficients of the second column and so on, until the right side of the
+code-block is reached. The scan then returns to the left of the code-block and the second set of four coefficients in each
+column is scanned. The process is continued to the bottom of the code-block. If the code-block height is not divisible by
+4, the last set of coefficients scanned in each column will contain fewer than 4 members. Figure D.1 shows an example
+of the code-block scan pattern for a code-block.
+
+                                                    Code-block 16 wide by N high
+
+                        0     4     8    12   16    20   24    28   32   36   40   44   48   52   56   60
+
+                        1     5     9    13   17    21   25    29   33   37   41   45   49   53   57   61
+
+                        2     6     10   14   18    22   26    30   34   38   42   46   50   54   58   62
+
+                        3     7     11   15   19    23   27    31   35   39   43   47   51   55   59   63
+
+                       64     ...
+
+                        ...
+                                                                                                  T.800_FD-1
+
+
+                               Figure D.1 – Example scan pattern of a code-block bit-plane
+
+D.2       Coefficient bits and significance
+D.2.1     General case notations
+The decoding procedures specified in this annex produce for each transform coefficient (u, v) of sub-band b the decoded
+bits which will be used to reconstruct the transform coefficient value qb(u, v). The bits produced are: a sign bit sb(u, v)
+and a number Nb(u, v) of decoded magnitude MSBs, ordered from most to least significant: MSBi(b, u, v) is the ith MSB
+of transform coefficient (u, v) of sub-band b (i = 1, ..., Nb(u, v)). As indicated in Equation (D-1), the sign bit sb(u, v) has a
+value of one for negative coefficients and of zero for positive coefficients. The number Nb(u, v) of decoded MSBs includes
+the number of all zero most significant bit-planes signalled in the packet header (see B.10.5).
+
+
+
+
+                                                                                        Rec. ITU-T T.800 (11/2015)            97
+ISO/IEC 15444-1:2016 (E)
+
+D.2.2        Notation in the case with ROI
+In the case of the presence of the RGN marker segment (indicating the presence of an ROI), modifications need to be
+made to the decoded bits, as well as the number of decoded bits Nb(u, v). These modifications are specified in H.1. In the
+absence of the RGN marker segment, no modification is required.
+
+D.3          Decoding passes over the bit-planes
+Each coefficient in a code-block has an associated binary state variable called its significance state. Significance states
+are initialized to 0 (coefficient is insignificant) and may become 1 (coefficient is significant) during the course of the
+decoding of the code-block. The "significance state" changes from insignificant to significant (see the clause below) at
+the bit-plane where the most significant magnitude bit equal to 1 is found. The context vector for a given current
+coefficient is the binary vector consisting of the significance states of its 8 nearest-neighbour coefficients, as shown in
+Figure D.2. Any nearest neighbour lying outside the current coefficient's code-block is regarded as insignificant (i.e., it is
+treated as having a zero significance state) for the purpose of creating a context vector for decoding the current coefficient.
+
+
+                                                           D0       V0        D1
+
+
+                                                           H0       X         H1
+
+
+                                                           D2       V1        D3
+
+                                                                         T.800_FD-2
+
+
+                                      Figure D.2 – Neighbours states used to form the context
+
+
+In general, a current coefficient can have 256 possible context vectors. These are clustered into a smaller number of
+contexts according to the rules specified below for context formation. Four different context formation rules are defined,
+one for each of the four coding passes: significance coding, sign coding, magnitude refinement coding, and cleanup
+coding. These coding operations are performed in three coding passes over each bit-plane: significance and sign coding
+in a significance propagation pass, magnitude refinement coding in a magnitude refinement pass, and cleanup and sign
+coding in a cleanup pass. For a given coding operation, the context label (or context) provided to the arithmetic coding
+engine is a label assigned to the current coefficient's context.
+     NOTE – Although (for the sake of concreteness) specific integers are used in the tables below for labelling contexts, the tokens
+     used for context labels are implementation-dependent and their values are not mandated by this Recommendation | International
+     Standard.
+The first bit-plane within the current block with a non-zero element has a cleanup pass only. The remaining bit-planes are
+decoded in three coding passes. Each coefficient bit is decoded in exactly one of the three coding passes. Which pass a
+coefficient bit is decoded in depends on the conditions for that pass. In general, the significance propagation pass includes
+the coefficients that are predicted, or "most likely", to become significant and their sign bits, as appropriate. The
+magnitude refinement pass includes bits from already significant coefficients. The cleanup pass includes all the remaining
+coefficients.
+
+D.3.1        Significance propagation decoding pass
+The eight surrounding neighbour coefficients of a current coefficient (shown in Figure D.2 where X denotes the current
+coefficient) are used to create a context vector that maps into one of the 9 contexts shown in Table D.1. If a coefficient is
+significant then it is given a 1 value for the creation of the context, otherwise it is given a 0 value. The mapping to the
+contexts also depends on the sub-band.
+
+                       Table D.1 – Contexts for the significance propagation and cleanup coding passes
+
+          LL and LH sub-bands                            HL sub-band                         HH sub-band                 Context
+           (vertical high-pass)                      (horizontal high-pass)              (diagonally high-pass)           labela
+
+   Hi            Vi           Di            Hi            Vi              Di       Hi  Vi          Di
+      2           xb              x             x               2              x             x                3             8
+      1           1              x            1               1              x            1                 2             7
+      1           0             1              0               1              1            0                 2             6
+
+
+98            Rec. ITU-T T.800 (11/2015)
+                                                                                                       ISO/IEC 15444-1:2016 (E)
+
+
+                      Table D.1 – Contexts for the significance propagation and cleanup coding passes
+
+          LL and LH sub-bands                              HL sub-band                        HH sub-band                 Context
+           (vertical high-pass)                        (horizontal high-pass)             (diagonally high-pass)           labela
+      1           0               0                0             1               0           2                1              5
+      0           2               x                2             0               x            1                1              4
+      0           1               x                1             0               x            0                1              3
+      0           0             2                 0             0               2          2                0              2
+      0           0               1                0             0               1            1                0              1
+      0           0               0                0             0               0            0                0              0
+ a)   Note that the context labels are indexed only for identification convenience in this Recommendation | International Standard.
+      The actual identifiers used is a matter of implementation.
+ b)   "x" indicates a "don't care" state.
+
+The significance propagation pass only includes bits of coefficients that were insignificant (the significance state has yet
+to be set) and have a non-zero context. All other coefficients are skipped. The context is delivered to the arithmetic decoder
+(along with the bit stream) and the decoded coefficient bit is returned. If the value of this bit is 1 then the significance
+state is set to 1 and the immediate next bit to be decoded is the sign bit for the coefficient. Otherwise, the significance
+state remains 0. When the contexts of successive coefficients and coding passes are considered, the most current
+significance state for this coefficient is used.
+
+D.3.2        Sign bit decoding
+The context label for sign bit decoding is determined using another context vector from the neighbourhood. Computation
+of the context label can be viewed as a two-step process. The first step summarizes the contribution of the vertical and
+the horizontal neighbours. The second step reduces those contributions to one of 5 context labels.
+For the first step, the two vertical neighbours (see Figure D.2) are considered together. Each neighbour may have one of
+three states: significant positive, significant negative, or insignificant. If the two vertical neighbours are both significant
+with the same sign, or if only one is significant, then the vertical contribution is 1 if the sign is positive or –1 if the sign
+is negative. If both vertical neighbours are insignificant, or both are significant with different signs, then the vertical
+contribution is 0. The horizontal contribution is created the same way. Once again, if the neighbours fall outside the
+code-block they are considered to be insignificant. Table D.2 shows these contributions.
+
+              Table D.2 – Contributions of the vertical (and the horizontal) neighbours to the sign context
+
+                               V0 (or H0)                        V1 (or H1)            V (or H) contribution
+                           significant, positive             significant, positive                1
+                          significant, negative              significant, positive                0
+                              insignificant                  significant, positive                1
+                           significant, positive             significant, negative                0
+                          significant, negative              significant, negative                –1
+                              insignificant                  significant, negative                –1
+                           significant, positive                 insignificant                    1
+                          significant, negative                  insignificant                    –1
+                              insignificant                      insignificant                    0
+
+The second step reduces the nine permutations of the vertical and horizontal contributions into 5 context labels. Table D.3
+shows these context labels. This context is provided to the arithmetic decoder with the bit stream. The bit returned, D
+(see Annex C), is then logically exclusive ORed with the XORbit in Table D.3 to produce the sign bit. The following
+equation is used:
+
+                                                          signbit = D  XORbit                                                 (D-1)
+
+where signbit is the sign bit of the current coefficient (a one bit indicates a negative coefficient, a zero bit a positive
+coefficient), D is the value returned from the arithmetic decoder given the context label and the bit stream, and the XORbit
+is found in Table D.3 for the current context label.
+
+
+
+
+                                                                                         Rec. ITU-T T.800 (11/2015)                   99
+ISO/IEC 15444-1:2016 (E)
+
+                        Table D.3 – Sign contexts from the vertical and horizontal contributions
+
+                         Horizontal                Vertical
+                                                                        Context label            XORbit
+                        contribution             contribution
+                              1                        1                        13                  0
+                              1                        0                        12                  0
+                              1                        –1                       11                  0
+                              0                        1                        10                  0
+                              0                        0                        9                   0
+                              0                        –1                       10                  1
+                              –1                       1                        11                  1
+                              –1                       0                        12                  1
+                              –1                       –1                       13                  1
+
+D.3.3     Magnitude refinement pass
+The magnitude refinement pass includes the bits from coefficients that are already significant (except those that have just
+become significant in the immediately preceding significance propagation pass).
+The context used is determined by the summation of the significance state of the horizontal, vertical, and diagonal
+neighbours. These are the states as currently known to the decoder, not the states used before the significance decoding
+pass. Furthermore, it is dependent on whether this is the first refinement bit (the bit immediately after the significance
+and sign bits) or not. Table D.4 shows the three contexts for this pass.
+
+                           Table D.4 – Contexts for the magnitude refinement coding passes
+
+                         Hi   Vi   Di              First refinement for this coefficient   Context label
+
+                                   xa                                   false                        16
+                                   1                                   true                         15
+                                   0                                    true                         14
+                   a)    "x" indicates a "don't care" state.
+
+The context is passed to the arithmetic coder along with the bit stream. The bit returned is the value of the current
+coefficient in the current bit-plane.
+
+D.3.4     Cleanup pass
+The remaining coefficients were previously insignificant and not handled by the significance propagation pass. The
+cleanup pass not only uses the neighbour context, like that of the significance propagation pass, from Table D.1, but also
+a run-length context.
+During this pass the neighbour contexts for the coefficients in this pass are recreated using Table D.1. The context label
+can now have any value because the coefficients that were found to be significant in the significance propagation pass are
+considered to be significant in the cleanup pass. Run-lengths are decoded with a unique single context. If the four
+contiguous coefficients in the column being scanned are all decoded in the cleanup pass and the context label for all is 0
+(including context coefficients from previous magnitude, significance and cleanup passes), then the unique run-length
+context is given to the arithmetic decoder along with the bit stream. If the symbol 0 is returned, then all four contiguous
+coefficients in the column remain insignificant and are set to zero.
+Otherwise, if the symbol 1 is returned, then at least one of the four contiguous coefficients in the column is significant.
+The next two bits, returned with the UNIFORM context (index 46 in Table C.2), denote which coefficient from the top
+of the column down is the first to be found significant. The two bits decoded with the UNIFORM context are decoded
+MSB then LSB. That coefficient's sign bit is determined as described in D.3.2. The decoding of any remaining coefficients
+continues in the manner described in D.3.1.
+If the four contiguous coefficients in a column are not all decoded in the cleanup pass or the context bin for any is non-
+zero, then the coefficient bits are decoded with the context in Table D.1 as in the significance propagation pass. The same
+contexts as the significance propagation are used here (the state is used as well as the model). Table D.5 shows the logic
+for the cleanup pass.
+
+
+
+
+100        Rec. ITU-T T.800 (11/2015)
+                                                                                                     ISO/IEC 15444-1:2016 (E)
+
+                                     Table D.5 – Run-length decoder for cleanup passes
+
+    Four contiguous
+     coefficients in a
+                               Symbols with                                              Symbols decoded        Number of
+  column remaining to                              Four contiguous bits to be
+                                run-length                                               with UNIFORMa)        coefficients to
+  be decoded and each                                  decoded are zero
+                                  context                                                     context             decode
+   currently has the 0
+         context
+           true                      0                        true                            none                 none
+           true                      1        false                                         MSB LSB
+                                                   skip to first coefficient sign             00                     3
+                                                   skip to second coefficient sign            01                     2
+                                                   skip to third coefficient sign             10                     1
+                                                   skip to fourth coefficient sign            11                     0
+          false                     none                        x                             none             rest of column
+ a)   See Annex C.
+
+If there are fewer than four rows remaining in a code-block, then no run-length coding is used. Once again, the significance
+state of any coefficient is changed immediately after decoding the first 1 magnitude bit.
+
+D.3.5     Example of coding passes and significance propagation (informative)
+Table D.6 shows an example of the decoding order for the quantized coefficients of one 4-coefficient column in the scan.
+This example assumes all neighbours not included in the table are identically zero, and indicates in which pass each bit
+is decoded. The sign bit is decoded after the initial 1 bit and is indicated in the table by the + or – sign. The very first pass
+in a new block is always a cleanup pass because there can be no predicted significant, or refinement bits. After the first
+pass, the decoded 1 bit of the first coefficient causes the second coefficient to be decoded in the significance pass for the
+next bit-plane. The 1 bit decoded for the last coefficient in the second cleanup pass causes the third coefficient to be
+decoded in the next significance pass.
+
+                  Table D.6 – Example of sub-bit-plane coding order and significance propagation
+                        Coding passes         10          1           3          –7        Coefficient value
+                                              +           +           +              –     Coefficient sign
+                                              1           0           0              0     Coefficient
+                                              0           0           0              1     magnitude
+                                              1           0           1              1     (MSB to LSB)
+                                              0           1           1              1
+                     Cleanup                  1+          0           0              0
+                     Significance                         0
+                     Refinement               0
+                     Cleanup                                          0          1–
+                     Significance                         0          1+
+                     Refinement               1                                      1
+                     Cleanup
+                     Significance                        1+
+                     Refinement               0                       1              1
+                     Cleanup
+
+
+
+
+                                                                                         Rec. ITU-T T.800 (11/2015)              101
+ISO/IEC 15444-1:2016 (E)
+
+D.4           Initializing and terminating
+When the contexts are initialized, or re-initialized, they are set to the values in the Table D.7.
+
+                                                Table D.7 – Initial states for all contexts
+
+                           Context                                Initial index from Table C.3                 MPS
+ UNIFORM                                                                         46                                  0
+ Run-length                                                                      3                                   0
+ All zero neighbours (context label 0 in Table D.1)                              4                                   0
+ All other contexts                                                              0                                   0
+
+
+In normal operation (not selective arithmetic coding bypass), the arithmetic coder shall be terminated either at the end of
+every coding pass or only at the end of every code-block (see D.4.1). Table D.8 shows two examples of termination
+patterns for the coding passes in a code-block. The COD or COC marker signals which termination pattern is used
+(see A.6.1 and A.6.2).
+
+                                           Table D.8 – Arithmetic coder termination patterns
+
+                                                                  Coding Operation               Coding Operation Termination
+          #                       Pass
+                                                              Termination only on last pass              on every pass
+ 1                               cleanup                          Arithmetic Coder (AC)                  AC, terminate
+ 2                       significance propagation                          AC                            AC, terminate
+ 2                        magnitude refinement                             AC                            AC, terminate
+ 2                               cleanup                                   AC                            AC, terminate
+ ...                                 ...                                   ...                                 ...
+ final                   significance propagation                          AC                            AC, terminate
+ final                    magnitude refinement                             AC                            AC, terminate
+ final                           cleanup                              AC, terminate                      AC, terminate
+
+
+When multiple terminations of the arithmetic coder are present, the length of each terminated segment is signalled in the
+packet header as described in B.10.7.
+       NOTE – Termination should never create a byte aligned value between 0xFF90 and 0xFFFF inclusive. These values are available
+       as in-bit-stream marker values.
+
+D.4.1         Expected codestream termination
+The decoder anticipates that the given number of codestream bytes will decode a given number of coding passes before
+the arithmetic coder is terminated. During decoding, bytes are pulled successively from the codestream until all the bytes
+for those coding passes have been consumed. The number of bytes corresponding to the coding passes is specified in the
+packet header. Often at that point there are more symbols to be decoded. Therefore, the decoder shall extend the input bit
+stream to the arithmetic coder with 0xFF bytes, as necessary, until all symbols have been decoded.
+It is sufficient to append no more than two 0xFF bytes. This will cause the arithmetic coder to have at least one pair of
+consecutive 0xFF bytes at its input which is interpreted as an end-of-stream marker (see C.3.4). The bit stream does not
+actually contain a terminating marker. However, the byte length is explicitly signalled enabling the terminating marker to
+be synthesized for the arithmetic decoder.
+       NOTE – Two 0xFF bytes appended in this way is the simplest method. However, other equivalent extensions exist. This might be
+       important since some arithmetic coder implementations might attach special meaning to the specific termination marker.
+
+D.4.2         Arithmetic coder termination
+The FLUSH procedure performs this task (see C.2.9). However, since the FLUSH procedure increases the length of the
+codestream, and frequent termination may be desirable, other techniques may be employed. Any technique that places all
+of the needed bytes in the codestream in such a way that the decoder need not backtrack to find the position at which the
+next segment of the codestream should begin is acceptable.
+
+
+
+
+102            Rec. ITU-T T.800 (11/2015)
+                                                                                               ISO/IEC 15444-1:2016 (E)
+
+When the predictable termination flag is set (see COD and COC in A.6.1 and A.6.2) the following termination procedure
+shall be used. Using the notation of C.2, the followings steps can be used:
+          1)   Identify the number of bits in code register, C, which must be pushed out through the byte buffer. This is
+               given by k = (11 – CT) + 1.
+          2)   While (k > 0):
+               –    shift C left by CT and set CT = 0.
+               –    execute the BYTEOUT procedure. This sets CT equal to the number of bits cleared out of
+                    the C register.
+               –    subtract CT from k.
+          3)   Execute the BYTEOUT procedure to push the contents of the byte buffer register out to the codestream.
+               This step shall be skipped if the byte in the byte buffer has an 0xFF byte value.
+The relevant truncation length in this case is simply the total number of bytes pushed out onto the codestream.
+If the predictable termination flag is not set, the last byte output by the above procedure can generally be modified, within
+certain bounds, without affecting the symbols to be decoded. It will sometimes be possible to augment the last byte to the
+special value, 0xFF, which shall not be sent. It can be shown that this happens approximately 1/8 of the time.
+
+D.4.3     Length computation (informative)
+To include coding pass compressed image data into packets, the number of bytes to be included must be determined. If
+the coding pass compressed image data is terminated, the algorithm in the previous clause may be used. Otherwise, the
+encoder should calculate a suitable length such that corresponding bytes are sufficient for the decoder to reconstruct the
+coding passes.
+
+D.5       Error resilience segmentation symbol
+A segmentation symbol is a special symbol. Whether it is used is signalled in the COD or COC marker segments
+(see A.6.1 and A.6.2). The symbol is coded with the UNIFORM context of the arithmetic coder at the end of each bit-
+plane. The correct decoding of this symbol confirms the correctness of the decoding of this bit-plane, which allows error
+detection. At the decoder, a segmentation symbol 1010 or 0xA should be decoded at the end of each bit-plane (at the end
+of a cleanup pass). If the segmentation symbol is not decoded correctly, then bit errors occurred for this bit-plane.
+   NOTE – This can be used with or without the predictable termination.
+
+
+D.6       Selective arithmetic coding bypass
+This style of coding allows bypassing the arithmetic coder for the significance propagation pass and magnitude refinement
+coding passes starting in the fifth significant bit-plane of the code-block. The COD or COC marker signals whether or
+not this coding style is used (see A.6.1 and A.6.2).
+The first cleanup pass (which is the first bit-plane of a code-block with a non-zero element) and the next three sets of
+significance propagation, magnitude refinement, and cleanup coding passes are decoded with the arithmetic coder. The
+fourth cleanup pass shall include an arithmetic coder termination (see Table D.9).
+
+                                     Table D.9 – Selective arithmetic coding bypass
+
+                     Bit-plane number                      Pass type                 Coding operations
+                              1                             cleanup               Arithmetic Coding (AC)
+                              2                     significance propagation                AC
+                              2                      magnitude refinement                   AC
+                              2                             cleanup                         AC
+                              3                     significance propagation                AC
+                              3                      magnitude refinement                   AC
+                              3                             cleanup                         AC
+                              4                     significance propagation                AC
+                              4                      magnitude refinement                   AC
+                              4                             cleanup                    AC, terminate
+
+
+
+
+                                                                                   Rec. ITU-T T.800 (11/2015)            103
+ISO/IEC 15444-1:2016 (E)
+
+
+                                      Table D.9 – Selective arithmetic coding bypass
+
+                      Bit-plane number                       Pass type                    Coding operations
+                               5                     significance propagation                     raw
+                               5                       magnitude refinement                 raw, terminate
+                               5                              cleanup                        AC, terminate
+                              ...                                ...                               ...
+                             final                          significance                          raw
+                             final                     magnitude refinement                 raw, terminate
+                             final                            cleanup                        AC, terminate
+
+Starting with the fourth significance propagation and magnitude refinement coding passes, the bits that would have been
+returned from the arithmetic coder are instead returned directly from the bit stream. (A routine that undoes the effects of
+bit stuffing precedes the return of bits. Specifically, this routine throws out the first bit after an 0xFF byte value.) After
+each magnitude refinement pass the bit stream has been "terminated" by padding to the byte boundary.
+When the predictable termination flag is set (see COD and COC in A.6.1 and A.6.2) and all the bits from a magnitude
+refinement pass have been assembled, any remaining bits in the last byte are filled with an alternating sequence of 0s and
+1s. This sequence should start with a 0 regardless of the number of bits to be padded.
+When the termination on each coding pass flag is set (see COD and COC in A.6.1 and A.6.2), then the significance
+propagation passes are terminated in the same way as the magnitude refinement passes.
+The cleanup coding passes continue to receive compressed image data directly from the arithmetic coder and are always
+terminated.
+The sign bit is computed with Equation (D-2):
+
+                                                      signbit = raw_value                                                     (D-2)
+
+where raw_value = 1 is a negative sign bit and raw_value = 0 is a positive sign bit. Table D.9 shows the coding sequence.
+The length of each terminated segment, plus the length of any remaining unterminated passes, is signalled in the packet
+header as described in B.10.7. If termination on each coding pass is selected (see A.6.1 and A.6.2), then every pass is
+terminated (including both raw passes).
+   NOTE 1 – Using the selective bypass mode when encoding an image with an ROI may significantly decrease the compression
+   efficiency.
+
+If a 0xFF value is encountered in the bit stream, then the first bit of the next byte is discarded. The sequence of bits used
+in the selective arithmetic coding bypass have been stuffed into bytes using a bit-stuffing routine.
+At the encoder, bits are packed into bytes from the most significant bit to the least significant bit. Once a complete byte
+is assembled, it is emitted to the bit stream. If the value of the byte is an 0xFF, a single zero bit is stuffed into the most
+significant bit of the next byte. Once all bits of the coding pass have been assembled, the last byte is packed to the byte
+boundary and emitted. The last byte shall not be an 0xFF value.
+   NOTE 2 – Since the decoder appends 0xFF values, as necessary, to the bit stream representing the coding pass (see D.4.1),
+   truncation of the bit stream may be possible. When the predictable termination flag is set (see COD and COC in A.6.1 and A.6.2),
+   such truncation is not permitted. The last byte cannot be an 0xFF, since the bit-stuffing routine appends a new byte following the
+   FF which has the, most significant bit value of 0 and unused bits filled with the alternating sequence of 0 and 1 value bits.
+
+
+D.7       Vertically causal context formation
+This style of coding constrains the context formation to the current and past code-block scans (four rows of vertically
+scanned coefficients). That is, any coefficient from the next code-block scan is considered to be insignificant. The COD
+or COC marker signals whether or not this style of coding is used (see A.6.1 and A.6.2).
+To illustrate, the bit labelled 14 in Figure D.1 is decoded as usual using the neighbour states as specified in Figure D.2,
+independent of whether or not contexts are vertically causal. However when vertically causal context formation is used,
+the bit labelled 15 is decoded assuming D2 = V1 = D3 = 0 in Figure D.2.
+
+
+
+
+104        Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+D.8             Flow diagram of the code-block coding
+The steps for modelling each bit-plane of each code-block can be viewed graphically in Figure D.3. The decisions made
+are in Table D.10 and the bits and context sent to the coder are in Table D.11. These show the context without the selective
+arithmetic coding bypass or the vertically causal model.
+
+                  Start coding passes for a code-block bit-plane
+
+
+   Start of                   No                   Yes
+significance                           D0
+propagation
+
+                                                    Start of cleanup pass
+                Yes
+      D1
+
+           No                                                         Yes                    Yes
+                                                            D8              C4    D11
+                 Yes
+      D2                                                         No                     No
+         No
+                                                                      Yes          C5
+                                                            D9
+      C1
+                                                                 No
+                                                                                                                       Yes
+                Yes                                         C1                     C2
+      D3                C2
+           No                                                                                                     No
+                                                                                                                          D3
+                                                                      Yes
+                Yes                                         D3              C2
+      D4                C0                                                                   Yes
+                                                                                   D10             C0           C1
+                                                               No
+           No
+                                                                                        No
+Start of magnitude
+                                                                      Yes
+ refinement pass                                            D10             C0
+
+                                                               No
+                Yes
+    D5
+                                                                                             No    End of coding passes for
+                                                                                   D12
+        No                                                                                         a code-block bit-plane
+          Yes
+                                                                                 Yes
+      D6
+                                                                       C0
+           No
+
+      C3
+
+
+
+                Yes
+      D7                C0
+
+       No
+                                      T.800_FD-3
+
+
+                             Figure D.3 – Flow chart for all coding passes on a code-block bit-plane
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)             105
+ISO/IEC 15444-1:2016 (E)
+
+                                   Table D.10 – Decisions in the context model flow chart
+
+  Decision                                                   Question                                           Description
+ D0             Is this the first significant bit-plane for the code-block?                                       See D.3
+ D1             Is the current coefficient significant?                                                          See D.3.1
+ D2             Is the context bin zero? (see Table D.1)                                                         See D.3.1
+ D3             Did the current coefficient just become significant?                                             See D.3.1
+ D4             Are there more coefficients in the significance propagation?
+ D5             Is the coefficient insignificant?                                                                See D.3.3
+ D6             Was the coefficient coded in the last significance propagation?                                  See D.3.3
+ D7             Are there more coefficients in the magnitude refinement pass?
+ D8             Are four contiguous undecoded coefficients in a column each with a 0 context?                    See D.3.4
+ D9             Is the coefficient significant or has the bit already been coded during the Significance         See D.3.4
+                Propagation coding pass?
+ D10            Are there more coefficients remaining of the four column coefficients?
+ D11            Are the four contiguous bits all zero?                                                           See D.3.4
+ D12            Are there more coefficients in the cleanup pass?
+
+
+                                   Table D.11 – Decoding in the context model flow chart
+
+  Code        Decoded symbol               Context                             Brief explanation                Description
+      C0              –                        –              Go to the next coefficient or column
+      C1      Newly significant?          Table D.1,          Decode significance bit of current coefficient     See D.3.1
+                                       9 context labels       (significance propagation or cleanup)
+      C2           Sign bit               Table D.3,          Decode sign bit of current coefficient             See D.3.2
+                                       5 context labels
+      C3      Current magnitude           Table D.4,          Decode magnitude refinement pass bit of current    See D.3.3
+                      bit              3 context labels       coefficient
+      C4              0              Run-length context       Decode run-length of four zeros                    See D.3.4
+                      1                    label              Decode run-length not of four zeros
+      C5             00                  UNIFORM              First coefficient is first with non-zero bit      See D.3.4 and
+                     01                                       Second coefficient is first with non-zero bit       Table C.2
+                     10                                       Third coefficient is first with non-zero bit
+                     11                                       Fourth coefficient is first with non-zero bit
+
+
+
+
+106          Rec. ITU-T T.800 (11/2015)
+                                                                                                                ISO/IEC 15444-1:2016 (E)
+

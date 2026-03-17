@@ -14,9 +14,15 @@ pub fn encode_codestream(Codestream) -> Result[Array[Int], String]
 
 pub fn hex_to_bytes(String) -> Result[Array[Int], String]
 
+pub fn make_qcd_from_qcc(QccMetadata) -> QcdMetadata
+
 pub fn parse_codestream(Array[Int]) -> Result[Codestream, String]
 
+pub fn parse_codestream_bytes(Bytes) -> Result[Codestream, String]
+
 pub fn parse_codestream_strict(Array[Int]) -> Result[Codestream, String]
+
+pub fn parse_packet_header_first_packet_with_code_blocks_and_style(Array[Int], Int, Int) -> Result[PacketHeaderMetadata, String]
 
 pub fn parse_packet_header_single_packet_with_tag_tree(Array[Int], Int, Int, Int) -> Result[PacketHeaderMetadata, String]
 
@@ -25,6 +31,8 @@ pub fn parse_packet_header_single_packet_with_tag_tree_and_pass_splits(Array[Int
 pub fn parse_packet_headers_single_codeblock(Array[Int]) -> Result[Array[PacketHeaderMetadata], String]
 
 pub fn parse_packet_headers_with_code_blocks(Array[Int], Int) -> Result[Array[PacketHeaderMetadata], String]
+
+pub fn parse_packet_headers_with_code_blocks_and_style(Array[Int], Int, Int) -> Result[Array[PacketHeaderMetadata], String]
 
 pub fn parse_packet_headers_with_tag_tree_sequence(Array[Int], Int, Int, Int) -> Result[Array[PacketHeaderMetadata], String]
 
@@ -54,6 +62,8 @@ pub fn sample_codestream_with_ppt_sop_eph() -> Array[Int]
 
 pub fn sample_codestream_with_tlm() -> Array[Int]
 
+pub fn validate_sop_nsop_sequence(Array[SopMetadata]) -> Result[Unit, String]
+
 // Errors
 
 // Types and methods
@@ -62,6 +72,7 @@ pub struct CocMetadata {
   scoc : Int
   parameters : Array[Int]
   in_main_header : Bool
+  tile_index : Int
 }
 pub impl Eq for CocMetadata
 pub impl Show for CocMetadata
@@ -95,6 +106,7 @@ pub impl Show for CodeBlockResolutionMetadata
 pub struct Codestream {
   segments : Array[MarkerSegment]
   metadata : CodestreamMetadata
+  trailing_bytes : Array[Int]
 }
 pub impl Eq for Codestream
 pub impl Show for Codestream
@@ -121,6 +133,8 @@ pub struct CodestreamMetadata {
   progression : ProgressionMetadata?
   packet_headers_ppm : Array[PacketHeaderMetadata]
   packet_headers_ppt : Array[PacketHeaderMetadata]
+  tile_cod : Array[TileCodMetadata]
+  tile_qcd : Array[TileQcdMetadata]
 }
 pub impl Eq for CodestreamMetadata
 pub impl Show for CodestreamMetadata
@@ -205,6 +219,7 @@ pub struct PacketHeaderCodeBlockMetadata {
   coding_passes : Int?
   lblock_increment : Int?
   segment_lengths : Array[Int]
+  segment_passes : Array[Int]
 }
 pub impl Eq for PacketHeaderCodeBlockMetadata
 pub impl Show for PacketHeaderCodeBlockMetadata
@@ -331,6 +346,7 @@ pub struct QccMetadata {
   sqcc : Int
   parameters : Array[Int]
   in_main_header : Bool
+  tile_index : Int
 }
 pub impl Eq for QccMetadata
 pub impl Show for QccMetadata
@@ -403,6 +419,13 @@ pub struct TagTreeLevelMetadata {
 pub impl Eq for TagTreeLevelMetadata
 pub impl Show for TagTreeLevelMetadata
 
+pub struct TileCodMetadata {
+  tile_index : Int
+  cod : CodMetadata
+}
+pub impl Eq for TileCodMetadata
+pub impl Show for TileCodMetadata
+
 pub struct TileComponentGeometryMetadata {
   tile_index : Int
   component : Int
@@ -427,6 +450,13 @@ pub struct TileGeometryMetadata {
 }
 pub impl Eq for TileGeometryMetadata
 pub impl Show for TileGeometryMetadata
+
+pub struct TileQcdMetadata {
+  tile_index : Int
+  qcd : QcdMetadata
+}
+pub impl Eq for TileQcdMetadata
+pub impl Show for TileQcdMetadata
 
 pub struct TlmEntryMetadata {
   tile : Int?

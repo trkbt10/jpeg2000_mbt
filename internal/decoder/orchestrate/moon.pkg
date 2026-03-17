@@ -1,0 +1,21 @@
+// Decode orchestration: single-component and all-components paths
+import {
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/a8" @a8,
+  "trkbt10/jpeg2000/internal/decoder/codeblock" @codeblock,
+  "trkbt10/jpeg2000/internal/decoder/dwt" @dwt,
+  "trkbt10/jpeg2000/internal/decoder/geometry" @geometry,
+  "trkbt10/jpeg2000/internal/decoder/input" @input,
+  "trkbt10/jpeg2000/internal/decoder/layer" @layer,
+  "trkbt10/jpeg2000/internal/decoder/mct" @mct,
+  "trkbt10/jpeg2000/internal/decoder/mq" @mq,
+  "trkbt10/jpeg2000/internal/decoder/profile" @profile,
+  "trkbt10/jpeg2000/internal/decoder/quant" @quant,
+  "trkbt10/jpeg2000/internal/decoder/roi" @roi,
+  "trkbt10/jpeg2000/internal/decoder/t1" @t1,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

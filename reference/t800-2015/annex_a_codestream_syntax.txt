@@ -1,0 +1,2462 @@
+                                                        Annex A
+
+                                                 Codestream syntax
+                  (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex and all of its subclauses, the flow charts and tables are normative only in the sense that they are defining an
+output that alternative implementations shall duplicate.
+This annex specifies the marker and marker segment syntax and semantics defined by this Recommendation | International
+Standard. These markers and marker segments provide codestream information for this Recommendation | International
+Standard. Furthermore, this annex provides a marker and marker segment syntax that is designed to be used in future
+specifications that include this Recommendation | International Standard as a normative reference.
+This Recommendation | International Standard does not include a definition of compliance or conformance. The parameter
+values of the syntax described in this annex are not intended to portray the capabilities required to be compliant.
+
+A.1       Markers, marker segments, and headers
+This Recommendation | International Standard uses markers and marker segments to delimit and signal the characteristics
+of the source image and codestream. This set of markers and marker segments is the minimal information needed to
+achieve the features of this Recommendation | International Standard and is not a file format. A minimal file format is
+offered in Annex I.
+Main and tile-part headers are collections of markers and marker segments. The main header is found at the beginning of
+the codestream. The tile-part headers are found at the beginning of each tile-part (see below). Some markers and marker
+segments are restricted to only one of the two types of headers while others can be found in either.
+Every marker is two bytes long. The first byte consists of a single 0xFF byte. The second byte denotes the specific marker
+and can have any value in the range 0x01 to 0xFE. Many of these markers are already used in Rec. ITU-T T.81 |
+ISO/IEC 10918-1 and Rec. ITU-T T.84 | ISO/IEC 10918-3 and shall be regarded as reserved unless specifically used.
+A marker segment includes a marker and associated parameters, called marker segment parameters. In every marker
+segment the first two bytes after the marker shall be an unsigned value that denotes the length in bytes of the marker
+segment parameters (including the two bytes of this length parameter but not the two bytes of the marker itself). When a
+marker segment that is not specified in this Recommendation | International Standard appears in a codestream, the decoder
+shall use the length parameter to discard the marker segment.
+
+A.1.1     Types of markers and marker segments
+Six types of markers and marker segments are used: delimiting, fixed information, functional, in-bit stream, pointer and
+informational. Delimiting markers and marker segments are used to frame the main and tile-part headers and the
+bit-stream data. Fixed information marker segments give required information about the image. The location of these
+marker segments, like delimiting marker and marker segments, is specified. Functional marker segments are used to
+describe the coding functions used. In-bit-stream markers and marker segments are used for error resilience. Pointer
+marker segments provide specific offsets in the bit stream. Informational marker segments provide ancillary information.
+
+A.1.2     Syntax similarity with Rec. ITU-T T.81 | ISO/IEC 10918-1
+The marker and marker segment syntax uses the same construction as defined in Rec. ITU-T T.81 | ISO/IEC 10918-1.
+The marker range 0xFF30 to 0xFF3F is reserved by this Recommendation | International Standard for markers without
+marker segment parameters. Table A.1 shows in which specification these markers and marker segments are defined.
+
+
+
+
+12         Rec. ITU-T T.800 (11/2015)
+                                                                                                               ISO/IEC 15444-1:2016 (E)
+
+                                                Table A.1 – Marker definitions
+
+                   Marker code range                                                     Standard definition
+    0xFF00, 0xFF01, 0xFFFE, 0xFFC0 to 0xFFDF                    Defined in Rec. ITU-T T.81 | ISO/IEC 10918-1
+    0xFFF0 to 0xFFF6                                            Defined in Rec. ITU-T T.84 | ISO/IEC 10918-3
+    0xFFF7 to 0xFFF8                                            Defined in Rec. ITU-T T.87 | ISO/IEC 14495-1
+    0xFF4F to 0xFF6F, 0xFF90 to 0xFF93                          Defined in this Recommendation | International Standard
+    0xFF30 to 0xFF3F                                            Reserved for definition as markers only (no marker segments)
+                                                                All other values reserved
+
+A.1.3     Marker and marker segment and codestream rules
+          –    Marker segments, and therefore the main and tile-part headers, are a multiple of 8 bits (one byte).
+               Furthermore, the bit stream data between the headers and before the EOC marker (see A.4.4) are padded
+               to also be aligned to a multiple of 8 bits.
+          –    All marker segments in a tile-part header apply only to the tile to which they belong.
+          –    All marker segments in the main header apply to the whole image unless specifically overridden by
+               markers or marker segments in a tile-part header.
+          –    Delimiting and fixed information marker and marker segments must appear at specific points in the
+               codestream.
+          –    The marker segments shall correctly describe the image as represented by the codestream. If truncation,
+               alteration or editing of the codestream has been performed, the marker segments shall be updated, if
+               necessary.
+          –    All parameter values in marker segments are big-endian.
+          –    Marker segments can appear in any order in a given header. Exceptions are the delimiting markers and
+               marker segments and the fixed information marker segments.
+          –    All markers with the marker code between 0xFF30 and 0xFF3F have no marker segment parameters. They
+               shall be skipped by the decoder.
+          –    Some marker segments have values assigned to groups of bits within a parameter. In some cases there are
+               bits, denoted by "x", that are not assigned a value for any field within a parameter. The codestream shall
+               contain a value of zero for all such bits. The decoder shall ignore these bits.
+   NOTE – The markers in the range 0xFF30 to 0xFF3F may be used by future extensions. They may or may not be skipped by a
+   decoder without ramification.
+
+A.1.4     Key to graphical descriptions (informative)
+Each marker segment is described in terms of its function, usage and length. The function describes the information
+contained in the marker segment. The usage describes the logical location and frequency of this marker segment in the
+codestream. The length describes which parameters determine the length of the marker segment.
+These descriptions are followed by a figure that shows the order and relationship of the parameters in the marker segment.
+Figure A.1 shows an example of this type of figure. The marker segments are designated by the three-letter code of the
+marker associated with the marker segment. The parameter symbols have capital letter designations followed by the
+marker's symbol in lower-case letters. A rectangle is used to indicate a parameter's location in the marker segment. The
+width of the rectangle is proportional to the number of bytes of the parameter. A shaded rectangle (diagonal stripes)
+indicates that the parameter is of varying size. Two parameters with superscripts and a grey area between them indicate a
+run of several of these parameters.
+
+                                           8-bit parameter
+                           16-bit marker                       32-bit parameter          Run of n parameters
+                                                                                  Dmar
+
+                              MAR      Lmar      Amar   Bmar        Cmar                 Emar1       Emarn
+
+                                                                                                    T.800_FA-1
+
+
+                                                                        Variable-size parameter
+
+
+                          Figure A.1 – Example of the marker segment description figures
+
+
+
+
+                                                                                              Rec. ITU-T T.800 (11/2015)            13
+ISO/IEC 15444-1:2016 (E)
+
+The figure is followed by a list that describes the meaning of each parameter in the marker segment. If parameters are
+repeated, the length and nature of the run of parameters is defined. As an example, in Figure A.1, the first rectangle
+represents the marker with the symbol MAR. The second rectangle represents the length parameter. Parameters Amar,
+Bmar, Cmar, and Dmar are 8-, 16-, 32-bit and variable length respectively. The notation Emar i implies that there are n
+different parameters, Emari, in a row.
+After the list is a table that either describes the allowed parameter values or provides references to other tables that describe
+these values. Tables for individual parameters are provided to describe any parameter without a simple numerical value.
+In some cases these parameters are described by a bit value in a bit field. In this case, an "x" is used to denote bits that are
+not included in the specification of the parameter or sub-parameter in the corresponding row of the table.
+Some marker segment parameters are described using the notation "Sxxx" and "SPxxx" (for a marker symbol, XXX). The
+Sxxx parameter selects between many possible states of the SPxxx parameter. According to this selection, the SPxxx
+parameter or parameter list is modified.
+
+A.2       Information in the marker segments
+Table A.2 lists the markers specified in this Recommendation | International Standard. Table A.3 shows a list of which
+information is provided by which marker and marker segments.
+
+                                    Table A.2 – List of markers and marker segments
+
+                                                       Symbol             Code          Main header         Tile-part header
+ Delimiting markers and marker segments
+ Start of codestream                                     SOC            0xFF4F            requireda            not allowed
+ Start of tile-part                                      SOT            0xFF90           not allowed             required
+ Start of data                                           SOD            0xFF93           not allowed           last marker
+ End of codestream                                       EOC            0xFFD9           not allowed           not allowed
+ Fixed information marker segments
+ Image and tile size                                     SIZ             0xFF51           required             not allowed
+ Functional marker segments
+ Coding style default                                    COD            0xFF52            required              optional
+ Coding style component                                  COC            0xFF53            optional              optional
+ Region-of-interest                                      RGN            0xFF5E            optional              optional
+ Quantization default                                    QCD            0xFF5C            required              optional
+ Quantization component                                  QCC            0xFF5D            optional              optional
+ Progression order changeb)                              POC            0xFF5F            optional              optional
+ Pointer marker segments
+ Tile-part lengths                                       TLM             0xFF55           optional             not allowed
+ Packet length, main header                              PLM             0xFF57           optional             not allowed
+ Packet length, tile-part header                         PLT             0xFF58          not allowed            optional
+ Packed packet headers, main headerc)                    PPM             0xFF60           optional             not allowed
+ Packed packet headers, tile-part headerc)               PPT             0xFF61          not allowed            optional
+ In-bit-stream markers and marker segments
+ Start of packet                                         SOP             0xFF91          not allowed          not allowed in
+                                                                                                             tile-part header,
+                                                                                                          optional in-bit stream
+ End of packet header                                    EPH             0xFF92        optional inside     optional inside PPT
+                                                                                        PPM marker         marker segment or
+                                                                                          segment              in-bit stream
+ Informational marker segments
+ Component registration                                 CRG              0xFF63            optional            not allowed
+ Comment                                                COM              0xFF64            optional              optional
+ a)   "required" means the marker or marker segment shall be in this header; "optional" means it may be used.
+ b)   The POC marker segment is required if there are progression order changes.
+ c)   Either the PPM or PPT marker segment is required if the packet headers are not distributed in the bit stream. If the PPM
+      marker segment is used then PPT marker segments shall not be used, and vice versa.
+
+
+
+
+14          Rec. ITU-T T.800 (11/2015)
+                                                                                             ISO/IEC 15444-1:2016 (E)
+
+                                     Table A.3 – Information in the marker segments
+
+                                             Information                         Marker segment
+                  Capabilities
+                  Image area size or reference grid size (height and width)
+                  Tile size (height and width)
+                                                                                       SIZ
+                  Number of components
+                  Component precision
+                  Component mapping to the reference grid (sub-sampling)
+                  Tile index
+                                                                                    SOT, TLM
+                  Tile-part data length
+                  Progression order
+                  Number of layers                                                    COD
+                  Multiple component transformation used
+                  Coding style
+                  Number of decomposition levels
+                  Code-block size
+                                                                                    COD, COC
+                  Code-block style
+                  Wavelet transformation
+                  Precinct size
+                  Region-of-interest shift                                            RGN
+                  No quantization
+                  Quantization derived                                              QCD, QCC
+                  Quantization expounded
+                  Progression starting point
+                  Progression ending point                                             POC
+                  Progression order default
+                  Error resilience                                                     SOP
+                  End of packet header                                                 EPH
+                  Packet headers                                                    PPM, PPT
+                  Packet lengths                                                    PLM, PLT
+                  Component registration                                              CRG
+                  Optional information                                                COM
+
+
+A.3      Construction of the codestream
+Figure A.2 shows the construction of the codestream. Figure A.3 shows the main header construction. All of the solid
+lines show required marker segments. The following markers and marker segments are required to be in a specific
+location: SOC, SIZ, SOT, SOD and EOC. The dashed lines show optional or possibly not required marker segments.
+Figure A.4 shows the construction of the first tile-part header in a given tile. Figure A.5 shows the construction of a
+tile-part header other than the first in a tile.
+
+
+
+
+                                                                               Rec. ITU-T T.800 (11/2015)           15
+ISO/IEC 15444-1:2016 (E)
+
+                                         SOC            Required as the first marker
+                Main header
+
+                                        main            Main header marker segments
+
+
+
+                                        SOT             Required at the beginning of each tile-part header
+
+
+
+             Tile-part header          T0, TP0          Tile 0, tile-part 0 header marker segments
+
+
+
+                                        SOD             Required at the end of each tile-part header
+
+
+
+                                      bit stream        Tile-part bit stream. Might include SOP and EPH
+
+
+
+                                        SOT
+
+
+             Tile-part header          T1, TP0
+
+
+
+                                        SOD
+
+
+
+                                      bit stream
+
+
+
+                                        EOC             Required as the last marker in the codestream
+                                           T.800_FA-2
+
+
+                                Figure A.2 – Construction of the codestream
+
+
+
+
+16       Rec. ITU-T T.800 (11/2015)
+                                                                                  ISO/IEC 15444-1:2016 (E)
+
+              SOC                        Required as the first marker
+
+
+              SIZ                        Required as the second marker segment
+
+
+                         COD             Required
+
+
+                         COC             Optional; no more than one COC per component
+
+
+                         QCD             Required
+
+
+                         QCC             Optional; no more than one QCC per component
+
+
+
+
+Main header
+                         RGN             Optional; no more than one RGN per component
+
+
+                         POC             Required in main or tile for any progression order changes
+
+
+                         PPM             Optional; either PPM or PPT or codestream packet headers required
+
+
+                         TLM             Optional
+
+
+                         PLM             Optional
+
+
+                         CRG             Optional
+
+
+                         COM             Optional
+                            T.800_FA-3
+
+
+
+
+                    Figure A.3 – Construction of the main header
+
+
+
+
+                                                                        Rec. ITU-T T.800 (11/2015)           17
+ISO/IEC 15444-1:2016 (E)
+
+                                                                                             SOT                                 Required as the first marker segment of every tile-part header
+
+
+                                                                                                                    COD          Optional; no more than one COD per tile
+
+
+                                                                                                                    COC          Optional; no more than one COC per component
+
+
+                                                                                                                    QCD
+
+
+
+
+      First tile-part header of a given tile
+                                                                                                                                 Optional; no more than one QCD per tile
+
+
+                                                                                                                    QCC          Optional; no more than one QCC per component
+
+
+                                                                                                                    RGN          Optional; no more than one RGN per component
+
+
+                                                                                                                    POC          Required if any progression order changes different from main POC
+
+
+                                                                                                                    PPT          Optional; either PPM or PPT or codestream packet headers required
+
+
+                                                                                                                    PLT          Optional
+
+
+                                                                                                                    COM          Optional
+
+
+                                                                                             SOD                                 Required as the last marker segment of every tile-part header
+                                                                                               T.800_FA-4
+
+
+                                                                                                   Figure A.4 – Construction of the first tile-part header of a given tile
+
+                                                                                             SOT                                 Required as the first marker segment of every tile-part header
+
+
+
+
+                                               Tile-part header (not first in tile)
+                                                                                                                    POC          Required if any progression order changes different from main POC
+
+
+                                                                                                                     PPT         Optional; either PPM or PPT or codestream packet headers required
+
+
+                                                                                                                     PLT         Optional
+
+
+                                                                                                                    COM          Optional
+
+
+                                                                                             SOD                                 Required as the last marker of every tile-part header
+                                                                                               T.800_FA-5
+
+
+                                                                                                        Figure A.5 – Construction of a non-first tile-part header
+
+
+The COD and COC marker segments and the QCD and QCC marker segments have a hierarchy of usage. This is designed
+to allow tile-components to have dissimilar coding and quantization characteristics with a minimum of signalling.
+For example, the COD marker segment is required in the main header. If all components in all the tiles are coded the same
+way, this is all that is required. If there is one component that is coded differently than the others (for example, the
+luminance component of an image composed of luminance and chrominance components), then the COC can denote that
+in the main header. If one or more components are coded differently in different tiles, then the COD and COC are used
+in a similar manner to denote this in the tile-part headers.
+The POC marker segment appearing in the main header is used for all tiles unless a different POC appears in the tile-part
+header.
+
+
+
+18                                                                                    Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+With the exceptions of the SOC, SOT, SOD, EOC and SIZ markers and marker segments, the marker segments can appear
+in any order within the respective headers.
+
+A.4       Delimiting markers and marker segments
+The delimiting marker and marker segments shall be present in all codestreams conforming to this Recommendation |
+International Standard. Each codestream has only one SOC marker, one EOC marker, and at least one tile-part. Each
+tile-part has one SOT and one SOD marker. The SOC, SOD and EOC are delimiting markers not marker segments, and
+have no explicit length information or other parameters.
+
+A.4.1     Start of codestream (SOC)
+Function: Marks the beginning of a codestream specified in this Recommendation | International Standard.
+Usage: Main header. This is the first marker in the codestream. There shall be only one SOC per codestream.
+Length: Fixed.
+          SOC:      Marker code.
+
+                                   Table A.4 – Start of codestream parameter values
+
+                            Parameter                     Size (bits)                     Values
+                               SOC                            16                          0xFF4F
+
+A.4.2     Start of tile-part (SOT)
+Function: Marks the beginning of a tile-part, the index of its tile, and the index of its tile-part. The tile-parts of a given
+tile shall appear in order (see TPsot) in the codestream. However, tile-parts from other tiles may be interleaved in the
+codestream. Therefore, the tile-parts from a given tile may not appear contiguously in the codestream.
+Usage: Every tile-part header. It shall be the first marker segment in a tile-part header. There shall be at least one SOT in
+a codestream. There shall be only one SOT per tile-part.
+Length: Fixed.
+
+
+
+
+                                          Figure A.6 – Start of tile-part syntax
+          SOT:      Marker code. Table A.5 shows the sizes and values of the symbol and parameters for a start of tile-part
+                    marker segment.
+          Lsot:     Length of marker segment in bytes (not including the marker).
+          Isot:     Tile index. This number refers to the tiles in raster order starting at the number 0.
+          Psot:     Length, in bytes, from the beginning of the first byte of this SOT marker segment of the tile-part to
+                    the end of the data of that tile-part. Figure A.16 shows this alignment. Only the last tile-part in the
+                    codestream may contain a 0 for Psot. If the Psot is 0, this tile-part is assumed to contain all data until
+                    the EOC marker.
+          TPsot:    Tile-part index. There is a specific order required for decoding tile-parts; this index denotes the order
+                    from 0. If there is only one tile-part for a tile, then this value is zero. The tile-parts of this tile shall
+                    appear in the codestream in this order, although not necessarily consecutively.
+          TNsot:    Number of tile-parts of a tile in the codestream. Two values are allowed: the correct number of tile-
+                    parts for that tile and zero. A zero value indicates that the number of tile-parts of this tile is not
+                    specified in this tile-part.
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)               19
+ISO/IEC 15444-1:2016 (E)
+
+                                           Table A.5 – Start of tile-part parameter values
+
+                      Parameter                                  Size (bits)                                Values
+                           SOT                                       16                                     0xFF90
+                           Lsot                                      16                                       10
+                           Isot                                      16                                  0 to 65 534
+                           Psot                                      32                              0, or 14 to (232 – 1)
+                         TPsot                                        8                                     0 to 254
+                         TNsot                                        8                                   Table A.6
+
+
+                                    Table A.6 – Number of tile-parts, TNsot, parameter value
+
+                   Value                                                  Number of tile-parts
+                     0                  Number of tile-parts of this tile in the codestream is not defined in this header
+                  1 to 255              Number of tile-parts of this tile in the codestream
+
+A.4.3      Start of data (SOD)
+Function: Indicates the beginning of bit stream data for the current tile-part. The SOD also indicates the end of a tile-part
+header.
+Usage: Every tile-part header. It shall be the last marker in a tile-part header. Bit-stream data between an SOD and the
+next SOT or EOC (end of image) shall be a multiple of 8 bits – the codestream is padded with bits as needed. There shall
+be at least one SOD in a codestream. There shall be one SOD per tile-part.
+Length: Fixed.
+           SOD:       Marker code
+
+                                              Table A.7 – Start of data parameter values
+
+                                  Parameter                      Size (bits)                       Values
+                                    SOD                              16                            0xFF93
+
+A.4.4      End of codestream (EOC)
+Function: Indicates the end of the codestream.
+     NOTE 1 – This marker shares the same code as the EOI marker in Rec. ITU-T T.81 | ISO/IEC 10918-1.
+
+Usage: Shall be the last marker in a codestream. There shall be one EOC per codestream.
+     NOTE 2 – In the case where a file has been corrupted, it is possible that a decoder could extract much useful compressed image
+     data without encountering an EOC marker.
+
+Length: Fixed.
+           EOC:       Marker code
+
+                                          Table A.8 – End of codestream parameter values
+
+                                  Parameter                      Size (bits)                       Values
+                                    EOC                              16                            0xFFD9
+
+
+A.5        Fixed information marker segment
+This marker segment describes required information about the image. The SIZ marker segment is required in the main
+header immediately after the SOC marker segment.
+
+A.5.1      Image and tile size (SIZ)
+Function: Provides information about the uncompressed image such as the width and height of the reference grid, the
+width and height of the tiles, the number of components, component bit depth, and the separation of component samples
+with respect to the reference grid (see B.2).
+
+
+
+20           Rec. ITU-T T.800 (11/2015)
+                                                                                                             ISO/IEC 15444-1:2016 (E)
+
+Usage: Main header. There shall be one and only one in the main header immediately after the SOC marker segment.
+There shall be only one SIZ per codestream.
+Length: Variable depending on the number of components.
+
+
+
+      SIZ    Lsiz    Rsiz        Xsiz           Ysiz          XOsiz           YOsiz                         XTsiz                        YTsiz
+
+
+
+
+                                                                                  Ssizi   YRsizi   XRsizi     Ssizn    XRsizn   YRsizn
+                                                                           Csiz
+                                               XTOsiz         YTOsiz
+                                                                                                                      T.800_FA-7
+
+
+                                        Figure A.7 – Image and tile size syntax
+         SIZ:       Marker code. Table A.9 shows the size and parameter values of the symbol and parameters for image
+                    and tile size marker segment.
+         Lsiz:      Length of marker segment in bytes (not including the marker). The value of this parameter is
+                    determined by the following equation:
+
+                                                    Lsiz  38  3  Csiz                                                                         (A-1)
+
+         Rsiz:      Denotes capabilities that a decoder needs to properly decode the codestream.
+         Xsiz:      Width of the reference grid.
+         Ysiz:      Height of the reference grid.
+         XOsiz:     Horizontal offset from the origin of the reference grid to the left side of the image area.
+         YOsiz:     Vertical offset from the origin of the reference grid to the top side of the image area.
+         XTsiz:     Width of one reference tile with respect to the reference grid.
+         YTsiz:     Height of one reference tile with respect to the reference grid.
+         XTOsiz: Horizontal offset from the origin of the reference grid to the left side of the first tile.
+         YTOsiz: Vertical offset from the origin of the reference grid to the top side of the first tile.
+         Csiz:      Number of components in the image.
+             i
+         Ssiz :     Precision (depth) in bits and sign of the ith component samples. The precision is the precision of the
+                    component samples before DC level shifting is performed (i.e., the precision of the original
+                    component samples before any processing is performed). If the component sample values are signed,
+                    then the range of component sample values is –2(Ssiz1 AND 0x7F)–1  component sample value
+                     2(Ssiz1 AND 0x7F)–1 – 1. There is one occurrence of this parameter for each component. The order
+                    corresponds to the component's index, starting with zero.
+         XRsizi: Horizontal separation of a sample of ith component with respect to the reference grid. There is one
+                 occurrence of this parameter for each component.
+         YRsizi: Vertical separation of a sample of ith component with respect to the reference grid. There is one
+                 occurrence of this parameter for each component.
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)                                    21
+ISO/IEC 15444-1:2016 (E)
+
+                                     Table A.9 – Image and tile size parameter values
+
+                           Parameter                      Size (bits)                       Values
+                              SIZ                              16                           0xFF51
+                             Lsiz                              16                        41 to 49 190
+                             Rsiz                              16                         Table A.10
+                             Xsiz                              32                        1 to (232 – 1)
+                             Ysiz                              32                        1 to (232 – 1)
+                            XOsiz                              32                        0 to (232 – 2)
+                            YOsiz                              32                        0 to (232 – 2)
+                             XTsiz                             32                        1 to (232 – 1)
+                             YTsiz                             32                        1 to (232 – 1)
+                            XTOsiz                             32                        0 to (232 – 2)
+                            YTOsiz                             32                        0 to (232 – 2)
+                             Csiz                              16                         1 to 16 384
+                             Ssizi                             8                          Table A.11
+                            XRsizi                             8                            1 to 255
+                            YRsizi                             8                            1 to 255
+
+
+                                         Table A.10 – Capability Rsiz parameter
+
+            Value (bits)
+                                                                               Capability
+ MSB                           LSB
+     0000 0000 0000 0000                Capabilities specified in this Recommendation | International Standard only
+     0000 0000 0000 0001                Codestream restricted as described for Profile 0 from Table A.45
+     0000 0000 0000 0010                Codestream restricted as described for Profile 1 from Table A.45
+     0000 0000 0000 0011                2k Digital Cinema Profile as specified in Table A.46
+     0000 0000 0000 0100                4k Digital Cinema Profile as specified in Table A.46
+     0000 0000 0000 0101                Scalable 2k Digital Cinema Profile as specified in Table A.46
+     0000 0000 0000 0110                Scalable 4k Digital Cinema Profile as specified in Table A.46
+     0000 0000 0000 0111                Long-term storage Profile as specified in Table A.46
+     0000 0001 0000 xxxx                Broadcast Contribution Single Tile Profile as specified in Table A.48,
+                                        lower 8Bits identify Mainlevel as described in Table A.49
+     0000 0010 0000 xxxx                Broadcast Contribution Multi-tile Profile as specified in Table A.48,
+                                        lower 8Bits identify Mainlevel as described in Table A.49
+     0000 0011 0000 0110                Broadcast Contribution Multi-tile Reversible Profile as specified in Table A.48,
+                                        Mainlevel 6 as described in Table A.50
+     0000 0011 0000 0111                Broadcast Contribution Multi-tile Reversible Profile as specified in Table A.48,
+                                        Mainlevel 7 as described in Table A.50
+     0000 0100 yyyy xxxx                2k IMF Single Tile Lossy Profile as specified in Table A.51,
+                                        lower 8 Bits identify Sublevel and Mainlevel as specified in Table A.53 and A.54
+     0000 0101 yyyy xxxx                4k IMF Single Tile Lossy Profile as specified in Table A.51,
+                                        lower 8 Bits identify Sublevel and Mainlevel as specified in Table A.53 and A.54
+     0000 0110 yyyy xxxx                8k IMF Single Tile Lossy Profile as specified in Table A.51,
+                                        lower 8 Bits identify Sublevel and Mainlevel as specified in Table A.53 and A.54
+     0000 0111 yyyy xxxx                2k IMF Single/Multi Tile Reversible Profile as specified in Table A.52,
+                                        lower 8 Bits identify Sublevel and Mainlevel as specified in Table A.53 and A.54
+     0000 1000 yyyy xxxx                4k IMF Single/Multi Tile Reversible Profile as specified in Table A.52,
+                                        lower 8 Bits identify Sublevel and Mainlevel as specified in Table A.53 and A.54
+     0000 1001 yyyy xxxx                8k IMF Single/Multi Tile Reversible Profile as specified in Table A.52,
+                                        lower 8 Bits identify Sublevel and Mainlevel as specified in Table A.53 and A.54
+     zzzz zzzz yyyy xxxx                All other values reserved for future use by ITU-T | ISO/IEC
+ NOTE – zzzz zzzz describe Profile, yyyy describe Sublevel, xxxx describe Mainlevel
+
+
+
+
+22        Rec. ITU-T T.800 (11/2015)
+                                                                                                      ISO/IEC 15444-1:2016 (E)
+
+                                          Table A.11 – Component Ssiz parameter
+
+              Value (bits)
+                                                                Component sample precision
+        MSB                  LSB
+            x000 0000              Component sample bit depth = value + 1. From 1 bit deep to 38 bits deep respectively
+           to x010 0101            (counting the sign bit, if appropriate)a), RI
+             0xxx xxxx             Component sample values are unsigned values
+             1xxx xxxx             Component sample values are signed values
+                                   All other values reserved
+        a) The component sample precision is limited by the number of guard bits, quantization, growth of coefficients at
+
+        each decomposition level and the number of coding passes that can be signalled. Not all combinations of coding
+        styles will allow the coding of 38-bit samples.
+
+
+A.6       Functional marker segments
+These marker segments describe the functions used to code the entire tile, if found in the tile-part header, or image, if
+found in the main header.
+
+A.6.1     Coding style default (COD)
+Function: Describes the coding style, number of decomposition levels, and layering that is the default used for
+compressing all components of an image (if in the main header) or a tile (if in the tile-part header). The parameter values
+can be overridden for an individual component by a COC marker segment in either the main or tile-part header.
+Usage: Main and first tile-part header of a given tile. It shall be one and only one in the main header. Additionally, there
+may be at most one for each tile. If there are multiple tile-parts in a tile and this marker segment is present, it shall be
+found only in the first tile-part (TPsot = 0).
+When used in the main header, the COD marker segment parameter values are used for all tile-components that do not
+have a corresponding COC marker segment in either the main or tile-part header. When used in the tile-part header it
+overrides the main header COD and COCs and is used for all components in that tile without a corresponding COC marker
+segment in the tile-part. Thus, the order of precedence is the following:
+          Tile-part COC > Tile-part COD > Main COC > Main COD
+where the "greater than" sign > means that the greater overrides the lesser marker segment.
+Length: Variable depending on the value of Scod.
+
+
+
+
+                                           Figure A.8 – Coding style default syntax
+          COD:       Marker code. Table A.12 shows the size and values of the symbol and parameters for the coding style
+                     default marker segment.
+          Lcod:      Length of marker segment in bytes (not including the marker). The value of this parameter is
+                     determined by the following equation:
+
+                            12                                                       maximum_precincts
+                    Lcod                                                                                                  (A-2)
+                            13  number_decomposition_levels                         user- defined_precincts
+
+                     where maximum_precincts and user-defined_precincts are indicated in the Scod parameter and
+                     number_decomposition_levels are indicated in the SPcod parameter.
+          Scod:      Coding style for all components. Table A.13 shows the value for the Scod parameter.
+          SGcod: Parameters for coding style designated in Scod. The parameters are independent of components and
+                 are designated in order from top to bottom, in Table A.14. The coding style parameters within the
+                 SGcod field appear in the sequence shown in Figure A.9.
+          SPcod:     Parameters for coding style designated in Scod. The parameters relate to all components and are
+                     designated in order from top to bottom, in Table A.15. The coding style parameters within the SPcod
+                     field appear in the sequence shown in Figure A.9.
+
+
+                                                                                         Rec. ITU-T T.800 (11/2015)           23
+ISO/IEC 15444-1:2016 (E)
+
+                                     Table A.12 – Coding style default parameter values
+
+                             Parameter                            Size (bits)                          Values
+                               COD                                       16                            0xFF52
+                               Lcod                                      16                            12 to 45
+                               Scod                                      8                            Table A.13
+                               SGcod                                     32                           Table A.14
+                               SPcod                                variable                          Table A.15
+
+
+                           Table A.13 – Coding style parameter values for the Scod parameter
+
+                         Value (bits)
+                                                                                Coding style
+                     MSB              LSB
+                        xxxx xxx0                  Entropy coder, precincts with PPx = 15 and PPy = 15
+                        xxxx xxx1                  Entropy coder with precincts defined below
+                        xxxx xx0x                  No SOP marker segments used
+                        xxxx xx1x                  SOP marker segments may be used
+                        xxxx x0xx                  No EPH marker used
+                        xxxx x1xx                  EPH marker shall be used
+                                                   All other values reserved
+
+
+                         Table A.14 – Coding style parameter values of the SGcod parameter
+
+     Parameters (in order)           Size (bits)              Values                           Meaning of SGcod values
+ Progression order                         8               Table A.16         Progression order
+ Number of layers                        16                1 to 65 535        Number of layers
+ Multiple component
+                                           8               Table A.17         Multiple component transformation usage
+ transformation
+
+
+                                               A      B       C D E          F G H Ii            In
+
+                                                   SGcod                       SPcod
+                                                                                         T.800_FA-9
+
+                                           A                  Progression order
+                                           B                  Number of layers
+                                           C                  Multiple component transformation
+                                           D                  Number of decomposition levels
+                                           E                  Code-block width
+                                           F                  Code-block height
+                                           G                  Code-block style
+                                           H                  Transformation
+                                           Ii through In      Precinct size
+
+                  Figure A.9 – Coding style parameter diagram of the SGcod and SPcod parameters
+
+                        Table A.15 – Coding style parameter values of the SPcod and SPcoc parameters
+
+ Parameters (in order)       Size (bits)            Values                               Meaning of SPcod values
+ Number of                       8                  0 to 32
+                                                                 Number of decomposition levels, NL, Zero implies no transformation.
+ decomposition levels
+ Code-block width                8                 Table A.18    Code-block width exponent offset value, xcb
+ Code-block height               8                 Table A.18    Code-block height exponent offset value, ycb
+ Code-block style                8                 Table A.19    Style of the code-block coding passes
+ Transformation                  8                 Table A.20    Wavelet transformation used
+
+
+
+
+24          Rec. ITU-T T.800 (11/2015)
+                                                                                                          ISO/IEC 15444-1:2016 (E)
+
+                         Table A.15 – Coding style parameter values of the SPcod and SPcoc parameters
+
+Parameters (in order)          Size (bits)         Values                             Meaning of SPcod values
+Precinct size                   variable         Table A.21     If Scod or Scoc = xxxx xxx0, this parameter is not present; otherwise
+                                                                this indicates precinct width and height. The first parameter (8 bits)
+                                                                corresponds to the NLLL sub-band. Each successive parameter
+                                                                corresponds to each successive resolution level in order.
+
+
+                       Table A.16 – Progression order for the SGcod, SPcoc, and Ppoc parameters
+
+                      Value (bits)
+                                                                          Progression order
+                 MSB                LSB
+                      0000 0000              Layer-resolution level-component-position progression
+                      0000 0001              Resolution level-layer-component-position progression
+                      0000 0010              Resolution level-position-component-layer progression
+                      0000 0011              Position-component-resolution level-layer progression
+                      0000 0100              Component-position-resolution level-layer progression
+                                             All other values reserved
+
+
+                       Table A.17 – Multiple component transformation for the SGcod parameters
+
+      Value (bits)
+                                                              Multiple component transformation type
+MSB                   LSB
+     0000 0000               No multiple component transformation specified
+     0000 0001               Component transformation used on components 0, 1, 2 for coding efficiency (see G.2). Irreversible
+                             component transformation used with the 9-7 irreversible filter. Reversible component transformation
+                             used with the 5-3 reversible filter.
+                             All other values reserved
+
+
+         Table A.18 – Width or height exponent of the code-blocks for the SPcod and SPcoc parameters
+
+      Value (bits)
+                                                                     Code-block width and height
+MSB                   LSB
+     xxxx 0000               Code-block width and height exponent offset value xcb = value + 2 or ycb = value + 2. The code-
+         to                  block width and height are limited to powers of two with the minimum size being 2 2 and the maximum
+     xxxx 1000               being 210. Furthermore, the code-block size is restricted so that xcb + ycb  12.
+                             All other values reserved
+
+
+                            Table A.19 – Code-block style for the SPcod and SPcoc parameters
+
+                     Value (bits)
+                                                                           Code-block style
+                MSB                 LSB
+                  xxxx xxx0                No selective arithmetic coding bypass
+                  xxxx xxx1                Selective arithmetic coding bypass
+                  xxxx xx0x                No reset of context probabilities on coding pass boundaries
+                  xxxx xx1x                Reset context probabilities on coding pass boundaries
+                  xxxx x0xx                No termination on each coding pass
+                  xxxx x1xx                Termination on each coding pass
+                  xxxx 0xxx                No vertically causal context
+                  xxxx 1xxx                Vertically causal context
+                  xxx0 xxxx                No predictable termination
+                  xxx1 xxxx                Predictable termination
+                  xx0x xxxx                No segmentation symbols are used
+                  xx1x xxxx                Segmentation symbols are used
+                                           All other values reserved
+
+
+
+                                                                                              Rec. ITU-T T.800 (11/2015)                 25
+ISO/IEC 15444-1:2016 (E)
+
+                           Table A.20 – Transformation for the SPcod and SPcoc parameters
+
+                           Value (bits)
+                                                                        Transformation type
+                    MSB                   LSB
+                           0000 0000            9-7 irreversible filter
+                           0000 0001            5-3 reversible filter
+                                                All other values reserved
+
+
+                    Table A.21 – Precinct width and height for the SPcod and SPcoc parameters
+
+            Value (bits)
+                                                                            Precinct size
+     MSB                    LSB
+            xxxx 0000              4 LSBs are the precinct width exponent, PPx = value. This value may only equal zero at
+                to                 the resolution level corresponding to the NLLL band.
+            xxxx 1111
+            0000 xxxx              4 MSBs are the precinct height exponent PPy = value. This value may only equal zero at
+                to                 the resolution level corresponding to the NLLL band.
+            1111 xxxx
+
+A.6.2      Coding style component (COC)
+Function: Describes the coding style and number of decomposition levels used for compressing a particular component.
+Usage: Main and first tile-part header of a given tile. Optional in both the main and tile-part headers. No more than one
+per any given component may be present in either the main or tile-part headers. If there are multiple tile-parts in a tile,
+and this marker segment is present, it shall be found only in the first tile-part (TPsot = 0).
+When used in the main header, it overrides the main COD marker segment for the specific component. When used in the
+tile-part header, it overrides the main COD, main COC, and tile COD for the specific component. Thus, the order of
+precedence is the following:
+           Tile-part COC > Tile-part COD > Main COC > Main COD
+where the "greater than" sign > means that the greater overrides the lesser marker segment.
+Length: Variable depending on the value of Scoc.
+
+
+
+
+                                      Figure A.10 – Coding style component syntax
+           COC:     Marker code. Table A.22 shows the size and values of the symbol and parameters for coding style
+                    component marker segment.
+           Lcoc:    Length of marker segment in bytes (not including the marker). The value of this parameter is
+                    determined by the following equation:
+
+                  9                                                    maximum_precincts AND Csiz  257
+                  10                                                   maximum_precincts AND Csiz  257
+                  
+           Lcoc                                                                                                           (A-3)
+                  10  number_dec omposition_levels                    user defined_pr ecincts AND Csiz  257
+                  
+                  11  number_dec omposition_levels                    user defined_pr ecincts AND Csiz  257
+
+                    where maximum_precincts and user-defined_precincts are indicated in the Scoc parameter and
+                    number_decomposition_levels is indicated in the SPcoc parameter.
+           Ccoc:    The index of the component to which this marker segment relates. The components are indexed 0, 1,
+                    2, etc.
+           Scoc:    Coding style for this component. Table A.23 shows the value for each Scoc parameter.
+           SPcoc:   Parameters for coding style designated in Scoc. The parameters are designated, in order from top to
+                    bottom, in Table A.15. The coding style parameters within the SPcoc field appear in the sequence
+                    shown in Figure A.11.
+
+
+26          Rec. ITU-T T.800 (11/2015)
+                                                                                                      ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                       Figure A.11 – Coding style parameter diagram of the SPcoc parameters
+
+                                Table A.22 – Coding style component parameter values
+
+                            Parameter                      Size (bits)                      Values
+                               COC                             16                           0xFF53
+                               Lcoc                            16                           9 to 43
+                               Ccoc                            8                   0 to 255; if Csiz < 257
+                                                               16                  0 to 16 383; Csiz  257
+                               Scoc                             8                         Table A.23
+                              SPcoci                        variable                      Table A.15
+
+
+                          Table A.23 – Coding style parameter values for the Scoc parameter
+
+                          Value (bits)
+                                                                         Coding style
+                    MSB                  LSB
+                          0000 0000             Entropy coder with maximum precinct values
+                                                PPx = PPy = 15
+                          0000 0001             Entropy coder with precinct values defined below
+                                                All other values reserved
+
+A.6.3     Region of interest (RGN)
+Function: Signals the presence of an ROI in the codestream.
+Usage: Main and first tile-part header of a given tile. If used in the main header, it refers to the ROI scaling value for one
+component in the whole image, valid for all tiles except those with an RGN marker segment.
+When used in the tile-part header, the scaling value is valid only for one component in that tile. There may be at most one
+RGN marker segment for each component in either the main or tile-part headers. The RGN marker segment for a particular
+component which appears in a tile-part header overrides any marker for that component in the main header, for the tile in
+which it appears. If there are multiple tile-parts in a tile, then this marker segment shall be found only in the first tile-part
+header.
+Length: Variable.
+
+
+
+
+                                         Figure A.12 – Region-of-interest syntax
+          RGN:       Marker code. Table A.24 shows the size and values of the symbol and parameters for the
+                     region-of-interest marker segment.
+          Lrgn:      Length of marker segment in bytes (not including the marker).
+          Crgn:      The index of the component to which this marker segment relates. The components are indexed 0, 1,
+                     2, etc.
+          Srgn:      ROI style for the current ROI. Table A.25 shows the value for the Srgn parameter.
+          SPrgn:     Parameter for ROI style designated in Srgn.
+
+
+                                                                                        Rec. ITU-T T.800 (11/2015)            27
+ISO/IEC 15444-1:2016 (E)
+
+                                       Table A.24 – Region-of-interest parameter values
+
+                             Parameter                       Size (bits)                       Values
+                                  RGN                            16                            0xFF5E
+                                  Lrgn                           16                             5 to 6
+                                  Crgn                           8                      0 to 255; if Csiz < 257
+                                                                 16                     0 to 16 383; Csiz  257
+                                  Srgn                            8                           Table A.25
+                                  SPrgn                           8                           Table A.26
+
+
+                       Table A.25 – Region-of-interest parameter values for the Srgn parameter
+
+                           Values                                        ROI style (Srgn)
+                              0              Implicit ROI (maximum shift)
+                                             All other values reserved
+
+
+                       Table A.26 – Region-of-interest values from SPrgn parameter (Srgn = 0)
+
+  Parameters (in order)      Size (bits)       Values                                Meaning of SPrgn value
+ Implicit ROI shift                8           0 to 255     Binary shifting of ROI coefficients above the background
+
+A.6.4      Quantization default (QCD)
+Function: Describes the quantization default used for compressing all components not defined by a QCC marker segment.
+The parameter values can be overridden for an individual component by a QCC marker segment in either the main or
+tile-part header.
+Usage: Main and first tile-part header of a given tile. It shall be one and only one in the main header. At most, it may be
+one for all tile-part headers of a tile. If there are multiple tile-parts for a tile, and this marker segment is present, it shall
+be found only in the first tile-part (TPsot = 0).
+When used in the tile-part header it overrides the main QCD and the main QCC for the specific component. Thus, the
+order of precedence is the following:
+           Tile-part QCC > Tile-part QCD > Main QCC > Main QCD
+where the "greater than" sign > means that the greater overrides the lesser marker segment.
+Length: Variable depending on the number of quantized elements.
+
+
+
+
+                                           Figure A.13 – Quantization default syntax
+           QCD:       Marker code. Table A.27 shows the size and values of the symbol and parameters for the quantization
+                      default marker segment.
+           Lqcd:      Length of marker segment in bytes (not including the marker). The value of this parameter is
+                      determined by the following equation:
+
+                             4  3  number_dec omposition_levels                   no_quantization
+                             
+                      Lqcd  5                                                      scalar_qua ntization_derived          (A-4)
+                             5  6  number_dec omposition_levels
+                                                                                    scalar_qua ntization_expounded
+
+                where number_decomposition_levels is defined in the COD and COC marker segments, and
+                    no_quantization, scalar_quantization_derived, or scalar_quantization_expounded is signalled in the
+                    Sqcd parameter.
+        NOTE – The Lqcd can be used to determine how many quantization step sizes are present in the marker segment. However,
+        there is not necessarily a correspondence with the number of sub-bands present because the sub-bands can be truncated with
+        no requirement to correct this marker segment.
+
+
+28          Rec. ITU-T T.800 (11/2015)
+                                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+          Sqcd:         Quantization style for all components.
+                  i
+          SPqcd : Quantization step size value for the ith sub-band in the defined order (see F.3.1). The number of
+                  parameters is the same as the number of sub-bands in the tile-component with the greatest number of
+                  decomposition levels.
+
+                                        Table A.27 – Quantization default parameter values
+
+                                Parameter                           Size (bits)                         Values
+                                     QCD                                  16                            0xFF5C
+                                     Lqcd                                 16                            4 to 197
+                                     Sqcd                                 8                           Table A.28
+                                     SPgcdi                          variable                         Table A.28
+
+
+                        Table A.28 – Quantization default values for the Sqcd and Sqcc parameters
+
+        Value (bits)                                                                                         SPqcd or
+                                                                                                                             SPqcd or
+                                                           Quantization style                                SPqcc size
+ MSB                       LSB                                                                                              SPqcc usage
+                                                                                                               (bits)
+        xxx0 0000                    No quantization                                                               8         Table A.29
+        xxx0 0001                    Scalar derived (values signalled for NLLL sub-band only).                     16        Table A.30
+                                     Use Equation (E-5)
+        xxx0 0010                    Scalar expounded (values signalled for each sub-band).                        16        Table A.30
+                                     There are as many step sizes signalled as there are sub-bands
+        000x xxxx                    Number of guard bits: 0 to 7
+           to
+        111x xxxx
+                                     All other values reserved
+
+
+    Table A.29 – Reversible step size values for the SPqcd and SPqcc parameters (reversible transform only)
+
+               Value (bits)
+                                                                               Reversible step size values
+        MSB                          LSB
+               0000 0xxx                      Exponent, b, of the reversible dynamic range signalled for each sub-band (see
+                   to                         Equation (E-5))
+               1111 1xxx
+                                              All other values reserved
+
+
+    Table A.30 – Quantization values for the SPqcd and SPqcc parameters (irreversible transformation only)
+
+                      Value (bits)
+                                                                               Quantization step size values
+        MSB                              LSB
+          xxxx x000 0000 0000                     Mantissa, b, of the quantization step size value (see Equation (E-3))
+                   to
+          xxxx x111 1111 1111
+          0000 0xxx xxxx xxxx                     Exponent, b, of the quantization step size value (see Equation (E-3))
+                   to
+          1111 1xxx xxxx xxxx
+
+A.6.5     Quantization component (QCC)
+Function: Describes the quantization used for compressing a particular component.
+Usage: Main and first tile-part header of a given tile. Optional in both the main and tile-part headers. No more than one
+per any given component may be present in either the main or tile-part headers. If there are multiple tile-parts in a tile,
+and this marker segment is present, it shall be found only in the first tile-part (TPsot = 0).
+Optional in both the main and tile-part headers. When used in the main header, it overrides the main QCD marker segment
+for the specific component. When used in the tile-part header, it overrides the main QCD, main QCC, and tile QCD for
+the specific component. Thus, the order of precedence is the following:
+
+
+                                                                                                   Rec. ITU-T T.800 (11/2015)             29
+ISO/IEC 15444-1:2016 (E)
+
+           Tile-part QCC > Tile-part QCD > Main QCC > Main QCD
+where the "greater than" sign > means that the greater overrides the lesser marker segment.
+Length: Variable depending on the number of quantized elements.
+
+
+
+
+                                        Figure A.14 – Quantization component syntax
+           QCC:      Marker code. Table A.31 shows the size and values of the symbol and parameters for quantization
+                     component marker segment.
+           Lqcc:     Length of marker segment in bytes (not including the marker). The value of this parameter is
+                     determined by the following equation:
+
+
+       5  3  number_dec omposition_levels                    no_quantization AND Csiz  257
+       6                                                       scalar_qua ntization_derived AND Csiz  257
+       
+       
+       6  6  number_dec omposition_levels                    scalar_qua ntization_expounded AND Csiz  257 (A-5)
+Lqcc  
+       6  3  number_dec omposition_levels                    no_quantization AND Csiz  257
+       7                                                       scalar_qua ntization_derived AND Csiz  257
+       
+       
+       7  6  number_dec omposition_levels                    scalar_qua ntization_expounded AND Csiz  257
+
+           where number_decomposition_levels is defined in the COD and COC marker segments, and no_quantization,
+           scalar_quantization_derived, or scalar_quantization_expounded is signalled in the Sqcc parameter.
+        NOTE – The Lqcc can be used to determine how many step sizes are present in the marker segment. However, there is not
+        necessarily a correspondence with the number of sub-bands present because the sub-bands can be truncated with no requirement
+        to correct this marker segment.
+           Cqcc:     The index of the component to which this marker segment relates. The components are indexed 0, 1,
+                     2, etc. (either 8 or 16 bits depending on Csiz value).
+           Sqcc:     Quantization style for this component.
+           SPqcci: Quantization value for each sub-band in the defined order (see F.3.1). The number of parameters is
+                   the same as the number of sub-bands in the tile-component with the greatest number of decomposition
+                   levels.
+
+                                 Table A.31 – Quantization component parameter values
+
+                             Parameter                      Size (bits)                      Values
+                                QCC                             16                           0xFF5D
+                                Lqcc                            16                           5 to 199
+                                Cqcc                            8                    0 to 255; if Csiz < 257
+                                                                16                   0 to 16 383; Csiz  257
+                                Sqcc                             8                         Table A.28
+                               SPqcci                         variable                     Table A.28
+
+A.6.6      Progression order change (POC)
+Function: Describes the bounds and progression order for any progression order other than specified in the COD marker
+segments in the codestream.
+Usage: Main and tile-part headers. At most one POC marker segment may appear in any header. However, several
+progressions can be described with one POC marker segment. If a POC marker segment is used in the main header, it
+overrides the progression order in the main and tile COD marker segments. If a POC is used to describe the progression
+of a particular tile, a POC marker segment must appear in the first tile-part header of that tile. Thus, the progression order
+of a given tile is determined by the presence of the POC or the values of the COD in the following order of precedence:
+           Tile-part POC > Main POC > Tile-part COD > Main COD
+
+
+30          Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+where the "greater than" sign > means that the greater overrides the lesser marker segment.
+In the case where a POC marker segment is used, the progression of every packet in the codestream (or for that tile of the
+codestream) shall be defined in one or more POC marker segments. Each progression order is described in only one POC
+marker segment and shall be described in any tile-part header before any packets of that progression are found.
+Length: Variable depending on the number of different progressions.
+
+
+
+
+                                     Figure A.15 – Progression order change tile syntax
+          POC:             Marker value. Table A.32 shows the size and values of the symbol and parameters for
+                           progression order change marker segment.
+          Lpoc:            Length of marker segment in bytes (not including the marker). The value of this parameter is
+                           determined by the following equation:
+
+                              2  7  number_progression_o rder_change                           Csiz  257
+                       Lpoc                                                                                          (A-6)
+                              2  9  number_progression_o rder_change                           Csiz  257
+
+                       where the number_progression_order_changes is encoder defined.
+                   i
+          RSpoc :          Resolution level index (inclusive) for the start of a progression. There is one value for each
+                           progression change in this tile or tile-part. The number of progression changes can be derived
+                           from the length of the marker segment.
+          CSpoci:          Component index (inclusive) for the start of a progression. The components are indexed 0, 1, 2,
+                           etc. (either 8 or 16 bits depending on Csiz value). There is one value for each progression change
+                           in this tile or tile-part. The number of progression changes can be derived from the length of the
+                           marker segment.
+          LYEpoci:         Layer index (exclusive) for the end of a progression. The layer index always starts at zero for
+                           every progression. Packets that have already been included in the codestream are not included
+                           again. One value for each progression change in this tile or tile-part. The number of progression
+                           changes can be derived from the length of the marker segment.
+          REpoci:          Resolution level index (exclusive) for the end of a progression. There is one value for each
+                           progression change in this tile or tile-part. The number of progression changes can be derived
+                           from the length of the marker segment.
+          CEpoci:          Component index (exclusive) for the end of a progression. The components are indexed 0, 1, 2,
+                           etc. (either 8 or 16 bits depending on Csiz value). There is one value for each progression change
+                           in this tile or tile-part. The number of progression changes can be derived from the length of the
+                           marker segment.
+          Ppoci:           Progression order. There is one value for each progression change in this tile or tile-part. The
+                           number of progression changes can be derived from the length of the marker segment.
+                              Table A.32 – Progression order change, tile parameter values
+
+                          Parameter            Size (bits)                        Values
+                            POC                    16                             0xFF5F
+                            Lpoc                   16                           9 to 65 535
+                           RSpoci                  8                              0 to 32
+                           CSpoci                  8                      0 to 255; if Csiz < 257
+                                                   16                     0 to 16 383; Csiz  257
+                           LYEpoci                 16                           1 to 65 535
+                           REpoci                  8                         (RSpoci + 1) to 33
+                           CEpoci                  8                (CSpoci + 1) to 255, 0; if Csiz < 257
+                                                   16              (CSpoci + 1) to 16 384, 0; Csiz  257
+                                                                        (0 is interpreted as 256)
+                            Ppoci                  8                            Table A.16
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)           31
+ISO/IEC 15444-1:2016 (E)
+
+A.7        Pointer marker segments
+Pointer marker segments either provide a length or pointer into the codestream. The TLM marker segment describes the
+length of the tile-parts. It has the same length information as the SOT marker segment. The PLM or PLT marker segment
+describes the length of the packets.
+     NOTE – Having the pointer marker segments all occur in the main header allows direct access into the bit-stream data. Having the
+     pointer information in the tile-part headers removes the burden on the encoder of rewinding to store the information.
+
+The TLM (Ptlm) or the SOT (Psot) parameters point from the beginning of the current tile-part's SOT marker segment to
+the end of the bit-stream data in that tile-part. Because tile-parts are required to be a multiple of 8 bits, these values are
+always a byte length. Figure A.16 shows the length of a tile-part.
+The PLM or PLT marker segments are optional. The PLM marker segment is used in the main header and the PLT marker
+segments are used in tile-part headers. The PLM and PLT marker segments describe the lengths of each packet in the
+codestream.
+
+                                                 Tile-part length (TLM, SOT(Psot))
+
+
+                          Tile-part marker
+                SOT                             SOD                              Bit stream
+                              segments
+                                                                                                             T.800_FA-16
+
+
+                                                 Figure A.16 – Tile-part lengths
+
+A.7.1      Tile-part lengths (TLM)
+Function: Describes the length of every tile-part in the codestream. Each tile-part's length is measured from the first byte
+of the SOT marker segment to the end of the bit-stream data of that tile-part. The value of each individual tile-part length
+in the TLM marker segment is the same as the value in the corresponding Psot in the SOT marker segment.
+Usage: Main header. It can be used optionally in the main header only. There may be multiple TLM marker segments in
+the main header.
+Length: Variable depending on the number of tile-parts in the codestream.
+
+
+
+
+                                             Figure A.17 – Tile-part length syntax
+           TLM:       Marker code. Table A.33 shows the size and values of the symbol and parameters for the tile-part
+                      length marker segment.
+           Ltlm:      Length of marker segment in bytes (not including the marker). The value of this parameter is
+                      determined by the following equation:
+
+                              4  2  number_of_ tile_parts_in_marker _segment            ST  0 AND SP  0
+                              4  3  number_of_ tile_parts_in_marker _segment            ST  1 AND SP  0
+                              
+                              4  4  number_of_ tile_parts_in_marker _segment           ST  2 AND SP  0
+                       Ltlm                                                                                                 (A-7)
+                               4  4  number_of_ tile_parts_in_marker _segment           ST  0 AND SP  1
+                               4  5  number_of_ tile_parts_in_marker _segment           ST  1 AND SP  1
+                               
+                               4  6  number_of_ tile_parts_in_marker _segment          ST  2 AND SP  1
+
+                      where number_of_tile-parts_in_marker_segment is the number of tile-part lengths that are denoted in
+                      this marker segment; ST and SP are signalled by Stlm parameter.
+           Ztlm:      Index of this marker segment relative to all other TLM marker segments present in the current header.
+                      The sequence of (Ttlmi, Ptlmi) pairs from this marker segment is concatenated, in order of increasing
+                      Ztlm, with the sequences of pairs from other marker segments. The jth entry in the resulting list
+                      contains the tile index and tile-part length pair for the jth tile-part appearing in the codestream.
+           Stlm:      Size of the Ttlm and Ptlm parameters.
+
+
+
+32           Rec. ITU-T T.800 (11/2015)
+                                                                                                        ISO/IEC 15444-1:2016 (E)
+
+          Ttlmi:     Tile index of the ith tile-part. There is either none or one value for every tile-part. The number of tile-
+                     parts in each tile can be derived from this marker segment (or the concatenated list of all such markers)
+                     or from a non-zero TNsot parameter, if present.
+          Ptlmi:     Length in bytes, from the beginning of the SOT marker of the ith tile-part to the end of the bit stream
+                     data for that tile-part. There is one value for every tile-part.
+
+                                      Table A.33 – Tile-part length parameter values
+
+                         Parameter                          Size (bits)                           Values
+                            TLM                                  16                               0xFF55
+                             Ltlm                                16                             6 to 65 535
+                             Ztlm                                8                                0 to 255
+                             Stlm                                8                              Table A.34
+                            Ttlmi                            0 if ST = 0                       tiles in order
+                                                             8 if ST = 1                          0 to 254
+                                                            16 if ST = 2                        0 to 65 534
+                            Ptlmi                           16 if SP = 0                       14 to 65 535
+                                                            32 if SP = 1                       14 to (232– 1)
+
+
+                                           Table A.34 – Size parameters for Stlm
+
+                      Value (bits)
+                                                                          Parameter size
+                MSB                  LSB
+                      xx00 xxxx            ST = 0; Ttlm parameter is 0 bits, only one tile-part per tile and the tiles
+                                           are in index order without omission or repetition
+                      xx01 xxxx            ST = 1; Ttlm parameter 8 bits
+                      xx10 xxxx            ST = 2; Ttlm parameter 16 bits
+                      x0xx xxxx            SP = 0; Ptlm parameter 16 bits
+                      x1xx xxxx            SP = 1; Ptlm parameter 32 bits
+                                           All other values reserved
+
+A.7.2     Packet length, main header (PLM)
+Function: A list of packet lengths in the tile-parts for every tile-part in order.
+Usage: Main header. There may be multiple PLM marker segments. Both the PLM and PLT marker segments are optional
+and can be used together or separately.
+Length: Variable depending on the number of tile-parts in the image and the number of packets in each tile-part.
+
+
+
+
+                                     Figure A.18 – Packets length, main header syntax
+          PLM:       Marker code. Table A.35 shows the size and values of the symbol and parameters for the packet
+                     length, main header marker segment.
+          Lplm:      Length of marker segment in bytes (not including the marker).
+          Zplm:      Index of this marker segment relative to all other PLM marker segments present in the current header.
+                     The sequence of (Nplmi, Iplmi) parameters from this marker segment is concatenated, in the order of
+                     increasing Zplm, with the sequences of parameters from other marker segments. The kth entry in the
+                     resulting list contains the number of bytes and packet header pair for the kth tile-part appearing in the
+                     codestream.
+                     Every marker segment in this series shall end with a completed packet header length. However, the
+                     series of Iplm parameters described by the Nplm does not have to be complete in a given marker
+                     segment. Therefore, it is possible that the next PLM marker segment will not have an Nplm parameter
+                     after Zplm, but the continuation of the Iplm series from the last PLM marker segment.
+
+
+                                                                                           Rec. ITU-T T.800 (11/2015)        33
+ISO/IEC 15444-1:2016 (E)
+
+             Nplmi:       Number of bytes of Iplm information for the ith tile-part in the order found in the codestream. There
+                          is one value for each tile-part. If a codestream contains one or more tile-parts exceeding the limitations
+                          of PLM markers, these markers shall not be used.
+          NOTE – This value is expressed with an 8-bit number limiting the number of Iplm bytes to 255 and the number of packets in
+          a tile-part to 255 or less. This is not a restriction on the number of packets that can be in a tile-part, it is merely a limit on this
+          marker segment's ability to describe the packets in a tile-part.
+             Iplmij:      Length of the jth packet in the ith tile-part. If packet headers are stored with the packet, this length
+                          includes the packet header. If packet headers are stored in the PPM or PPT, this length does not
+                          include the packet header length. There is one range of values for each tile-part. There is one value
+                          for each packet in the tile.
+
+                                   Table A.35 – Packets length, main header parameter values
+
+                                 Parameter                         Size (bits)                         Values
+                                    PLM                                16                             0xFF57
+                                    Lplm                               16                           4 to 65 535
+                                    Zplm                                8                             0 to 255
+                                    Nplmi                               8                             0 to 255
+                                    Iplmij                          variable                         Table A.36
+
+
+                                                Table A.36 – Iplm, Iplt list of packet lengths
+
+           Parameters
+                                  Size (bits)           Values                         Meaning of Iplm or Iplt values
+            (in order)
+          Packet length        8 bits repeated       0xxx xxxx         Last 7 bits of packet length, terminate numbera)
+                                as necessary         1xxx xxxx         Continue readingb)
+                                                     x000 0000         7 bits of packet length
+                                                         to
+                                                     x111 1111
+     a)     These are the last 7 bits that make up the packet length.
+     b)     These are not the last 7 bits that make up the packet length. Instead, these 7 bits are a portion of those that make up the
+            packet length. The packet length has been broken into 7-bit segments which are sent in order from the most significant
+            segment to the least significant segment. Furthermore, the bits in the most significant segment are right justified to the
+            byte boundary. For example, a packet length of 128 is signalled as 1000 0001 0000 0000, while a length of 512 is
+            signalled as 1000 0100 0000 0000.
+
+A.7.3        Packet length, tile-part header (PLT)
+Function: A list of packet lengths in the tile-part.
+Usage: Tile-part headers. There may be multiple PLT marker segments per tile. Both the PLM and PLT marker segments
+are optional and can be used together or separately. It shall appear in any tile-part header before the packets whose lengths
+are described herein.
+Length: Variable depending on the number of packets in each tile-part.
+
+
+
+
+                                        Figure A.19 – Packet length, tile-part header syntax
+             PLT:         Marker code. Table A.37 shows the size and values of the symbol and parameters for the packet
+                          length, tile-part header marker segment.
+             Lplt:        Length of marker segment in bytes (not including the marker).
+             Zplt:        Index of this marker segment relative to all other PLT marker segments present in the current header.
+                          The sequence of (Iplti) parameters from this marker segment is concatenated, in the order of increasing
+                          Zplt, with the sequences of parameters from other marker segments. Every marker segment in this
+                          series shall end with a completed packet header length.
+
+
+
+
+34             Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+          Iplmi:    Length of the ith packet. If packet headers are stored with the packet, this length includes the packet
+                    header. If packet headers are stored in the PPM or PPT, this length does not include the packet header
+                    lengths.
+
+                            Table A.37 – Packet length, tile-part headers parameter values
+
+                            Parameter                       Size (bits)                Values
+                               PLT                              16                    0xFF58
+                                Lplt                            16                   4 to 65 535
+                                Zplt                            8                     0 to 255
+                                Iplti                        variable                Table A.36
+
+A.7.4     Packed packet headers, main header (PPM)
+Function: A collection of the packet headers from all tiles.
+   NOTE – This is useful so multiple reads are not required to decode headers.
+
+Usage: Main header. It may be used in the main header for all tile-parts unless a PPT marker segment is used in the
+tile-part header.
+The packet headers shall be in only one of three places within the codestream. If the PPM marker segment is present, all
+the packet headers shall be found in the main header. In this case, the PPT marker segment and packets distributed in the
+bit stream of the tile-parts are disallowed.
+If there is no PPM marker segment then the packet headers can be distributed either in PPT marker segments or distributed
+in the codestream as defined in B.10. The packet headers shall not be in both a PPT marker segment and the codestream
+for the same tile. If the packet headers are in PPT marker segments, they shall appear in a tile-part header before the
+corresponding packet data appears (i.e., in the same tile-part header or one with a lower TPsot value). There may be
+multiple PPT marker segments in a tile-part header.
+Length: Variable depending on the number of packets in each tile-part and the size of the packet headers.
+
+
+
+
+                               Figure A.20 – Packed packet headers, main header syntax
+          PPM:      Marker code. Table A.38 shows the size and values of the symbol and parameters for the packed
+                    packet headers, main header marker segment.
+          Lppm:     Length of marker segment in bytes, not including the marker.
+          Zppm:     Index of this marker segment relative to all other PPM marker segments present in the main header.
+                    The sequence of (Nppmi, Ippmi) parameters from this marker segment is concatenated, in order of
+                    increasing Zppm, with the sequences of parameters from other marker segments. The kth entry in the
+                    resulting list contains the number of bytes and packet headers for the kth tile-part appearing in the
+                    codestream.
+                    Every marker segment in this series shall end with a completed packet header. However, the series of
+                    Ippm parameters described by the Nppm does not have to be complete in a given marker segment.
+                    Therefore, it is possible that the next PPM marker segment will not have an Nppm parameter after
+                    Zppm, but the continuation of the Ippm series from the last PPM marker segment.
+          Nppmi: Number of bytes of Ippm information for the ith tile-part in the order found in the codestream. One
+                 value for each tile-part (not tile).
+          Ippmij:   Packet header for every packet in order in the tile-part. The contents are exactly the packet header
+                    which would have been distributed in the bit stream as described in B.10.
+
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)            35
+ISO/IEC 15444-1:2016 (E)
+
+                        Table A.38 – Packed packet headers, main header parameter values
+
+                           Parameter                    Size (bits)                   Values
+                              PPM                           16                        0xFF60
+                             Lppm                           16                      7 to 65 535
+                             Zppm                            8                        0 to 255
+                             Nppmi                          32                      0 to (232– 1)
+                             Ippmij                      variable                  packet headers
+
+A.7.5     Packed packet headers, tile-part header (PPT)
+Function: A collection of the packet headers from one tile or tile-part.
+Usage: Tile-part headers. It shall appear in any tile-part header before the packets whose headers are described herein.
+The packet headers shall be in only one of three places within the codestream. If the PPM marker segment is present, all
+the packet headers shall be found in the main header. In this case, the PPT marker segment and packets distributed in the
+bit stream of the tile-parts are disallowed.
+If there is no PPM marker segment, then the packet headers can be distributed either in PPT marker segments or distributed
+in the codestream as defined in B.10. The packet headers shall not be in both a PPT marker segment and the codestream
+for the same tile. If the packet headers are in PPT marker segments, they shall appear in a tile-part header before the
+corresponding packet data appears (i.e., in the same tile-part header or one with a lower TPsot value). There may be
+multiple PPT marker segments in a tile-part header.
+Length: Variable depending on the number of packets in each tile-part and the size of the packet headers.
+
+
+
+
+                            Figure A.21 – Packed packed headers, tile-part header syntax
+          PPT:      Marker code. Table A.39 shows the size and values of the symbol and parameters for the packed
+                    packet headers, tile-part header marker segment.
+          Lppt:     Length of marker segment in bytes, not including the marker.
+          Zppt:     Index of this marker segment relative to all other PPT marker segments present in the current header.
+                    The sequence of (Ippti) parameters from this marker segment is concatenated, in the order of
+                    increasing Zppt, with the sequences of parameters from other marker segments. Every marker
+                    segment in this series shall end with a completed packet header.
+          Ippti:    Packet header for every packet in order in the tile-part. The component index, layer, and resolution
+                    level are determined from the method of progression or POC marker segments. The contents are
+                    exactly the packet header which would have been distributed in the bit stream as described in B.10.
+
+                           Table A.39 – Packet header, tile-part headers parameter values
+
+                           Parameter                    Size (bits)                   Values
+                              PPT                           16                        0xFF61
+                              Lppt                          16                      4 to 65 535
+                              Zppt                           8                        0 to 255
+                              Ippti                      variable                  packet headers
+
+
+A.8       In-bit-stream marker and marker segments
+These marker and marker segments are used for error resilience. They can be found in the bit stream. (The EPH marker
+can also be used in the PPM and PPT marker segments.)
+
+A.8.1     Start of packet (SOP)
+Function: Marks the beginning of a packet within a codestream.
+
+
+
+36         Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+Usage: Optional. It may be used in the bit stream in front of every packet. It shall not be used unless indicated that it is
+allowed in the proper COD marker segment (see A.6.1). If PPM or PPT marker segments are used, then the SOP marker
+segment may appear immediately before the packet data in the bit stream.
+If SOP marker segments are allowed (by signalling in the COD marker segment, see A.6.1), each packet in any given tile-
+part may or may not be appended with an SOP marker segment. However, whether or not the SOP marker segment is
+used, the count in the Nsop is incremented for each packet. If the packet headers are moved to a PPM or to PPT marker
+segments (see A.7.4 and A.7.5), then the SOP marker segments may appear immediately before the packet body in the
+tile-part compressed image data portion.
+Length: Fixed.
+
+
+
+
+                                          Figure A.22 – Start of packet syntax
+          SOP:      Marker code. Table A.40 shows the size and values of the symbol and parameters for start of packet
+                    marker segment.
+          Lsop:     Length of marker segment in bytes, not including the marker.
+          Nsop:     Packet sequence number. The first packet in a coded tile is assigned the value zero. For every
+                    successive packet in this coded tile this number is incremented by one. When the maximum number
+                    is reached, the number rolls over to zero.
+
+                                     Table A.40 – Start of packet parameter values
+
+                           Parameter                     Size (bits)                   Values
+                              SOP                            16                        0xFF91
+                              Lsop                           16                           4
+                              Nsop                           16                      0 to 65 535
+
+A.8.2     End of packet header (EPH)
+Function: Indicates the end of the packet header for a given packet. This delimits the packet header in the bit stream or
+in the PPM or PPT marker segments. This marker does not denote the beginning of packet data. If packet headers are not
+in-bit stream (i.e., PPM or PPT marker segments are used), this marker shall not be used in the bit stream.
+Usage: Shall be used if and only if indicated in the proper COD marker segment (see A.6.1). It appears immediately after
+a packet header.
+If EPH markers are required (by signalling in the COD marker segment, see A.6.1), each packet header in any given tile-
+part shall be postpended with an EPH marker segment. If the packet headers are moved to a PPM or PPT marker segments
+(see A.7.4 and A.7.5), then the EPH markers shall appear after the packet headers in the PPM or PPT marker segments.
+Length: Fixed.
+          EPH:      Marker code
+
+                                 Table A.41 – End of packet header parameter values
+
+                           Parameter                     Size (bits)                   Values
+                              EPH                            16                        0xFF92
+
+
+A.9       Informational marker segments
+These marker segments are strictly information and are not necessary for a decoder. However, these marker segments
+might assist a parser or decoder. More information about the source and characteristics of the image can be obtained by
+using a file format such as JP2 (see Annex I).
+
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)             37
+ISO/IEC 15444-1:2016 (E)
+
+A.9.1       Component registration (CRG)
+Function: Allows specific registration of components with respect to each other. For coding purposes the samples of
+components are considered to be located at reference grid points that are integer multiples of XRsiz and YRsiz (see A.5.1).
+However, this may be inappropriate for rendering the image. The CRG marker segment describes the "centre of mass" of
+each component's samples with respect to the separation. This marker segment has no effect on decoding the codestream.
+     NOTE – This component registration offset is with respect to the image offset (XOsiz and YOsiz) and the component separation
+     (XRsizi and YRsizi). For example, the horizontal reference grid point for the left-most samples of component c is
+     XRsizc  XOsiz / XRsizc  (likewise for the vertical direction). The horizontal offset denoted in this marker segment is in addition to
+     this offset.
+
+Usage: Main header only. Only one CRG may be used in the main header and is applicable for all tiles.
+Length: Variable depending on the number of components.
+
+
+
+
+                                            Figure A.23 – Component registration syntax
+            CRG:          Marker code. Table A.42 shows the size and values of the symbol and parameters for the component
+                          registration marker segment.
+            Lcrg:         Length of marker segment in bytes (not including the marker).
+                  i
+            Xcrg :        Value of the horizontal offset, in units of 1/65536 of the horizontal separation XRsiz i, for the ith
+                          component. Thus, values range from 0/65536 (sample occupies its reference grid point) to
+                          XRsizc(65535/65536) (just before the next sample's reference grid point). This value is repeated for
+                          every component.
+            Ycrgi:        Value of the vertical offset, in units of 1/65536 of the vertical separation YRsizi, for the ith component.
+                          Thus, values range from 0/65536 (sample occupies its reference grid point) to YRsizc(65535/65536)
+                          (just before the next sample's reference grid point). This value is repeated for every component.
+
+                                     Table A.42 – Component registration parameter values
+
+                                 Parameter                       Size (bits)                       Values
+                                    CRG                              16                            0xFF63
+                                    Lcrg                             16                          6 to 65 534
+                                    Xcrgi                            16                          0 to 65 535
+                                    Ycrgi                            16                          0 to 65 535
+
+A.9.2       Comment (COM)
+Function: Allows unstructured data in the main and tile-part header.
+Usage: Main and tile-part headers. Repeatable as many times as desired in either or both the main or tile-part headers.
+This marker segment has no effect on decoding the codestream.
+Length: Variable depending on the length of the message.
+
+
+
+
+                                                   Figure A.24 – Comment syntax
+            COM:          Marker code. Table A.43 shows the size and values of the symbol and parameters for the comment
+                          marker segment.
+            Lcom:         Length of marker segment in bytes (not including the marker).
+            Rcom:         Registration value of the marker segment.
+                      i
+            Ccom :        Byte of unstructured data.
+
+
+38           Rec. ITU-T T.800 (11/2015)
+                                                                                                               ISO/IEC 15444-1:2016 (E)
+
+                                            Table A.43 – Comment parameter values
+
+                          Parameter                              Size (bits)                          Values
+                                 COM                                  16                             0xFF64
+                                 Lcom                                 16                            5 to 65 535
+                                 Rcom                                 16                            Table A.44
+                                 Ccomi                                 8                             0 to 255
+
+
+                                 Table A.44 – Registration values for the Rcom parameter
+
+                         Values                                            Registration values
+                             0                General use (binary values)
+                             1                General use (ISO/IEC 8859-15 (Latin) values)
+                                              All other values reserved
+
+
+A.10      Codestream restrictions conforming to this Recommendation | International Standard
+In order to promote the wide inter-operability of JPEG 2000 codestream, codestream restrictions are introduced. The case
+of "No Restrictions" meaning conforming to this Recommendation | International Standard can be called Profile-2.
+Profile-0 and Profile-1 are defined as follows.
+Maximum interchange will be achieved for codestreams corresponding to Profile-0, and medium interchange for
+codestreams corresponding to Profile-1.
+
+                                              Table A.45 – Codestream restrictions
+
+         Restrictions                                  Profile-0                                                Profile-1
+ SIZ marker segment
+ Profile indication              Rsiz = 1                                                Rsiz = 2
+ Image size                      Xsiz, Ysiz < 231                                        Xsiz, Ysiz < 231
+ Tiles                           Tiles of a dimension 128  128:                         XTsiz / min(XRsizi, YRsizi)  1024
+                                 YTsiz = XTsiz = 128                                     XTsiz = YTsiz
+                                 or one tile for the whole image:                        or one tile for the whole image:
+                                 YTsiz + YTOsiz  Ysiz                                   YTsiz + YTOsiz  Ysiz
+                                 XTsiz + XTOsiz  Xsiz                                   XTsiz + XTOsiz  Xsiz
+ Image and tile origin           XOsiz = YOsiz = XTOsiz = YTOsiz = 0                     XOsiz, YOsiz, XTOsiz, YTOsiz < 231
+ RGN marker segment              SPrgn  37                                              SPrgn  37
+ Sub-sampling                    XRsizi = 1, 2, or 4                                     No restriction
+                                 YRsizi = 1, 2, or 4
+ Code-blocks
+ Code-block size                 xcb = ycb = 5 or xcb = ycb = 6                          xcb  6, ycb  6
+ Code-block style                SPcod, SPcoc = 00sp vtra                                No restriction
+                                 where a = r = v = 0, and t, p, s = 0 or 1
+                                 NOTE 1 –
+                                 t = 1 for termination on each coding pass
+                                 p = 1 for predictive termination
+                                 s = 1 for segmentation symbols
+ Marker locations
+ Packed headers (PPM, PPT)       Disallowed                                              No restriction
+ COD, COC, QCD, QCC              Main header only                                        No restriction
+ Subset requirements                                                                     
+ LL resolution                   If one tile is used for whole image,                    For each tile in the image,
+                                 (Xsiz – XOsiz) / D(I)  128 and                         x1 / D(i) – tx0/D(i)  128 and
+                                 (Ysiz – YOsiz) / D(I)  128 where                       ty1/D(i) – ty0/D(i)  128 where
+                                 D(I) = 2number_decomposition_levels in SPcod or         D(I) = 2number_decomposition_levels in SPcod or
+                                 SPcoc, for I = component 0 to 3                         SPcoc, for I = component 0 to 3.
+                                                                                         NOTE 2 – tx0, tx1, ty0 and ty1 are as defined
+                                                                                         by Equations (B-7) to (B-10).
+
+
+                                                                                                 Rec. ITU-T T.800 (11/2015)                39
+ISO/IEC 15444-1:2016 (E)
+
+
+                                           Table A.45 – Codestream restrictions
+
+         Restrictions                              Profile-0                                         Profile-1
+ Parsability                   If the POC marker is present, the POC marker         No restriction
+                               shall have RSPOC0 = 0 and CSPOC0 = 0.
+                               NOTE 3 – Some compliant decoders might
+                               decode only packets associated with the first
+                               progression.
+ Tile-parts                    Tile-parts with TPsot = 0 of every tile before       No restriction
+                               any tile-parts with TPsot > 0, Tile-parts Isot = 0
+                               to Isot = number_of_tiles – 1, in sequential
+                               order for all tile-parts with TPsot = 0
+ Precinct size                 "Precinct size" defined by SPcod or SPcoc            No restriction
+                               (Tables A.15 and A.21) must be large enough
+                               so there is only one precinct in all resolution
+                               levels with dimension less than or equal to 128
+                               by 128.
+                               NOTE 4 – Precinct size PPx  7 and PPy  7 is
+                               sufficient to guarantee only one precinct per
+                               sub-band when XOsiz = 0 and YOsiz = 0.
+
+A.10.1    Codestream restrictions for digital cinema applications including archiving
+In addition to the profiles defined in Table A.10, five profiles are defined for digital cinema and archiving applications as
+detailed in Table A.46. The first two, in the form of Profile-3 and Profile-4, are primarily intended for distribution. In
+addition, the three profiles listed under profile indication numbers 5 to 7 are intended for archiving and production
+purposes. The two extended scalable profiles (Profile-5 and Profile-6) are intended to be used for easily accessible
+archives. The long-term storage profile (Profile-7) is intended for original camera capture or post-production workflows.
+
+
+
+
+40             Rec. ITU-T T.800 (11/2015)
+                                                                                                                                                                       ISO/IEC 15444-1:2016 (E)
+
+
+                                                           Table A.46 – Codestream restrictions for digital cinema applications
+
+                                                                                                   Scalable 2K digital cinema        Scalable 4K digital cinema
+                                 2K digital cinema profile         4K digital cinema profile                                                                          Long-term storage profile
+                                                                                                             profile                           profile
+
+     SIZ marker segment
+ Profile indication             Rsiz=3                            Rsiz=4                           Rsiz=5                           Rsiz=6                           Rsiz=7
+ Image size                     Xsiz <= 2048, Ysiz <= 1080        Xsiz <= 4096, Ysiz <= 2160       Xsiz <= 2048, Ysiz <= 1080       Xsiz <= 4096, Ysiz <= 2160       Xsiz <= 16384, Ysiz <= 8640
+ Tiles                          one tile for the whole image:     one tile for the whole image:    one tile for the whole image:    one tile for the whole image:    One tile for the whole image
+                                YTsiz + YTOsiz >= Ysiz            YTsiz + YTOsiz >= Ysiz           YTsiz + YTOsiz >= Ysiz           YTsiz + YTOsiz >= Ysiz           or minimum tile size:
+                                XTsiz + XTOsiz >= Xsiz            XTsiz + XTOsiz >= Xsiz           XTsiz + XTOsiz >= Xsiz           XTsiz + XTOsiz >= Xsiz           YTsiz + YTOsiz >= 512
+                                                                                                                                                                     XTsiz + XTOsiz >= 1024
+ Image and tile origin          XOsiz = YOsiz = XTOsiz =          XOsiz = YOsiz = XTOsiz =         XOsiz = YOsiz = XTOsiz =         XOsiz = YOsiz = XTOsiz =         XOsiz = YOsiz = XTOsiz =
+                                YTOsiz = 0                        YTOsiz = 0                       YTOsiz = 0                       YTOsiz = 0                       YTOsiz = 0
+ Sub-sampling                   XRsizi = YRsizi = 1               XRsizi = YRsizi = 1              XRsizi = YRsizi = 1              XRsizi = YRsizi = 1              No restriction
+ Number of components           Csiz = 3                          Csiz = 3                         Csiz = 3                         Csiz = 3                         Csiz<=8
+                                                                                                         i                                i
+ Bitdepth                       Ssizi = 11 (i.e., 12 bit          Ssizi = 11 (i.e., 12 bit         Ssiz = 11 (i.e., 12 bit          Ssiz = 11 (i.e., 12 bit          No restriction
+                                unsigned)                         unsigned)                        unsigned)                        unsigned)
+ RGN marker segment             Disallowed, i.e., no region of    Disallowed, i.e., no region of   Disallowed, i.e., no region of   Disallowed, i.e., no region of   Disallowed, i.e., no region of
+                                interest                          interest                         interest                         interest                         interest
+ COD/COC marker segments        Main header only                  Main header only                 Main header only                 Main header only                 Main header only
+ Coding style                   Scod, Scoc = 0000 0esp,           Scod, Scoc = 0000 0esp,          Scod, Scoc = 0000 0esp,          Scod, Scoc = 0000 0esp, where    Scod, Scoc = 0000 0esp, where
+                                where p=1, e=0 or e=1, s=0        where p=1, e=0 or e=1, s=0       where e=s=0, and p=1             e=s=0, and p=1                   e=s=1, and p=0 or 1
+                                or s=1                            or s=1                           NOTE –                           NOTE –                           NOTE –
+                                NOTE –                            NOTE –                           e=0: EPH marker shall not        e=0: EPH marker shall not be     e: EPH marker shall be used
+                                p=1: precincts defined in         p=1: precincts defined in        be used                          used                             s: SOP marker may be used
+                                SPcodIi/SPcocI                    SPcodIi/SPcocI                   s=0: SOP marker shall not be     s=0: SOP marker shall not be     p: precincts with PPx=15 and
+                                                                                                   used                             used                             PPy=15 or defined in
+                                                                                                   p=1: precincts defined in        p=1: precincts defined in        SPcodIi/SPcocIi
+                                                                                                   SPcodIi/SPcocIi                  SPcodIi/SPcocIi
+ Progression order              CPRL                              CPRL                             CPRL                             CPRL                             CPRL
+ Number of layers               L=1                               L=1                              L=2                              L=2                              L<=5
+ Multiple component transform   All component transforms          All component transforms         All component transforms         All component transforms in      All component transforms
+                                defined in this                   defined in this                  defined in this                  this Recommendation |            defined in this
+                                Recommendation |                  Recommendation |                 Recommendation |                 International Standard may be    Recommendation |
+                                International Standard may        International Standard may       International Standard may       used.                            International Standard may be
+                                be used.                          be used.                         be used.                                                          used.
+
+
+
+
+41          Rec. ITU-T T.800 (11/2015)
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                      Table A.46 – Codestream restrictions for digital cinema applications
+
+                                                                                                 Scalable 2K digital cinema         Scalable 4K digital cinema
+                              2K digital cinema profile         4K digital cinema profile                                                                            Long-term storage profile
+                                                                                                           profile                            profile
+ Number of decomposition     NL <= 5                           1<= NL <= 6                       NL <= 5                           1<= NL <= 6                      No restriction, with respect to:
+ levels                      Every component of every          Every component of every          Every component of every          Every component of every         (Xsiz-XOsiz)/D(I) <= 64
+                             image of a distribution shall     image of a distribution shall     image of a codestream shall       image of a codestream shall      (Ysiz-YOsiz)/D(I) <= 64
+                             have the same number of           have the same number of           have the same number of           have the same number of          and D(I)=pow(2,NL) for each
+                             wavelet transform levels.         wavelet transform levels.         wavelet transform levels.         wavelet transform levels.        component I
+                             The number of deployed            The number of deployed            The number of deployed            The number of deployed           Every component of every
+                             decomposition levels shall        decomposition levels shall        decomposition levels shall        decomposition levels shall be    image of a codestream shall
+                             be set accordingly in all         be set accordingly in all         be set accordingly in all         set accordingly in all COD and   have the same number of
+                             COD and COC markers.              COD and COC markers.              COD and COC markers.              COC markers.                     wavelet transform levels.
+                                                                                                                                                                    The number of deployed
+                                                                                                                                                                    decomposition levels shall be
+                                                                                                                                                                    set accordingly in all COD and
+                                                                                                                                                                    COC markers.
+ Code-block size             xcb=ycb=5                         xcb=ycb=5                         xcb = ycb = 5                     xcb = ycb = 5                    xcb <= 6, ycb <= 6
+                             The corresponding values          The corresponding values          The corresponding values          The corresponding values shall   The corresponding values shall
+                             shall be set accordingly in all   shall be set accordingly in all   shall be set accordingly in all   be set accordingly in all        be set accordingly in all
+                             deployed COD and COC              deployed COD and COC              deployed COD and COC              deployed COD and COC             deployed COD and COC
+                             markers.                          markers.                          markers.                          markers.                         markers. Note that codeblock
+                                                                                                                                                                    sizes might differ between the
+                                                                                                                                                                    existing components.
+ Code-block style            SPcod, SPcoc = 0000 0000          SPcod, SPcoc = 0000 0000          SPcod, SPcoc = 0000 0000          SPcod, SPcoc = 0000 0000         SPcod, SPcoc = 00sp vtra
+                                                                                                                                                                    where r = v = 0, and a, t, p, s =
+                                                                                                                                                                    0 or 1
+                                                                                                                                                                    NOTE –
+                                                                                                                                                                    a = 1 for selective arithmetic
+                                                                                                                                                                    coding bypass
+                                                                                                                                                                    t = 1 for termination on each
+                                                                                                                                                                    coding pass
+                                                                                                                                                                    p = 1 for predictive
+                                                                                                                                                                    termination
+                                                                                                                                                                    s = 1 for segmentation symbols
+
+
+
+
+42        Rec. ITU-T T.800 (11/2015)
+                                                                                                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+
+                                                               Table A.46 – Codestream restrictions for digital cinema applications
+
+                                                                                                           Scalable 2K digital cinema         Scalable 4K digital cinema
+                                       2K digital cinema profile         4K digital cinema profile                                                                                 Long-term storage profile
+                                                                                                                     profile                            profile
+    Transformation                    5-3 reversible filter
+                                                          1
+                                                            or 9-7      5-3 reversible filter or 9-7       9-7 irreversible filter           9-7 irreversible filter             9-7 irreversible filter
+                                      irreversible filter               irreversible filter1               The corresponding filter          The corresponding filter shall      5-3 reversible filter
+                                      The corresponding filter          The corresponding filter           shall be set accordingly in all   be set accordingly in all COD       The corresponding filter shall
+                                      shall be set accordingly in all   shall be set accordingly in all    COD and COC markers.              and COC markers.                    be set accordingly in all COD
+                                      COD and COC markers.              COD and COC markers.                                                                                     and COC markers.
+    Precinct size                     PPx = PPy = 7 for NLLL            PPx = PPy = 7 for NLLL             PPx = PPy = 7 for NLLL            PPx = PPy = 7 for NLLL band,        PPx >= xcb, PPy >= ycb
+                                      band, else 8                      band, else 8                       band, else 8                      else 8                              The corresponding values shall
+                                      The corresponding values          The corresponding values           The corresponding values          The corresponding values shall      be set accordingly in all COD
+                                      shall be set accordingly in all   shall be set accordingly in all    shall be set accordingly in all   be set accordingly in all COD       and COC markers. Note that
+                                      COD and COC markers.              COD and COC markers.               COD and COC markers.              and COC markers.                    the precinct sizes might differ
+                                                                                                                                                                                 between existing components.
+    Tile-parts                        Each compressed image             Each compressed image              Each compressed image             Each compressed image shall         Each compressed image tile
+                                      shall have exactly 3 tile-        shall have exactly 6 tile-parts    shall have exactly 6 tile-parts   have exactly 12 tile-parts as       shall consist of exactly Csiz
+                                      parts. Each tile-part shall       as depicted in Figure A.25         as depicted in Figure A.29.       depicted in Figures A.28, A.27      tile-parts. Each tile-part shall
+                                      contain all data from one         and Figure A.26. Each of the       Each of the first 3 tile-parts    and A.25. Each of the first 3       contain all data from one
+                                      colour component.                 first 3 tile-parts shall contain   shall contain all data            tile-parts shall contain all data   component of the considered
+                                                                        all data necessary to              necessary to decompress one       necessary to decompress one         tile.
+                                                                        decompress one 2K colour           2K colour component               2K colour component
+                                                                        component. Each of the next        compatible to a 2K digital        compatible to a 2K digital
+                                                                        3 tile-parts shall contain all     cinema profile. Each of the       cinema profile. Each of the
+                                                                        additional data necessary to       next 3 tile-parts shall contain   next 3 tile-parts shall contain
+                                                                        decompress one 4K colour           all additional data necessary     all additional data necessary to
+                                                                        component.                         to decompress the rest of one     decompress one 4K colour
+                                                                                                           2K colour component.              component. Each of the next 3
+                                                                                                                                             tile-parts shall contain all
+                                                                                                                                             additional data necessary for
+                                                                                                                                             the rest of one 2K colour
+                                                                                                                                             component. Each of the next 3
+                                                                                                                                             tile-parts shall contain all
+                                                                                                                                             additional data necessary to
+                                                                                                                                             decompress the rest of one 4K
+                                                                                                                                             colour component.
+
+
+
+
+
+
+
+1    The use of the 9-7 irreversible filter is highly recommended to increase the usability for archives, since both the scalable 2K digital cinema profile and the scalable 4K digital cinema profile are
+     restricted to this wavelet filter. In addition, digital cinema packages (DCPs) conform to the 9-7 filter.
+
+
+43               Rec. ITU-T T.800 (11/2015)
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                         Table A.46 – Codestream restrictions for digital cinema applications
+
+                                                                                                Scalable 2K digital cinema         Scalable 4K digital cinema
+                                    2K digital cinema profile    4K digital cinema profile                                                                           Long-term storage profile
+                                                                                                          profile                            profile
+ Other markers
+ Packed headers (PPM, PPT)         Disallowed                   Disallowed                      Disallowed                        Disallowed                        Disallowed
+ Tile-part lengths (TLM)           TLM marker segments are      TLM marker segments are         TLM marker segments are           TLM marker segments are           TLM marker segments are
+                                   required in each image       required in each image          required in each image            required in each image            required in each image
+ Packet length, tile-part header   Optional                     Optional                        For each tile-part a complete     For each tile-part a complete     For each tile-part a complete
+ (PLT)                                                                                          list of packet lengths shall be   list of packet lengths shall be   list of packet lengths shall be
+                                                                                                provided                          provided                          provided
+ QCD, QCC                          Main header only             Main header only                Main header only                  Main header only                  Main header only
+ SOP, EPH                          Optional                     Optional                        Disallowed                        Disallowed                        Each packet in any given tile-
+                                                                                                                                                                    part shall be prepended with an
+                                                                                                                                                                    SOP marker segment and each
+                                                                                                                                                                    packet header in any given
+                                                                                                                                                                    tile-part shall be postpended
+                                                                                                                                                                    with an EPH marker segment
+ POC marker                        Disallowed                   There shall be exactly one      There shall be exactly one        There shall be exactly one        Disallowed
+                                                                POC marker segment in the       POC marker segment in the         POC marker segment in the
+                                                                main header. Other POC          main header. Other POC            main header. Other POC
+                                                                marker segments are             marker segments are               marker segments are
+                                                                disallowed. The POC marker      disallowed. The POC marker        disallowed. The POC marker
+                                                                segment shall specify exactly   segment shall specify exactly     segment shall specify exactly
+                                                                two progressions which have     two progressions which have       four progressions which have
+                                                                the following parameters:       the following parameters:         the following parameters:
+                                                                First progression:              First progression:                First progression:
+                                                                RSpoc = 0, CSpoc = 0,           RSpoc = 0, CSpoc = 0,             RSpoc = 0, CSpoc = 0,
+                                                                LYEpoc = 1, REpoc = NL,         LYEpoc = 1, REpoc = NL+1,         LYEpoc = 1, REpoc = NL,
+                                                                CEpoc = 3, Ppoc = 4             CEpoc = 3, Ppoc = 4               CEpoc = 3, Ppoc = 4
+                                                                Second progression:             Second progression:               Second progression:
+                                                                RSpoc = NL, CSpoc = 0,          RSpoc = 0, CSpoc = 0,             RSpoc = NL, CSpoc = 0,
+                                                                LYEpoc = 1,                     LYEpoc = 2, REpoc = NL+1,         LYEpoc = 1, REpoc = NL+1,
+                                                                REpoc = NL +1, CEpoc = 3,       CEpoc = 3, Ppoc = 4               CEpoc = 3, Ppoc = 4
+                                                                Ppoc = 4                                                          Third Progression:
+                                                                                                                                  RSpoc = 0, CSpoc = 0,
+                                                                                                                                  LYEpoc = 2, REpoc = NL,
+                                                                                                                                  CEpoc = 3, Ppoc = 4
+                                                                                                                                  Fourth Progression:
+                                                                                                                                  RSpoc = NL, CSpoc = 0,
+                                                                                                                                  LYEpoc = 2, REpoc = NL+1,
+                                                                                                                                  CEpoc = 3, Ppoc = 4
+
+
+
+
+44         Rec. ITU-T T.800 (11/2015)
+                                                                                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+
+                                                             Table A.46 – Codestream restrictions for digital cinema applications
+
+                                                                                                   Scalable 2K digital cinema    Scalable 4K digital cinema
+                                       2K digital cinema profile     4K digital cinema profile                                                                  Long-term storage profile
+                                                                                                             profile                       profile
+    Application specific
+    restrictions
+    Error protection                  Disallowed                    Disallowed                     Disallowed                   Disallowed                     The use of marker segments
+                                                                                                                                                               defined in Rec. ITU-T T.810 |
+                                                                                                                                                               ISO/IEC 15444-11 for the
+                                                                                                                                                               detection, correction and
+                                                                                                                                                               protection against errors that
+                                                                                                                                                               may result from ageing media
+                                                                                                                                                               is not mandatory but optional
+                                                                                                                                                               and recommended.
+    Maximum instantaneous bit-        Including bytes of possible   Including bytes of possible    Excluding bytes of PLT       Excluding bytes of PLT         No restrictions
+    rate for all 3 colour             PLT markers                   PLT markers                    markers                      markers
+    components2                       250×106 Bit/s                 250×106 Bit/s                  500×106 Bit/s                500×106 Bit/s
+    Maximum instantaneous bit-        Including bytes of possible   Including bytes of possible    Excluding bytes of PLT       Excluding bytes of PLT         No restrictions
+    rate for each single colour       PLT markers                   PLT markers                    markers                      markers
+    component including all           200×106 Bit/s                 200×106 Bit/s for 2K portion   400×106 Bit/s                400×106 Bit/s
+    relevant tile-part headers.                                     of each component
+    Maximum instantaneous bit-                      –                             –                Excluding bytes of PLT       Excluding bytes of PLT         No restrictions
+    rate for quality layer 0 of any                                                                markers                      markers
+    image frame (aggregate of all 3                                                                250×106 Bit/s                250×106 Bit/s
+    colour components) shall
+    include relevant headers and
+    markers assuring digital
+    cinema packages can be
+    obtained by simply stripping
+    some tile-parts.
+    Maximum instantaneous bit-                      –                             –                Excluding bytes of PLT       Excluding bytes of PLT         No restrictions
+    rate for layer 0 of any single                                                                 markers                      markers
+    colour component of an image                                                                   200×106 Bit/s                200×106 Bit/s for 2K portion
+    frame including all relevant                                                                                                of each component
+    tile-part headers.
+    Maximum frame rate                60                            30                             60                           30                             No limitations
+
+
+
+
+
+
+2    The maximum instantaneous bit-rate must not be exceeded. The maximum admissible compressed bytes are explained in formula A-8.
+
+
+45            Rec. ITU-T T.800 (11/2015)
+ISO/IEC 15444-1:2016 (E)
+
+
+
+In order to simplify access to the different codestream resolution, quality layer and component parts, codestreams in
+accordance with the profiles defined in Table A.46 have to follow a well-defined compressed image data ordering method
+defined by the following.
+Figure A.25 shows the corresponding details for the position of the 4K information relative to the basic 2K information.
+Assuming NL wavelet transform levels (NL+1 resolutions), the rectangle labelled 2K_i (i = 0, 1, 2) contains all packets
+for colour component i, resolutions 0 to NL–1 (and layer 1). The rectangle labelled 4K_i (i = 0, 1, 2) contains all packets
+for colour component i, resolution N L (and layer 1).
+
+
+
+              Tile-part                  Tile-part                 Tile-part                 Tile-part                   Tile-part                 Tile-part
+                             2K_0                                                                                                                                  4K_2
+                                                         2K_1                      2K_2                       4K_0                    4K_1
+              header                     header                     header                    header                     header                    header
+
+
+
+                                     Figure A.25 – Compressed data ordering showing the relative position
+                                             of the 4K tile-parts relative to the basic 2K tile-parts
+
+
+For the 4K digital cinema profile, Figure A.26 defines the overall file structure.
+
+
+
+                                                                               Main                4K tile parts
+
+                                                                               header        (see Figure A.25)
+
+
+
+                                         Figure A.26 – Codestream structure for 4K digital cinema profile
+
+
+For the scalable 4K digital cinema profiles defined in Table A.46, Figure A.27 illustrates the relative compressed data
+layout of the 2K and 4K information belonging to the second quality layer. Assuming N L wavelet transform levels
+(NL+1 resolutions), the rectangle labelled Ext_2K_i (i = 0, 1, 2) contains all packets for colour component i, resolutions
+0 to NL–1 and layer 2. The rectangle labelled Ext_4K_i (i = 0, 1, 2) contains all packets for colour component i, resolution
+NL and layer 2.
+
+
+
+              Tile-part      Ext_        Tile-part       Ext_      Tile-part                 Tile-part        Ext_.      Tile-part    Ext_         Tile-part       Ext_
+                                                                                   Ext_
+                             2K_0                        2K_1                      2K_2                       4K_0                    4K_1                         4K_2
+              header                     header                     header                    header                     header                    header
+
+
+                                Figure A.27 – Extended tile-parts for the scalable 4K digital cinema profile
+
+
+The overall file structure of the scalable 4K digital cinema profile results from concatenating the information of layer 1
+and layer 2 as illustrated in Figure A.28.
+
+
+
+                                                                Main               4K tile-parts              Super4K tile-parts
+                                                                header           (see Figure A.5)             (see Figure A.27)
+
+
+
+                               Figure A.28 – Codestream structure for the scalable 4K digital cinema profile
+
+
+
+
+     Main          Tile-part                      Tile-part                     Tile-part                    Tile-part                 Tile-part                      Tile-part
+                                    c0p*r*l1                     c1p*r*l1                    c2p*r*l1                      c0p*r*l2                     c0p*r*l2                  c0p*r*l2
+     header         header                           header                     header                        header                   header                         header
+
+
+
+                      Figure A.29 – Proposed codestream structure for the scalable 2K digital cinema profile
+
+
+
+46                Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+Assuming NL wavelet transform levels (NL+1 resolutions), the rectangle labelled cip*r*l1 (i = 0, 1, 2) contains all packets
+for colour component i, all precincts, resolutions 0 to NL and layer 1. The rectangle labelled cip*r*l2 (i = 0, 1, 2) contains
+all packets for colour component i, resolutions 0 to NL and layer 2.
+The maximum number of bytes per compressed image from the instantaneous bit-rate given in the previous table may be
+calculated using the following equation:
+
+                                                         Max_Instantaneous _ Bitrate
+                     Max _ Compressed _ Bytes                                                                         (A-8)
+                                                             Frame _ Rate  8
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)             47
+ISO/IEC 15444-1:2016 (E)
+
+
+                                            Table A.47 – Example file size limitations for digital cinema applications including archiving
+
+                                                                                                                             Scalable 2K digital cinema       Scalable 4K digital cinema
+                 File size (in bytes)                     2K digital cinema profile         4K digital cinema profile
+                                                                                                                                       profile                          profile
+ Max compressed bytes for any image frame              Including bytes of possible PLT   Including bytes of possible PLT   Excluding bytes of PLT markers   Excluding bytes of PLT markers
+ (aggregate of all 3 colour components)                markers                           markers                           16 fps: 3906250                  16 fps: 3906250
+                                                       16 fps: 1953125                   16 fps: 1953125                   24 fps: 2604166                  24 fps: 2604166
+                                                       24 fps: 1302083                   24 fps: 1302083                   25 fps: 2500000                  25 fps: 2500000
+                                                       25 fps: 1250000                   25 fps: 1250000                   30 fps: 2083333                  30 fps: 2083333
+                                                       30 fps: 1041666                   30 fps: 1041666                   48 fps: 1302083
+                                                       48 fps : 651041                                                     60 fps: 1041666
+                                                       60 fps: 520833
+ Max compressed bytes for any single colour            Including bytes of possible PLT   Including bytes of possible PLT   Excluding bytes of PLT markers   Excluding bytes of PLT markers
+ component of an image frame including all relevant    markers                           markers                           16 fps: 3125000                  16 fps: 3125000
+ tile-part headers.                                    16 fps: 1562500                   (2K portion)                      24 fps: 2083333                  24 fps: 2083333
+                                                       24 fps: 1041666                   16 fps: 1562500                   25 fps: 2000000                  25 fps: 2000000
+                                                       25 fps: 1000000                   24 fps: 1041666                   30 fps: 1666666                  30 fps: 1666666
+                                                       30 fps: 833333                    25 fps: 1000000                   48 fps: 1041666
+                                                       48 fps: 520833                    30 fps: 833333                    60 fps: 833333
+                                                       60 fps: 416666
+ Max compressed bytes for quality layer 0 of any                      –                                 –                  Excluding bytes of PLT markers   Excluding bytes of PLT markers
+ image frame (aggregate of all 3 colour components)                                                                        16 fps: 1953125                  16 fps: 1953125
+ shall include relevant headers and markers assuring                                                                       24 fps: 1302083                  24 fps: 1302083
+ digital cinema packages can be obtained by simply
+ stripping some tile-parts.                                                                                                25 fps: 1250000                  25 fps: 1250000
+                                                                                                                           30 fps: 1041666                  30 fps: 1041666
+                                                                                                                           48 fps : 651041
+                                                                                                                           60 fps: 520833
+ Max compressed bytes for layer 0 of any single                       –                                 –                  Excluding bytes of PLT markers   Excluding bytes of PLT markers
+ colour component of an image frame including all                                                                          16 fps: 1562500                  (2K portion)
+ relevant tile-part headers.                                                                                               24 fps: 1041666                  16 fps: 1562500
+                                                                                                                           25 fps: 1000000                  24 fps: 1041666
+                                                                                                                           30 fps: 833333                   25 fps: 1000000
+                                                                                                                           48 fps: 520833                   30 fps: 833333
+                                                                                                                           60 fps: 416666
+
+
+
+
+48         Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+
+                        Table A.48 – Codestream restrictions for broadcast application profiles
+                                     Broadcast contribution         Broadcast contribution          Broadcast contribution
+                                        single tile profile            multi-tile profile          multi-tile reversible profile
+SIZ marker segment
+   Profile indication              See Table A.10                 See Table A.10                   See Table A.10
+   Tiles                           One tile for the whole         1 or 4 tiles                     1 or 4 tiles
+                                   image:                         If 1 tile                        If 1 tile
+                                   YTsiz + YTOsiz >= Ysiz             YTsiz + YTOsiz >= Ysiz            YTsiz + YTOsiz >= Ysiz
+                                   XTsiz + XTOsiz >= Xsiz             XTsiz + XTOsiz >= Xsiz            XTsiz + XTOsiz >= Xsiz
+                                                                  If 4 tiles                       If 4 tiles
+                                                                      Ysiz/4 <= YTsiz +                 Ysiz/4 <= YTsiz +
+                                                                  YTOsiz <= Ysiz                   YTOsiz <= Ysiz
+                                                                      Xsiz/2<= XTsiz +                  Xsiz/2<= XTsiz +
+                                                                  XTOsiz <= Xsiz                   XTOsiz <= Xsiz
+                                                                  All tiles shall be of the same   All tiles shall be of the same
+                                                                  size                             size
+   Image and tile origin           XOsiz = YOsiz = XTOsiz =       Same                             Same
+                                   YTOsiz = 0
+   Sub-sampling                    (XRsizi = 1 for all            Same                             Same
+                                   components) or (XRsiz1=1,
+                                   XRsiz4=1 and XRsizi=2 for
+                                   remaining components).
+                                   YRsizi=1
+   Number of components            Csiz ≤ 4                       Same                             Same
+   Bit depth                       7 ≤ Ssizi ≤ 11 (8-12 bits      Same                             Same
+                                   unsigned)
+RGN marker segment                 Disallowed, i.e., no region    Same                             Same
+                                   of interest
+Marker locations
+   Packed headers (PPM, PPT)       Disallowed                     Same                             Same
+   COD, COC, QCD, QCC              Main header only               Same                             Same
+COD/COC marker segments
+   Number of decomposition         1 <= NL <= 5                   Same                             Same
+   levels                          Every component of every
+                                   image of a codestream shall
+                                   have the same number of
+                                   wavelet transform levels.
+                                   The number of deployed
+                                   decomposition levels shall
+                                   be set accordingly in all
+                                   COD and COC markers.
+   Number of layers                Shall be exactly 1             Same                             Same
+   Code-block size                 5 ≤ xcb ≤ 7 and 5 ≤ ycb ≤ 6    Same                             Same
+                                   and restrictions in
+                                   Table A.18 apply.
+                                   Codeblock sizes shall be the
+                                   same across all components.
+                                   The xcb and ycb values shall
+                                   be set accordingly in all
+                                   COD and COC markers.
+   Code-block style                SPcod, SPcoc = 0000 0000       Same                             Same
+   Transformation                  9-7 irreversible transform     9-7 irreversible transform       5-3 reversible transform
+   Precinct size                   PPx = PPy = 7 for NLLL         Same                             Same
+                                   band, else 8. The
+                                   corresponding values shall
+                                   be set accordingly in all
+                                   COD and COC markers.
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)                49
+ISO/IEC 15444-1:2016 (E)
+
+
+                          Table A.48 – Codestream restrictions for broadcast application profiles
+                                         Broadcast contribution          Broadcast contribution         Broadcast contribution
+                                            single tile profile             multi-tile profile         multi-tile reversible profile
+ Progression order                     CPRL, POC marker                Same                            Same
+                                       disallowed
+ Tile-parts                            ≤4; One for each component      ≤16; One for each tile          ≤16; One for each tile
+                                                                       component                       component
+ Tile-part lengths                     TLM marker segments are         Same                            Same
+                                       required in each image.
+ Application-specific restrictions
+     Max components                    See Table A.49.                 Same                            Same
+     sampling rate
+     Max compressed bit rate           See Table A.49.                 Same                            Same
+                                       The maximum codestream
+                                       size is the Max compressed
+                                       bit rate divided by the frame
+                                       rate.
+
+
+            Table A.49 – Operating levels for the broadcast contribution single tile and multi-tile profiles
+          Sampling Rate = (Average Components / Pixel) x (pixels / line) x (total lines / frame) x (frames / sec)
+             Where Average Components is two for 4:2:2, three for 4:4:4 or 4:2:2:4, and four for 4:4:4:4
+
+                 Levels            Max. Components Sampling Rate           Max. compressed Bit Rate #
+                                           (MSamples/sec)                           (Mbits/sec)
+           Mainlevel 0                       Unspecified                            Unspecified
+           Mainlevel 1                            65                                    200
+           Mainlevel 2                            130                                   200
+           Mainlevel 3                            195                                   200
+           Mainlevel 4                            260                                   400
+           Mainlevel 5                            520                                   800
+           Mainlevel 6                           1200                                  1600
+           Mainlevel 7                           2400                                  3200
+           Mainlevel 8                           4800                                  6400
+           Mainlevel 9                           9600                                  12800
+           Mainlevel 10                         19200                                  25600
+           Mainlevel 11                         38400                                  51200
+# Max. compressed Bit Rate = Max. instantaneous Bit Rate
+Mega (M), in the context of this Specification, is 106
+
+                 Table A.50 – Operating levels for broadcast contribution multi-tile reversible profile
+Sampling Rate = (Average Components / Pixel) x (pixels / line) x (total lines / frame) x (frames / sec)
+             Where Average Components is two for 4:2:2, three for 4:4:4 or 4:2:2:4, and four for 4:4:4:4
+
+
+                          Levels         Max. Components Sampling Rate             Max. compressed Bit Rate #
+                                                  (MSamples/sec)                            (Mbits/sec)
+                   Mainlevel 6                           520                                    1600
+                   Mainlevel 7                           520                                Unspecified
+# Max. compressed Bit Rate = Max. instantaneous Bit Rate
+Mega (M), in the context of this Specification, is 106
+
+
+
+
+50            Rec. ITU-T T.800 (11/2015)
+                                                                                                  ISO/IEC 15444-1:2016 (E)
+
+
+        Table A.51 – Codestream restrictions for interoperable master format (IMF) single tile profiles
+
+                                  2k IMF Single Tile Lossy       4k IMF Single Tile Lossy        8k IMF Single Tile Lossy
+                                          Profile                        Profile                         Profile
+SIZ marker segment
+Profile Indication                See Table A.10                See Table A.10                  See Table A.10
+          Image size              Xsiz <= 2048, Ysiz <=         Xsiz <= 4096, Ysiz <=           Xsiz <= 8192, Ysiz <=
+                                  1556                          3112                            6224
+          Tiles                   One tile for the whole        Same                            Same
+                                  image:
+                                  YTsiz + YTOsiz >= Ysiz
+                                  XTsiz + XTOsiz >= Xsiz
+          Image and tile origin   XOsiz = YOsiz = XTOsiz        Same                            Same
+                                  = YTOsiz = 0
+          Sub-sampling            (XRsizi = 1 for all       Same                                Same
+                                  components) or (XRsiz1=1,
+                                  XRsizi=2 for remaining
+                                  components).
+                                  YRsizi=1
+          Number of components    Csiz ≤ 3                      Same                            Same
+          Bitdepth                7 ≤ Ssizi ≤ 15 (8-16 bits     Same                            Same
+                                  unsigned)
+RGN marker segment                Disallowed, i.e., no region   Same                            Same
+                                  of interest
+     Marker locations
+     Packed headers (PPM, PPT)    Disallowed                    Same                            Same
+COD, COC, QCD, QCC                Main header only              Same                            Same
+COD/COC marker segments
+ Number of decomposition levels   1 <= NL <= 5                  1 <= NL <= 6                    1 <= NL <= 7
+                                  Every component of every      Every component of every        Every component of every
+                                  image of a codestream         image of a codestream shall     image of a codestream shall
+                                  shall have the same           have the same number of         have the same number of
+                                  number of wavelet             wavelet transform levels.       wavelet transform levels.
+                                  transform levels. The         The number of deployed          The number of deployed
+                                  number of deployed            decomposition levels shall be   decomposition levels shall be
+                                  decomposition levels shall    set accordingly in all COD      set accordingly in all COD
+                                  be set accordingly in all     and COC markers.                and COC markers.
+                                  COD and COC markers.
+         Number of layers         Shall be exactly 1            Same                            Same
+         Code-block size          xcb=ycb=5                     Same                            Same
+                                  The corresponding values
+                                  shall be set accordingly in
+                                  all deployed COD and
+                                  COC markers.
+         Code-block style         SPcod, SPcoc = 0000 0000 Same                                 Same
+          Transformation          9-7 Irreversible Transform    9-7 Irreversible Transform      9-7 Irreversible Transform
+             Precinct size        PPx = PPy = 7 for NLLL        Same                            Same
+                                  band, else 8. The
+                                  corresponding values shall
+                                  be set accordingly in all
+                                  COD and COC markers.
+Progression order                 CPRL, POC marker              Same                            Same
+                                  disallowed
+Tile-parts                        ≤3; One for each              Same                            Same
+                                  component
+Tile-part lengths                 TLM marker segments are       Same                            Same
+                                  required in each image
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)                 51
+ISO/IEC 15444-1:2016 (E)
+
+
+         Table A.51 – Codestream restrictions for interoperable master format (IMF) single tile profiles
+
+                                    2k IMF Single Tile Lossy        4k IMF Single Tile Lossy        8k IMF Single Tile Lossy
+                                            Profile                         Profile                         Profile
+Application specific restrictions
+ Max. Components Sampling Rate      see Table A.53                  Same                            Same
+ Max. compressed Bit Rate           see Table A.53 and A.54         Same                            Same
+                                    The maximum codestream
+                                    size is the Max.
+                                    compressed Bit rate
+                                    divided by the frame rate.
+
+
+
+
+                      Table A.52 – Codestream restrictions for interoperable master format (IMF)
+                                        single tile/multi-tile reversible profiles
+
+                                     2k IMF single/multi-tile         4k IMF single/multi-tile         8k IMF single/multi-tile
+                                        reversible profile               reversible profile               reversible profile
+SIZ marker segment
+Profile Indication                  See Table A.10                  See Table A.10                   See Table A.10
+           Image size               Xsiz <= 2048, Ysiz <=           Xsiz <= 4096, Ysiz <=            Xsiz <= 8192, Ysiz <=
+                                    1556                            3112                             6224
+           Tiles                    One single tile for the whole   One single tile for the whole    One single tile for the whole
+                                    image:                          image:                           image:
+                                    YTsiz + YTOsiz >= Ysiz          YTsiz + YTOsiz >= Ysiz           YTsiz + YTOsiz >= Ysiz
+                                    XTsiz + XTOsiz >= Xsiz          XTsiz + XTOsiz >= Xsiz           XTsiz + XTOsiz >= Xsiz
+                                    or multiple tiles with tile     or multiple tiles with tile      or multiple tiles with tile
+                                    sizes:                          sizes:                           sizes:
+                                    XTsiz=YTSiz=1024                XTsiz=YTSiz=1024 or              XTsiz=YTSiz=1024 or
+                                                                    XTsiz=YTSiz=2048                 XTsiz=YTSiz=2048 or
+                                                                                                     XTsiz=YTSiz=4096
+           Image and tile origin    XOsiz = YOsiz = XTOsiz =        Same                             Same
+                                    YTOsiz = 0
+           Sub-sampling             (XRsizi = 1 for all             Same                             Same
+                                    components) or
+                                    (XRsiz1=1, XRsizi=2 for
+                                    remaining components).
+                                    YRsizi=1
+           Number of components     Csiz ≤ 3                        Same                             Same
+           Bitdepth                 7 ≤ Ssizi ≤ 15 (8-16 bits       Same                             Same
+                                    unsigned)
+RGN marker segment                  Disallowed, i.e., no region     Same                             Same
+                                    of interest
+Marker locations
+     Packed headers (PPM, PPT)      Disallowed                      Same                             Same
+     COD, COC, QCD, QCC             Main header only                Same                             Same
+COD/COC marker segments
+ Number of decomposition levels     1 <= NL <= 4 for XTsiz>=        1 <= NL <= 4 for XTsiz>=         1 <= NL <= 4 for XTsiz>=
+                                    1024                            1024                             1024
+                                    or                              or                               or
+                                    1 <= NL <= 5 for XTsiz>=        1 <= NL <= 5 for XTsiz>=         1 <= NL <= 5 for XTsiz>=
+                                    2048                            2048                             2048
+                                    Every component of every        or                               or
+                                    image of a codestream shall     1 <= NL <= 6 for XTsiz>=         1 <= NL <= 6 for XTsiz>=
+                                    have the same number of         4096                             4096
+                                    wavelet transform levels.                                        or
+                                    The number of deployed
+                                    decomposition levels shall                                       1 <= NL <= 7 for XTsiz>=
+                                    be set accordingly in all                                        8192
+                                    COD and COC markers.
+
+
+52          Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+
+                     Table A.52 – Codestream restrictions for interoperable master format (IMF)
+                                       single tile/multi-tile reversible profiles
+
+                                     2k IMF single/multi-tile       4k IMF single/multi-tile        8k IMF single/multi-tile
+                                        reversible profile             reversible profile              reversible profile
+                                                                  Every component of every        Every component of every
+                                                                  image of a codestream shall     image of a codestream shall
+                                                                  have the same number of         have the same number of
+                                                                  wavelet transform levels. The   wavelet transform levels. The
+                                                                  number of deployed              number of deployed
+                                                                  decomposition levels shall be   decomposition levels shall be
+                                                                  set accordingly in all COD      set accordingly in all COD
+                                                                  and COC markers.                and COC markers.
+        Number of layers            Shall be exactly 1            Same                            Same
+         Code-block size            xcb=ycb=5                     Same                            Same
+                                    The corresponding values
+                                    shall be set accordingly in
+                                    all deployed COD and
+                                    COC markers.
+         Code-block style           SPcod, SPcoc = 0000 0000      Same                            Same
+         Transformation             5-3 Reversible Transform      Same                            Same
+             Precinct size          PPx = PPy = 7 for NLLL        Same                            Same
+                                    band, else 8. The
+                                    corresponding values shall
+                                    be set accordingly in all
+                                    COD and COC
+Progression order                   CPRL, POC marker              Same                            Same
+                                    disallowed
+Tile-parts                          One tile-part per each tile   Same                            Same
+                                    component
+Tile-part lengths                   TLM marker segments are       Same                            Same
+                                    required in each image
+Application specific restrictions
+ Max. Components Sampling Rate      see Table A.53                Same                            Same
+ Max. compressed Bit Rate           see Tables A.53 and A.54      Same                            Same
+                                    The maximum codestream
+                                    size is the Max. compressed
+                                    Bit rate divided by the frame
+                                    rate.
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)                   53
+ISO/IEC 15444-1:2016 (E)
+
+                                        Table A.53 – Operating levels for IMF profiles
+          Sampling Rate = (Average Components / Pixel) x (pixels / line) x (total lines / frame) x (frames / sec)
+                  Where Average Components is two for 4:2:2, three for 4:4:4 or 4:2:2:4, and four for 4:4:4:4
+
+                             Levels                      Max. Components                 Allowed sublevels
+                                                          Sampling Rate                     (see Table A.54)
+                                                          (MSamples/sec)
+                   Mainlevel 0                             Unspecified                         Unspecified
+                   Mainlevel 1                                 65                       Sublevels 0 up to 1
+                   Mainlevel 2                                 130                      Sublevels 0 up to 1
+                   Mainlevel 3                                 195                      Sublevels 0 up to 1
+                   Mainlevel 4                                 260                      Sublevels 0 up to 2
+                   Mainlevel 5                                 520                      Sublevels 0 up to 3
+                   Mainlevel 6                                1200                      Sublevels 0 up to 4
+                   Mainlevel 7                                2400                      Sublevels 0 up to 5
+                   Mainlevel 8                                4800                      Sublevels 0 up to 6
+                   Mainlevel 9                                9600                      Sublevels 0 up to 7
+                   Mainlevel 10                               19200                     Sublevels 0 up to 8
+                   Mainlevel 11                               38400                     Sublevels 0 up to 9
+
+
+
+                                      Table A.54 – Operating sublevels for IMF profiles
+
+                                   Sublevels                               Max. compressed Bit Rate #
+                                                                                    (Mbit/s)
+                     Sublevel 0                                                   unspecified
+                     Sublevel 1                                                       200
+                     Sublevel 2                                                       400
+                     Sublevel 3                                                       800
+                     Sublevel 4                                                      1600
+                     Sublevel 5                                                      3200
+                     Sublevel 6                                                      6400
+                     Sublevel 7                                                      12800
+                     Sublevel 8                                                      25600
+                     Sublevel 9                                                      51200
+# Max. compressed Bit Rate = Max. instantaneous Bit Rate
+Mega (M), in the context of this Specification, is 106
+
+
+
+
+54          Rec. ITU-T T.800 (11/2015)
+                                                                                                  ISO/IEC 15444-1:2016 (E)
+

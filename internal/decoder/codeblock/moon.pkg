@@ -1,0 +1,16 @@
+// Tier-1 coefficient decoding (code-block level)
+import {
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/a8" @a8,
+  "trkbt10/jpeg2000/internal/decoder/geometry" @geometry,
+  "trkbt10/jpeg2000/internal/decoder/ht" @ht,
+  "trkbt10/jpeg2000/internal/decoder/mq" @mq,
+  "trkbt10/jpeg2000/internal/decoder/profile" @profile,
+  "trkbt10/jpeg2000/internal/decoder/quant" @quant,
+  "trkbt10/jpeg2000/internal/decoder/t1" @t1,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

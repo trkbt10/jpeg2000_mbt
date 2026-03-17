@@ -20,6 +20,7 @@ required_core=(
   parse_codestream
   parse_codestream_strict
   encode_codestream
+  decode_samples
   roundtrip_bytes
   bytes_to_hex
   hex_to_bytes
