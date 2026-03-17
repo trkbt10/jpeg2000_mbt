@@ -6,11 +6,42 @@ CORPUS_DIR="${1:-$ROOT_DIR/samples/corpus}"
 OUT_CSV="${2:-$ROOT_DIR/samples/generated/corpus/compat-matrix.csv}"
 STRICT_EXPECTED_FILE="${STRICT_EXPECTED_FILE:-$CORPUS_DIR/strict-expected-failures.txt}"
 STRICT_ENFORCE_EXPECTED="${STRICT_ENFORCE_EXPECTED:-1}"
+INCLUDE_HTJ2K="${INCLUDE_HTJ2K:-0}"
 
 if [ ! -d "$CORPUS_DIR" ]; then
   echo "corpus directory not found: $CORPUS_DIR" >&2
   exit 1
 fi
+
+iter_external_corpus_files() {
+  local corpus_dir="$1"
+  if [ "$INCLUDE_HTJ2K" = "1" ]; then
+    find "$corpus_dir" -type f \( \
+      -name '*.j2k' -o -name '*.j2c' -o -name '*.jph' -o -name '*.jhc' \
+    \) | LC_ALL=C sort
+  else
+    find "$corpus_dir" -type f \( \
+      -name '*.j2k' -o -name '*.j2c' \
+    \) ! -path '*/htj2k/*' | LC_ALL=C sort
+  fi
+}
+
+expected_contains() {
+  local expected_file="$1"
+  local rel="$2"
+  local base="$3"
+  while IFS= read -r expected; do
+    expected="$(echo "$expected" | sed 's/[[:space:]]*$//')"
+    [ -n "$expected" ] || continue
+    if [[ "$expected" =~ ^# ]]; then
+      continue
+    fi
+    if [ "$expected" = "$rel" ] || [ "$expected" = "$base" ]; then
+      return 0
+    fi
+  done < "$expected_file"
+  return 1
+}
 
 mkdir -p "$(dirname "$OUT_CSV")"
 
@@ -24,9 +55,9 @@ ok_strict=0
 ok_roundtrip=0
 strict_fail=0
 strict_fail_files=()
-for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
-  [ -e "$in_bin" ] || continue
+while IFS= read -r in_bin; do
   found=1
+  rel="${in_bin#$CORPUS_DIR/}"
   base="$(basename "$in_bin")"
 
   out_default="$(moon run cmd/main -- parse-file "$in_bin" | tr -d '\r\n')"
@@ -46,16 +77,16 @@ for in_bin in "$CORPUS_DIR"/*.j2k "$CORPUS_DIR"/*.j2c; do
     ok_strict=$((ok_strict + 1))
   else
     strict_fail=$((strict_fail + 1))
-    strict_fail_files+=("$base")
+    strict_fail_files+=("${rel}::${base}")
   fi
   if [ "$out_rt" = "ok" ]; then
     r="ok"
     ok_roundtrip=$((ok_roundtrip + 1))
   fi
 
-  echo "${base},${d},${s},${r}" >> "$OUT_CSV"
-  printf '[%s] default=%s strict=%s roundtrip=%s\n' "$base" "$d" "$s" "$r"
-done
+  echo "${rel},${d},${s},${r}" >> "$OUT_CSV"
+  printf '[%s] default=%s strict=%s roundtrip=%s\n' "$rel" "$d" "$s" "$r"
+done < <(iter_external_corpus_files "$CORPUS_DIR")
 
 if [ "$found" -eq 0 ]; then
   echo "no .j2k/.j2c files found in $CORPUS_DIR" >&2
@@ -66,7 +97,9 @@ unexpected=0
 recovered=0
 if [ -f "$STRICT_EXPECTED_FILE" ]; then
   for f in "${strict_fail_files[@]}"; do
-    if ! rg -q "^[[:space:]]*${f//./\\.}[[:space:]]*$" "$STRICT_EXPECTED_FILE"; then
+    rel="${f%%::*}"
+    base="${f##*::}"
+    if ! expected_contains "$STRICT_EXPECTED_FILE" "$rel" "$base"; then
       unexpected=$((unexpected + 1))
     fi
   done
@@ -79,7 +112,9 @@ if [ -f "$STRICT_EXPECTED_FILE" ]; then
     fi
     matched=0
     for f in "${strict_fail_files[@]}"; do
-      if [ "$f" = "$expected" ]; then
+      rel="${f%%::*}"
+      base="${f##*::}"
+      if [ "$rel" = "$expected" ] || [ "$base" = "$expected" ]; then
         matched=1
         break
       fi

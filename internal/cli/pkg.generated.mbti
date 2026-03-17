@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "trkbt10/jpeg2000/internal/cli"
+
+// Values
+pub fn arg_after_or(Array[String], Int, String) -> String
+
+pub fn find_arg_index(Array[String], String) -> Int?
+
+pub fn parse_sample_by_name(String) -> Result[Unit, String]
+
+pub fn print_string_result(Result[String, String]) -> Unit
+
+pub fn print_unit_result(Result[Unit, String], ok_message? : String) -> Unit
+
+pub fn roundtrip_hex_output(String) -> Result[String, String]
+
+pub fn sample_bytes_by_name(String) -> Result[Array[Int], String]
+
+pub fn sample_hex_output(String) -> Result[String, String]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

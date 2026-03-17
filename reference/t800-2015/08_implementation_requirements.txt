@@ -1,0 +1,10 @@
+8         Implementation requirements
+There is no normative or required implementation for this Recommendation | International Standard. In some cases, the
+descriptions use particular implementation techniques for illustrative purposes only.
+
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)            11
+ISO/IEC 15444-1:2016 (E)
+

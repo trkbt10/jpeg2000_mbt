@@ -1,0 +1,21 @@
+                                                       Annex L
+
+                                                  Patent statement
+             (This annex does not form an integral part of this Recommendation | International Standard.)
+
+
+The International Organization for Standardization (ISO) and the International Electrotechnical Commission (IEC) draw
+attention to the fact that it is claimed that compliance with this Recommendation | International Standard may involve the
+use of patents. The complete list of intellectual property rights statements can be obtained from the ITU-T and ISO patent
+declaration databases.
+ISO and IEC take no position concerning the evidence, validity and scope of these patent rights.
+Attention is drawn to the possibility that some of the elements of this Recommendation | International Standard may be
+the subject of patent rights other than those identified in the above mentioned databases. ISO and IEC shall not be held
+responsible for identifying any or all such patent rights.
+
+
+
+
+                                                                                 Rec. ITU-T T.800 (11/2015)           215
+ISO/IEC 15444-1:2016 (E)
+

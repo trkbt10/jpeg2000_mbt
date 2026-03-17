@@ -12,15 +12,29 @@ pub fn classify_marker(Int) -> @core.MarkerClass
 
 pub fn decode_codeblock_segment_lengths_from_bits(Array[Int], Int, Array[Int]) -> Result[(Array[Int], Int), String]
 
+pub fn decode_samples(Bytes) -> Result[DecodeSamplesResult, String]
+
+pub fn decode_samples_audit(Bytes, packet_audit_limit? : Int, force_relocated_ppt? : Bool) -> Result[DecodeSamplesResult, String]
+
 pub fn decode_tag_tree_inclusion_flags(Array[Int], Int, Int, Int) -> Result[(Array[Bool], Int), String]
 
 pub fn encode_codestream(@core.Codestream) -> Result[Array[Int], String]
 
+pub fn encode_codestream_bytes(@core.Codestream) -> Result[Bytes, String]
+
 pub fn hex_to_bytes(String) -> Result[Array[Int], String]
+
+pub fn package_name() -> String
 
 pub fn parse_codestream(Array[Int]) -> Result[@core.Codestream, String]
 
+pub fn parse_codestream_bytes(Bytes) -> Result[@core.Codestream, String]
+
 pub fn parse_codestream_strict(Array[Int]) -> Result[@core.Codestream, String]
+
+pub fn parse_codestream_strict_bytes(Bytes) -> Result[@core.Codestream, String]
+
+pub fn parse_packet_header_first_packet_with_code_blocks_and_style(Array[Int], Int, Int) -> Result[@core.PacketHeaderMetadata, String]
 
 pub fn parse_packet_header_single_packet_with_tag_tree(Array[Int], Int, Int, Int) -> Result[@core.PacketHeaderMetadata, String]
 
@@ -30,13 +44,19 @@ pub fn parse_packet_headers_single_codeblock(Array[Int]) -> Result[Array[@core.P
 
 pub fn parse_packet_headers_with_code_blocks(Array[Int], Int) -> Result[Array[@core.PacketHeaderMetadata], String]
 
+pub fn parse_packet_headers_with_code_blocks_and_style(Array[Int], Int, Int) -> Result[Array[@core.PacketHeaderMetadata], String]
+
 pub fn parse_packet_headers_with_tag_tree_sequence(Array[Int], Int, Int, Int) -> Result[Array[@core.PacketHeaderMetadata], String]
 
 pub fn parse_packet_headers_with_tag_tree_sequence_and_pass_splits(Array[Int], Int, Int, Int, Array[Array[Array[Int]]]) -> Result[Array[@core.PacketHeaderMetadata], String]
 
 pub fn roundtrip_bytes(Array[Int]) -> Result[Array[Int], String]
 
+pub fn roundtrip_codestream_bytes(Bytes) -> Result[Bytes, String]
+
 pub fn sample_codestream_by_name(String) -> Array[Int]?
+
+pub fn sample_codestream_bytes_by_name(String) -> Bytes?
 
 pub fn sample_codestream_minimal() -> Array[Int]
 
@@ -61,6 +81,15 @@ pub fn sample_codestream_with_tlm() -> Array[Int]
 // Errors
 
 // Types and methods
+pub struct DecodeSamplesResult {
+  width : Int
+  height : Int
+  num_components : Int
+  bits_per_component : Int
+  is_signed : Bool
+  sample_layout : String
+  samples : Bytes
+}
 
 // Type aliases
 pub using @core {type CocMetadata}
@@ -133,9 +162,13 @@ pub using @core {type SopMetadata}
 
 pub using @core {type TagTreeLevelMetadata}
 
+pub using @core {type TileCodMetadata}
+
 pub using @core {type TileComponentGeometryMetadata}
 
 pub using @core {type TileGeometryMetadata}
+
+pub using @core {type TileQcdMetadata}
 
 pub using @core {type TlmEntryMetadata}
 

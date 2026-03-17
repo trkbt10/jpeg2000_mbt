@@ -1,0 +1,15 @@
+1            Scope
+This Recommendation | International Standard defines a set of lossless (bit-preserving) and lossy compression methods
+for coding bi-level, continuous-tone grey-scale, palletized colour, or continuous-tone colour digital still images.
+This Recommendation | International Standard:
+             –    specifies decoding processes for converting compressed image data to reconstructed image data;
+             –    specifies a codestream syntax containing information for interpreting the compressed image data;
+             –    specifies a file format;
+             –    provides guidance on encoding processes for converting source image data to compressed image data;
+             –    provides guidance on how to implement these processes in practice.
+      NOTE – As this specification was first published as common text only after ISO/IEC JTC1 had approved the first edition in 2000,
+      edition numbers in the ITU and ISO/IEC versions are offset by one. This is the second edition of ITU-T T.800 and the third edition
+      of ISO/IEC 15444-1.
+
+
+

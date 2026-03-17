@@ -1,0 +1,7 @@
+import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

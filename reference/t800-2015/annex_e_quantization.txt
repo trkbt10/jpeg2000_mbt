@@ -1,0 +1,153 @@
+                                                               Annex E
+
+                                                           Quantization
+                   (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex, the flow charts and tables are normative only in the sense that they are defining an output that alternative
+implementations shall duplicate.
+This annex specifies the forms of inverse quantization used for the reconstruction of tile-component transform
+coefficients. Information about the quantization of transform coefficients for encoding is also provided. Quantization is
+the process by which the transform coefficients are reduced in precision.
+
+E.1       Inverse quantization procedure
+For each transform coefficient (u, v) of a given sub-band b, the transform coefficient value qb(u, v) is given by the
+following equation:
+
+                                                                   Nb u ,v                               
+                                qb u, v   1  2sb u, v              MSBi b, u, v   2 M b  i                       (E-1)
+                                                                   il                                     
+                                                                                                           
+
+where sb(u, v), Nb(u, v) and MSBi(b, u, v)are given in D.2, and where Mb is retrieved using Equation (E-2), where the
+number of guard bits G and the exponent  b are specified in the QCD or QCC marker segments (see A.6.4 and A.6.5).
+
+                                                         Mb  G  b  1                                                           (E-2)
+
+Each decoded transform coefficient qb(u, v) of sub-band b is used to generate a reconstructed transform coefficient
+Rqb(u, v), as will be described in E.1.1.
+   NOTE – Decoding only Nb(u, v) (see D.2.1) bit-planes is equivalent to decoding data which has been encoded using a scalar
+                               M  Nb u ,v 
+   quantizer with step size 2 b                b for all the coefficients of this code-block. Due to the nature of the three coding
+   passes (see D.3), Nb(u, v) may be different for different coefficients within the same code-block.
+
+E.1.1     Irreversible transformation
+
+E.1.1.1   Determination of the quantization step size
+For irreversible transformation, the quantization step size Δb for a given sub-band b is calculated from the dynamic range
+Rb of sub-band b, the exponent b and mantissa b, as given in Equation (E-3).
+
+                                                                            
+                                                       b  2 Rb   b 1  b                                                   (E-3)
+                                                                           211 
+
+   NOTE – The denominator, 211, in Equation (E-3) is due to the allocation of 11 bits in the codestream for b, as given in Table A.30.
+
+In Equation (E-3), the exponent b and the mantissa b are specified in the QCD or QCC marker segments (see A.6.4
+and A.6.5), and the nominal dynamic range Rb (as given by Equation (E-4)) is the sum of RI (the number of bits used to
+represent the original tile-component samples which can be extracted from the SIZ marker – see Table A.11 in A.5.1) and
+the base 2 exponent of the sub-band gain (gainb) of the current sub-band b, which varies with the type of sub-band b
+(levLL, levLH or levHL, levHH – see F.3.1) and can be found in Table E.1.
+
+                                                    Table E.1 – Sub-band gains
+
+                                  sub-band b                        gainb                     log2(gainb)
+                                      levLL                           1                            0
+                                     levLH                            2                            1
+                                     levHL                            2                            1
+                                     levHH                            4                            2
+
+
+
+                                                                                               Rec. ITU-T T.800 (11/2015)           107
+ISO/IEC 15444-1:2016 (E)
+
+                                                        Rb  RI  log2 gainb                                                       (E-4)
+
+The exponent/mantissa pairs (b,b) are either signalled in the codestream for every sub-band (expounded quantization)
+or else signalled only for the NLLL sub-band and derived for all other sub-bands (derived quantization) (see Table A.30).
+In the case of derived quantization, all exponent/mantissa pairs (b,b) are derived from the single exponent/mantissa pair
+(o,o) corresponding to the NLLL sub-band, according to Equation (E-5):
+
+                                                     b , b   o  N L  nb , o                                               (E-5)
+
+where nb denotes the number of decomposition levels from the original tile-component to the sub-band b.
+   NOTE – For a given sub-band b, a quantized transform coefficient may exceed the dynamic range Rb.
+
+E.1.1.2   Reconstruction of the transform coefficient
+For irreversible transformation, the reconstructed transform coefficient is given by Equation (E-6):
+
+                                            
+                                                               M  Nb u ,v 
+                                             qb u , v   r 2 b                b     for qb u, v   0
+                                            
+                                                                              
+                             Rqb u , v    qb u , v   r 2 M b  Nb u ,v    b    for qb u, v   0                         (E-6)
+                                             
+                                                             0                           for qb u, v   0
+                                             
+
+where r is a reconstruction parameter, which can be arbitrarily chosen by the decoder.
+   NOTE – The reconstruction parameter r may be chosen for example to produce the best visual or objective quality for
+   reconstruction. Generally, values for r fall in the range of 0  r < 1, and a common value is r = 1/2. (This note also applies to E.1.2).
+
+E.1.2     Reversible transformation
+
+E.1.2.1   Determination of the quantization step size
+For reversible transformation, the quantization step size Δb is equal to one (no quantization is performed).
+
+E.1.2.2   Reconstruction of the transform coefficient
+For reversible transformation, the reconstructed transform coefficient Rqb (u, v) is recovered differently depending on
+whether all the coefficient bits are decoded, i.e., whether Nb(u, v) = Mb or Nb(u, v) < Mb.
+If Nb(u, v) = Mb, then the reconstructed transform coefficient Rqb(u, v) is given by Equation (E-7).
+
+                                                        Rqb u, v   qb u, v                                                      (E-7)
+
+If Nb(u, v) < Mb, then the reconstructed transform coefficient Rqb(u, v) is given by Equation (E-8).
+
+                                            
+                                                             M  Nb u ,v 
+                                             qb u, v   r 2 b                  for q u, v  0
+                                                                                 b             b
+                                            
+                                                                                for q u, v  0
+                             Rqb u , v    qb u, v   r 2 M b  Nb u ,v    b            b                                   (E-8)
+                                             
+                                                              0                           for qb u, v   0
+                                             
+
+E.2       Scalar coefficient quantization (informative)
+For irreversible compression, after the irreversible forward discrete wavelet transformation (see Annex F), each of the
+transform coefficients ab(u, v) of the sub-band is quantized to the value qb(u, v) according to Equation (E-9).
+
+                                                                               a (u, v) 
+                                              qb u, v   signab u, v    b                                                   (E-9)
+                                                                               b 
+
+
+
+
+108         Rec. ITU-T T.800 (11/2015)
+                                                                                              ISO/IEC 15444-1:2016 (E)
+
+where Δb is the quantization step size. The exponent b and mantissa corresponding to Δb can be derived from
+Equation (E-5), and must be recorded in the codestream in the QCD or QCC markers (see A.6.4 and A.6.5).
+For reversible compression, the quantization step size is required to be 1. In this case, a parameter b has to be recorded
+in the codestream in the QCD or QCC markers (see A.6.4 and A.6.5), and is calculated as:
+
+                                               b  RI  log2 gainb    c                                        (E-10)
+
+where RI and gainb are as described in E.1.1, and where c is zero if the RCT is not used and c is the number of additional
+bits added by the RCT if the RCT is used, as described in G.2.1.
+For both reversible and irreversible compression, in order to prevent possible overflow or excursion beyond the nominal
+range of the integer representation of qb u, v  arising, for example during floating point calculations, the number Mb of
+bits for the integer representation of qb(u, v) used at the encoder side is defined by Equation (E-2). The number G of guard
+bits has to be specified in the QCD or QCC marker (see A.6.4 and A.6.5). Typical values for the number of guard bits are
+G = 1 or G = 2.
+
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)            109
+ISO/IEC 15444-1:2016 (E)
+

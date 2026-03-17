@@ -1,0 +1,1067 @@
+                                                         Annex C
+
+                                             Arithmetic entropy coding
+                  (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex, the flow charts and tables are normative only in the sense that they are defining an output that alternative
+implementations shall duplicate.
+
+C.1       Binary encoding (informative)
+Figure C.1 shows a simple block diagram of the binary adaptive arithmetic encoder. The decision (D) and context (CX)
+pairs are processed together to produce compressed image data (CD) output. Both D and CX are provided by the model
+unit (not shown). CX selects the probability estimate to use during the coding of D. In this Recommendation | International
+Standard, CX is a label for a context.
+
+
+
+
+                                  Figure C.1 – Arithmetic encoder inputs and outputs
+
+C.1.1     Recursive interval subdivision (informative)
+The recursive probability interval subdivision of Elias coding is the basis for the binary arithmetic coding process. With
+each binary decision the current probability interval is subdivided into two sub-intervals, and the code string is modified
+(if necessary) so that it points to the base (the lower bound) of the probability sub-interval assigned to the symbol which
+occurred.
+In the partitioning of the current interval into two sub-intervals, the sub-interval for the more probable symbol (MPS) is
+ordered above the sub-interval for the less probable symbol (LPS). Therefore, when the MPS is coded, the LPS
+sub-interval is added to the code string. This coding convention requires that symbols be recognized as either MPS or
+LPS, rather than 0 or 1. Consequently, the size of the LPS interval and the sense of the MPS for each decision must be
+known in order to code that decision.
+Since the code string always points to the base of the current interval, the decoding process is a matter of determining, for
+each decision, which sub-interval is pointed to by the compressed image data. This is also done recursively, using the
+same interval sub-division process as in the encoder. Each time a decision is decoded, the decoder subtracts any interval
+the encoder added to the code string. Therefore, the code string in the decoder is a pointer into the current interval relative
+to the base of the current interval. Since the coding process involves addition of binary fractions rather than concatenation
+of integer code words, the more probable binary decisions can often be coded at a cost of much less than one bit per
+decision.
+
+C.1.2     Coding conventions and approximations (informative)
+The coding operations are done using fixed precision integer arithmetic and using an integer representation of fractional
+values in which 0x8000 is equivalent to the decimal 0.75. The interval A is kept in the range 0.75  A < 1.5 by doubling
+it whenever the integer value falls below 0x8000.
+The code register C is also doubled each time A is doubled. Periodically, to keep C from overflowing, a byte of
+compressed image data is removed from the high order bits of the C-register and placed in an external compressed image
+data buffer. Carry-over into the external buffer is prevented by a bit-stuffing procedure.
+Keeping A in the range 0.75  A < 1.5 allows a simple arithmetic approximation to be used in the interval subdivision.
+The interval is A and the current estimate of the LPS probability is Qe, a precise calculation of the sub-intervals would
+require:
+
+                                        A – (Qe * A) = sub-interval for the MPS                                         (C-1)
+
+                                            Qe * A = sub-interval for the LPS                                           (C-2)
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)              77
+ISO/IEC 15444-1:2016 (E)
+
+Because the value of A is of order unity, these are approximated by:
+
+                                            A – Qe = sub-interval for the MPS                                            (C-3)
+
+                                               Qe = sub-interval for the LPS                                             (C-4)
+
+Whenever the MPS is coded, the value of Qe is added to the code register and the interval is reduced to A – Qe. Whenever
+the LPS is coded, the code register is left unchanged and the interval is reduced to Qe. The precision range required for
+A is then restored, if necessary, by renormalization of both A and C.
+With the process illustrated above, the approximations in the interval subdivision process can sometimes make the LPS
+sub-interval larger than the MPS sub-interval. If, for example, the value of Qe is 0.5 and A is at the minimum allowed
+value of 0.75, the approximate scaling gives 1/3 of the interval to the MPS and 2/3 to the LPS. To avoid this size inversion,
+the MPS and LPS intervals are exchanged whenever the LPS interval is larger than the MPS interval. This MPS/LPS
+conditional exchange can only occur when a renormalization is needed.
+Whenever a renormalization occurs, a probability estimation process is invoked which determines a new probability
+estimate for the context currently being coded. No explicit symbol counts are needed for the estimation. The relative
+probabilities of renormalization after coding an LPS or MPS provide an approximate symbol counting mechanism which
+is used to directly estimate the probabilities.
+
+C.2        Description of the arithmetic encoder (informative)
+The ENCODER (Figure C.2) initializes the encoder through the INITENC procedure. CX and D pairs are read and passed
+on to ENCODE until all pairs have been read. The probability estimation procedures which provide adaptive estimates of
+the probability for each context are embedded in ENCODE. Bytes of compressed image data are output when necessary.
+When all of the CX and D pairs have been read, FLUSH sets the contents of the C-register to as many 1 bits as possible
+and then outputs the final bytes. FLUSH also terminates the encoding and generates the required terminating marker.
+     NOTE – While FLUSH is required in Rec. ITU-T T.88 | ISO/IEC 14492, it is informative in this Recommendation | International
+     Standard. Other methods, such as that defined in D.4.2, are acceptable.
+
+
+
+
+78           Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+
+                                                                  ENCODER
+
+
+
+
+                                                                   INITENC
+
+
+
+
+                                                                  Read CX, D
+
+
+
+
+                                                                   ENCODE
+
+
+
+
+                                                         No
+                                                                   Finished?
+
+                                                                            Yes
+
+
+
+                                                                    FLUSH
+
+
+
+
+                                                                     Done
+
+                                                                                  T.800_FC-2
+
+
+                                         Figure C.2 – Encoder for the MQ-coder
+
+C.2.1     Encoder code register conventions (informative)
+The flow charts given in this annex assume the register structures for the encoder shown in Table C.1.
+
+                                         Table C.1 – Encoder register structures
+
+                                    MSB                                                                 LSB
+                     C-register       0000 cbbb          bbbb bsss          xxxx xxxx          xxxx xxxx
+                     A-register       0000 0000          0000 0000          1aaa aaaa          aaaa aaaa
+
+The "a" bits are the fractional bits in the A.register (the current interval value) and the "x" bits are the fractional bits in
+the code register. The "s" bits are spacer bits which provide useful constraints on carry-over, and the "b" bits indicate the
+bit positions from which the completed bytes of the compressed image data are removed from the C-register. The "c" bit
+is a carry bit. The detailed description of bit stuffing and the handling of carry-over will be given in a later part of this
+annex.
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)             79
+ISO/IEC 15444-1:2016 (E)
+
+C.2.2    Encoding a decision (ENCODE) (informative)
+The ENCODE procedure determines whether the decision D is a 0 or not. Then a CODE0 or a CODE1 procedure is called
+appropriately. Often embodiments will not have an ENCODE procedure, but will call the CODE0 or CODE1 procedures
+directly to code a 0-decision or a 1-decision. Figure C.3 shows this procedure.
+
+
+                                                       ENCODE
+
+
+
+
+                                              No                       Yes
+                                                         D = 0?
+
+
+
+                             CODE1                                                 CODE0
+
+
+                                                                                         T.800_FC-3
+
+
+
+
+                                                         Done
+
+
+
+                                          Figure C.3 – ENCODE procedure
+
+C.2.3    Encoding a 1 or a 0 (CODE1 and CODE0) (informative)
+When a given binary decision is coded, one of two possibilities occurs – the symbol is either the more probable symbol
+or it is the less probable symbol. CODE1 and CODE0 are illustrated in Figures C.4 and C.5. In these figures, CX is the
+context. For each context, the index of the probability estimate which is to be used in the coding operations and the MPS
+value are stored. MPS(CX) is the sense (0 or 1) of the MPS for context CX.
+
+
+                                                        CODE1
+
+
+
+
+                                              No                       Yes
+                                                     MPS(CX) = 1?
+
+
+
+                            CODELPS                                              CODEMPS
+
+
+                                                                                         T.800_FC-4
+
+
+
+
+                                                         Done
+
+
+
+                                           Figure C.4 – CODE1 procedure
+
+
+
+
+80         Rec. ITU-T T.800 (11/2015)
+                                                                                             ISO/IEC 15444-1:2016 (E)
+
+
+                                                        CODE0
+
+
+
+
+                                              No                       Yes
+                                                     MPS(CX) = 0?
+
+
+
+                            CODELPS                                              CODEMPS
+
+
+                                                                                          T.800_FC-5
+
+
+
+
+                                                          Done
+
+
+
+                                           Figure C.5 – CODE0 procedure
+
+C.2.4     Encoding an MPS or LPS (CODEMPS and CODELPS) (informative)
+The CODELPS (Figure C.6) procedure usually consists of a scaling of the interval to Qe(I(CX)), the probability estimate
+of the LPS determined from the index I stored for context CX. The upper interval is first calculated so it can be compared
+to the lower interval to confirm that Qe has the smaller size. It is always followed by a renormalization (RENORME). In
+the event that the interval sizes are inverted however, the conditional MPS/LPS exchange occurs and the upper interval
+is coded. In either case, the probability estimate is updated. If the SWITCH flag for the index I(CX) is set, then the
+MPS(CX) is inverted. A new index I is saved at CX as determined from the next LPS index (NLPS) column in Table C.2.
+
+
+
+
+                                                                                 Rec. ITU-T T.800 (11/2015)            81
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                           CODELPS
+
+
+
+
+                                                        A = A – Qe(I(CX))
+
+
+
+
+                                               No                            Yes
+                                                         A < Qe(I(CX))?
+
+
+
+                      A = Qe(I(CX))                                                       C = C + Qe(I(CX))
+
+
+
+
+                                               Yes
+                                                         SWITCH(I(CX))
+                                                             = 1?
+                                                                     No
+
+
+                 MPS(CX) = 1 – MPS(CX)
+
+
+
+
+                                                       I(CX) = NLPS(I(CX))
+
+
+
+
+                                                          RENORME
+
+
+
+
+                                                              Done
+
+                                                                             T.800_FC-6
+
+
+                       Figure C.6 – CODELPS procedure with conditional MPS/LPS exchange
+
+
+                                  Table C.2 – Qe values and probability estimation
+
+                                          Qe_Value
+     Index                                                                                NMPS        NLPS    SWITCH
+                  (hexadecimal)             (binary)                 (decimal)
+       0            0x5601            0101 0110 0000 0001            0.503 937             1             1      1
+       1            0x3401            0011 0100 0000 0001            0.304 715             2             6      0
+       2            0x1801            0001 1000 0000 0001            0.140 650             3             9      0
+       3            0x0AC1            0000 1010 1100 0001            0.063 012             4            12      0
+       4            0x0521            0000 0101 0010 0001            0.030 053             5            29      0
+       5            0x0221            0000 0010 0010 0001            0.012 474             38           33      0
+       6            0x5601            0101 0110 0000 0001            0.503 937             7             6      1
+       7            0x5401            0101 0100 0000 0001            0.492 218             8            14      0
+
+
+
+82           Rec. ITU-T T.800 (11/2015)
+                                                                                             ISO/IEC 15444-1:2016 (E)
+
+
+                                      Table C.2 – Qe values and probability estimation
+
+                                            Qe_Value
+    Index                                                                         NMPS           NLPS         SWITCH
+                   (hexadecimal)             (binary)             (decimal)
+        8            0x4801            0100 1000 0000 0001        0.421 904          9             14             0
+        9            0x3801            0011 1000 0000 0001        0.328 153          10            14             0
+        10           0x3001            0011 0000 0000 0001        0.281 277          11            17             0
+        11           0x2401            0010 0100 0000 0001        0.210 964          12            18             0
+        12           0x1C01            0001 1100 0000 0001        0.164 088          13            20             0
+        13           0x1601            0001 0110 0000 0001        0.128 931          29            21             0
+        14           0x5601            0101 0110 0000 0001        0.503 937          15            14             1
+        15           0x5401            0101 0100 0000 0001        0.492 218          16            14             0
+        16           0x5101            0101 0001 0000 0001        0.474 640          17            15             0
+        17           0x4801            0100 1000 0000 0001        0.421 904          18            16             0
+        18           0x3801            0011 1000 0000 0001        0.328 153          19            17             0
+        19           0x3401            0011 0100 0000 0001        0.304 715          20            18             0
+        20           0x3001            0011 0000 0000 0001        0.281 277          21            19             0
+        21           0x2801            0010 1000 0000 0001        0.234 401          22            19             0
+        22           0x2401            0010 0100 0000 0001        0.210 964          23            20             0
+        23           0x2201            0010 0010 0000 0001        0.199 245          24            21             0
+        24           0x1C01            0001 1100 0000 0001        0.164 088          25            22             0
+        25           0x1801            0001 1000 0000 0001        0.140 650          26            23             0
+        26           0x1601            0001 0110 0000 0001        0.128 931          27            24             0
+        27           0x1401            0001 0100 0000 0001        0.117 212          28            25             0
+        28           0x1201            0001 0010 0000 0001        0.105 493          29            26             0
+        29           0x1101            0001 0001 0000 0001        0.099 634          30            27             0
+        30           0x0AC1            0000 1010 1100 0001        0.063 012          31            28             0
+        31           0x09C1            0000 1001 1100 0001        0.057 153          32            29             0
+        32           0x08A1            0000 1000 1010 0001        0.050 561          33            30             0
+        33           0x0521            0000 0101 0010 0001        0.030 053          34            31             0
+        34           0x0441            0000 0100 0100 0001        0.024 926          35            32             0
+        35           0x02Al            0000 0010 1010 0001        0.015 404          36            33             0
+        36           0x0221            0000 0010 0010 0001        0.012 474          37            34             0
+        37           0x0141            0000 0001 0100 0001        0.007 347          38            35             0
+        38           0x0111            0000 0001 0001 0001        0.006 249          39            36             0
+        39           0x0085            0000 0000 1000 0101        0.003 044          40            37             0
+        40           0x0049            0000 0000 0100 1001        0.001 671          41            38             0
+        41           0x0025            0000 0000 0010 0101        0.000 847          42            39             0
+        42           0x0015            0000 0000 0001 0101        0.000 481          43            40             0
+        43           0x0009            0000 0000 0000 1001        0.000 206          44            41             0
+        44           0x0005            0000 0000 0000 0101        0.000 114          45            42             0
+        45           0x0001            0000 0000 0000 0001        0.000 023          45            43             0
+        46           0x5601            0101 0110 0000 0001        0.503 937          46            46             0
+
+C.2.5        Probability estimation
+Table C.2 shows the Qe value associated with each Qe index. The Qe values are expressed as hexadecimal integers, as
+binary integers, and as decimal fractions. To convert the 15-bit integer representation of Qe to the decimal probability,
+the Qe values are divided by (4/3) * (0x8000).
+The estimator can be defined as a finite-state machine – a table of Qe indexes and associated next states for each type of
+renormalization (i.e., new table positions) – as shown in Table C.2. The change in state occurs only when the arithmetic
+
+
+
+                                                                                 Rec. ITU-T T.800 (11/2015)            83
+ISO/IEC 15444-1:2016 (E)
+
+coder interval register is renormalized. This is always done after coding the LPS, and whenever the interval register is
+less than 0x8000 (0.75 in decimal notation) after coding the MPS.
+After an LPS renormalization, NLPS gives the new index for the LPS probability estimate. If the switch is 1, the MPS
+symbol sense is reversed.
+
+
+
+
+                                                                                ?
+
+
+
+
+                      Figure C.7 – CODEMPS procedure with conditional MPS/LPS exchange
+
+
+The index to the current estimate is part of the information stored for context CX. This index is used as the index to the
+table of values in NMPS, which gives the next index for an MPS renormalization. This index is saved in the context
+storage at CX. MPS(CX) does not change.
+The procedure for estimating the probability on the LPS renormalization path is similar to that of an MPS renormalization,
+except that when SWITCH(I(CX)) is 1, the sense of MPS(CX) is inverted.
+The final index state 46 can be used to establish a fixed 0.5 probability estimate.
+
+C.2.6     Renormalization in the encoder (RENORME) (informative)
+Renormalization is very similar in both encoder and decoder, except that in the encoder it generates compressed bits and
+in the decoder it consumes compressed bits.
+The RENORME procedure for the encoder renormalization is illustrated in Figure C.8. Both the interval register A and
+the code register C are shifted, one bit at a time. The number of shifts is counted in the counter CT, and when CT is
+counted down to zero, a byte of compressed image data is removed from C by the procedure BYTEOUT. Renormalization
+continues until A is no longer less than 0x8000.
+
+
+
+
+84         Rec. ITU-T T.800 (11/2015)
+                                                                                              ISO/IEC 15444-1:2016 (E)
+
+
+                                                     RENORME
+
+
+
+
+                                                     A = A << 1
+                                                     C = C << 1
+                                                     CT = CT – 1
+
+
+
+                                             No
+                                                       CT = 0?
+
+                                                                 Yes
+
+
+                                                     BYTEOUT
+
+
+
+
+                                                                        Yes
+                                                  A AND 0x8000 = 0?
+
+                                                                 No
+
+
+
+                                                        Done
+
+                                                                       T.800_FC-8
+
+
+                                Figure C.8 – Encoder renormalization procedure
+
+C.2.7    Compressed image data output (BYTEOUT) (informative)
+The BYTEOUT routine called from RENORME is illustrated in Figure C.9. This routine contains the bit-stuffing
+procedures which are needed to limit carry propagation into the completed bytes of compressed image data. The
+conventions used make it impossible for a carry to propagate through more than the byte most recently written to the
+compressed image data buffer.
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)     85
+ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                                     Figure C.9 – BYTEOUT procedure for encoder
+
+
+The procedure in the block in the lower right section does bit stuffing after a 0xFF byte; the similar procedure on the left
+is for the case where bit stuffing is not needed.
+B is the byte pointed to by the compressed image data buffer pointer BP. If B is not a 0xFF byte, the carry bit is checked.
+If the carry bit is set, it is added to B and B is again checked to see if a bit needs to be stuffed in the next byte. After the
+need for bit stuffing has been determined, the appropriate path is chosen, BP is incremented and the new value of B is
+removed from the code register "b" bits.
+
+C.2.8     Initialization of the encoder (INITENC) (informative)
+The INITENC procedure is used to start the arithmetic coder. After MPS and I are initialized, the basic steps are shown
+in Figure C.10.
+
+
+
+
+86          Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+
+                                                           INITENC
+
+
+
+
+                                                          A = 0x8000
+                                                             C=0
+                                                         BP = BPST – 1
+                                                            CT = 12
+
+
+
+                                                 No
+                                                           B = 0xFF?
+
+                                                                      Yes
+
+
+                                                            CT = 13
+
+
+
+
+                                                             Done
+
+                                                                            T.800_FC-10
+
+
+                                        Figure C.10 – Initialization of the encoder
+
+
+The interval register and code register are set to their initial values, and the bit counter is set. Setting CT = 12 reflects the
+fact that there are three spacer bits in the register which need to be filled before the field from which the bytes are removed
+is reached. BP always points to the byte preceding the position BPST where the first byte is placed. Therefore, if the
+preceding byte is a 0xFF byte, a spurious bit stuff will occur, but can be compensated for by increasing CT. The initial
+settings for MPS and I are shown in Table D.7.
+
+C.2.9     Termination of coding (FLUSH) (informative)
+The FLUSH procedure shown in Figure C.11 is used to terminate the encoding operations and generate the required
+terminating marker. The procedure guarantees that the 0xFF prefix to the marker code overlaps the final bits of the
+compressed image data. This guarantees that any marker code at the end of the compressed image data will be recognized
+and interpreted before decoding is complete.
+
+
+
+
+                                                                                          Rec. ITU-T T.800 (11/2015)          87
+ISO/IEC 15444-1:2016 (E)
+
+
+                                          FLUSH
+
+
+
+
+                                         SETBITS
+
+
+
+
+                                        C = C << CT
+
+
+
+
+                                        BYTEOUT
+
+
+
+
+                                        C = C << CT
+
+
+
+
+                                        BYTEOUT
+
+
+
+
+                                                          Yes
+                                         B = 0xFF?
+
+                                                  No
+
+
+                                        BP = BP + 1                     Discard B
+
+                                                                               T.800_FC-11
+
+
+
+
+                                           Done
+
+
+
+                                           Figure C.11 – FLUSH procedure
+
+
+The first part of the FLUSH procedure sets as many bits in the C-register to 1 as possible as shown in Figure C.12. The
+exclusive upper bound for the C-register is the sum of the C-register and the interval register. The low order 16 bits of C
+are forced to 1, and the result is compared to the upper bound. If C is too big, the leading 1-bit is removed, reducing C to
+a value which is within the interval.
+
+
+
+
+88         Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+
+                                                            SETBITS
+
+
+
+
+                                                         TEMP = C + A
+                                                        C = C OR 0xFFFF
+
+
+
+                                                   No
+                                                           C TEMPC?
+
+                                                                      Yes
+
+
+                                                         C = C – 0x8000
+
+
+
+
+                                                               Done
+
+                                                                            T.800_FC-12
+
+
+                                  Figure C.12 – Setting the final bits in the C register
+
+
+The byte in the C-register is then completed by shifting C, and two bytes are then removed. If the byte in buffer B is an
+0xFF then it is discarded. Otherwise, buffer B is output to the bit stream.
+   NOTE – This is the only normative option for termination in Rec. ITU-T T.88 | ISO/IEC 14492. However, further reduction of the
+   bit stream is allowed in this Recommendation | International Standard provided correct decoding is assured (see D.4.2).
+
+
+C.3      Arithmetic decoding procedure
+Figure C.13 shows a simple block diagram of a binary adaptive arithmetic decoder. The compressed image data CD and
+a context CX from the decoder's model unit (not shown) are input to the arithmetic decoder. The decoder's output is the
+decision D. The encoder and decoder model units need to supply exactly the same context CX for each given decision.
+
+
+
+
+                                 Figure C.13 – Arithmetic decoder inputs and outputs
+
+
+The DECODER (Figure C.14) initializes the decoder through INITDEC. Contexts, CX and bytes of compressed image
+data (as needed) are read and passed on to DECODE until all contexts have been read. The DECODE routine decodes the
+binary decision D and returns a value of either 0 or 1. The probability estimation procedures which provide adaptive
+estimates of the probability for each context are embedded in DECODE. When all contexts have been read, the
+compressed image data has been decompressed.
+
+
+
+
+                                                                                          Rec. ITU-T T.800 (11/2015)          89
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                           DECODER
+
+
+
+
+                                                           INITDEC
+
+
+
+
+                                                            Read CX
+
+
+
+
+                                                         D = DECODE
+
+
+
+
+                                                  No
+                                                           Finished?
+
+                                                                       Yes
+
+
+                                                             Done
+                                                                             T.800_FC-14
+
+
+                                        Figure C.14 – Decoder for the MQ-coder
+
+C.3.1     Decoder code register conventions
+The flow charts given in this annex assume the register structures for the decoder shown in Table C.3.
+
+                                        Table C.3 – Decoder register structures
+
+                                                            MSB                            LSB
+                               Chigh register            xxxx xxxx                  xxxx xxxx
+                                Clow register            bbbb bbbb                  0000 0000
+                                 A-register              aaaa aaaa                  aaaa aaaa
+
+Chigh and Clow can be thought of as one 32-bit C-register in that renormalization of C shifts a bit of new data from the
+MSB of Clow to the LSB of Chigh. However, the decoding comparisons use Chigh alone. New data is inserted into the
+"b" bits of Clow one byte at a time.
+The detailed description of the handling of data with stuff-bits will be given later in this annex.
+Note that the comparisons shown in the various procedures in this clause assume precisions greater than 16 bits. Logical
+comparisons can be used with 16-bit precision.
+
+C.3.2     Decoding a decision (DECODE)
+The decoder decodes one binary decision at a time. After decoding the decision, the decoder subtracts any amount from
+the compressed image data that the encoder added. The amount left in the compressed image data is the offset from the
+base of the current interval to the sub-interval allocated to all binary decisions not yet decoded. In the first test in the
+DECODE procedure illustrated in Figure C.15 the Chigh register is compared to the size of the LPS sub-interval. Unless
+a conditional exchange is needed, this test determines whether an MPS or LPS is decoded. If Chigh is logically greater
+than or equal to the LPS probability estimate Qe for the current index I stored at CX, then Chigh is decremented by that
+amount. If A is not less than 0x8000, then the MPS sense stored at CX is used to set the decoded decision D.
+
+
+
+
+90         Rec. ITU-T T.800 (11/2015)
+                                                                                           ISO/IEC 15444-1:2016 (E)
+
+
+                                                       DECODE
+
+
+
+
+                                                   A = A – Qe(I(CX))
+
+
+
+
+                                        No                                   Yes
+                                                  Chigh < Qe(I(CX))?
+
+
+
+
+     Chigh = Chigh – Qe(I(CX))
+
+
+
+
+                                   No
+        A AND 0x8000 = 0?
+
+
+                       Yes
+
+
+
+       D = MPS_EXCHANGE                              D = MPS(CX)                           D = LPS_EXCHANGE
+
+
+
+
+           RENORMD                                                                              RENORMD
+
+
+                                                                                                             T.800_FC-15
+
+
+
+
+                                                        Return D
+
+
+
+                                     Figure C.15 – Decoding an MPS or an LPS
+
+
+When a renormalization is needed, the MPS/LPS conditional exchange may have occurred. For the MPS path the
+conditional exchange procedure is shown in Figure C.16. As long as the MPS sub-interval size A calculated as the first
+step in Figure C.16 is not logically less than the LPS probability estimate Qe(I(CX)), an MPS did occur and the decision
+can be set from MPS(CX). Then the index I(CX) is updated from the next MPS index (NMPS) column in Table C.2. If
+however, the LPS sub-interval is larger, the conditional exchange occurred and an LPS occurred. D is set by inverting
+MPS(CX). The probability update switches the MPS sense if the SWITCH column has a "1" and updates the index I(CX)
+from the next LPS index (NLPS) column in Table C.2. The probability estimation in the decoder needs to be identical to
+the probability estimation in the encoder.
+
+
+
+
+                                                                                Rec. ITU-T T.800 (11/2015)            91
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                   MPS_EXCHANGE
+
+
+
+
+                                         No                                  Yes
+                                                     A < Qe(I(CX))?
+
+
+
+
+                   D = MPS(CX)
+                                                                                     D = 1 – MPS(CX)
+                I(CX) = NMPS(I(CX))
+
+
+
+
+                                                                          Yes
+                                                                                    SWITCH(I(CX)) = 1?
+
+
+                                                                                                   No
+
+
+                                                MPS(CX) = 1 – MPS(CX)
+
+
+
+
+                                                                                    I(CX) = NLPS(I(CX)
+
+
+
+                                                                                                          T.800_FC-16
+
+
+
+
+                                                        Return D
+
+
+
+                         Figure C.16 – Decoder MPS path conditional exchange procedure
+
+
+For the LPS path of the decoder, the conditional exchange procedure is given the LPS_EXCHANGE procedure shown in
+Figure C.17. The same logical comparison between the MPS sub-interval A and the LPS sub-interval Qe(I(CX))
+determines if a conditional exchange occurred. On both paths the new sub-interval A is set to Qe(I(CX)). On the left path
+the conditional exchange occurred so the decision and update are for the MPS case. On the right path, the LPS decision
+and update are followed.
+
+
+
+
+92         Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+
+                                                     LPS_EXCHANGE
+
+
+
+
+                                        Yes                                       No
+                                                       A < Qe(I(CX))?
+
+
+
+
+                   A = Qe(I(CX))                                                            A = Qe(I(CX))
+                   D = MPS(CX)                                                             D = 1 – MPS(CX)
+                I(CX) = NMPS(I(CX))
+
+
+
+
+                                                                            Yes
+                                                                                         SWITCH(I(CX)) = 1?
+
+
+                                                                                                         No
+
+
+                                                  MPS(CX) = 1 – MPS(CX)
+
+
+
+
+                                                                                          I(CX) = NLPS(I(CX)
+
+
+
+                                                                                                               T.800_FC-17
+
+
+
+
+                                                          Return D
+
+
+
+                          Figure C.17 – Decoder LPS path conditional exchange procedure
+
+C.3.3     Renormalization in the decoder (RENORMD)
+The RENORMD procedure for the decoder renormalization is illustrated in Figure C.18. A counter keeps track of the
+number of compressed bits in the Clow section of the C-register. When CT is zero, a new byte is inserted into Clow in
+the BYTEIN procedure. The C-register in this procedure is the concatenation of the Chigh and Clow registers.
+Both the interval register A and the code register C are shifted, one bit at a time, until A is no longer less than 0x8000.
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)            93
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                        RENORMD
+
+
+
+
+                                          No
+                                                          CT = 0?
+
+
+                                                                      Yes
+
+
+
+                                                         BYTEIN
+
+
+
+
+                                                        A = A << 1
+                                                        C = C << 1
+                                                        CT = CT – 1
+
+
+
+
+                                                                                Yes
+                                                    A AND 0x8000 = 0?
+
+
+                                                                       No
+
+
+
+                                                           Done
+
+                                                                              T.800_FC-18
+
+
+                                 Figure C.18 – Decoder renormalization procedure
+
+C.3.4    Compressed image data input (BYTEIN)
+The BYTEIN procedure called from RENORMD is illustrated in Figure C.19. This procedure reads in one byte of data,
+compensating for any stuff bits following the 0xFF byte in the process. It also detects the marker codes which must occur
+at the end of a coding pass. The C-register in this procedure is the concatenation of the Chigh and Clow registers.
+
+
+
+
+94         Rec. ITU-T T.800 (11/2015)
+                                                                                                     ISO/IEC 15444-1:2016 (E)
+
+
+                                                                        BYTEIN
+
+
+
+
+                                                           Yes                        No
+                                                                       NB = 0xFF?
+
+
+                                                                                          BP = BP + 1
+                                    No                           Yes
+                                              B1 > 0x8F?                                C = C + (B << 8)
+                                                                                            CT = 8
+
+
+                       BP = BP + 1
+                                                                   C = C + 0xFF00
+                     C = C + (B << 9)
+                                                                       CT = 8
+                         CT = 7
+
+
+
+
+                                                                         Done
+
+                                                                                       T.800_FC-19
+
+
+                                     Figure C.19 – BYTEIN procedure for decoder
+
+
+B is the byte pointed to by the compressed image data buffer pointer BP. If B is not a 0xFF byte, BP is incremented and
+the new value of B is inserted into the high order 8 bits of Clow.
+If B is a 0xFF byte, then B1 (the byte pointed to by BP+1) is tested. If B1 exceeds 0x8F, then B1 must be one of the
+marker codes. The marker code is interpreted as required, and the buffer pointer remains pointed to the 0xFF prefix of
+the marker code which terminates the arithmetically compressed image data. 1-bits are then fed to the decoder until the
+decoding is complete. This is shown by adding 0xFF00 to the C-register and setting the bit counter CT to 8.
+If B1 is not a marker code, then BP is incremented to point to the next byte which contains a stuffed bit. The B is added
+to the C-register with an alignment such that the stuff bit (which contains any carry) is added to the low order bit of Chigh.
+
+C.3.5     Initialization of the decoder (INITDEC)
+The INITDEC procedure is used to start the arithmetic decoder. After MPS and I are initialized, the basic steps are shown
+in Figure C.20.
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)             95
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                    INITDEC
+
+
+
+
+                                                   BP = BPST
+                                                   C = B << 16
+
+
+
+
+                                                     BYTEIN
+
+
+
+
+                                                   C = C << 7
+                                                   CT = CT – 7
+                                                   A = 0x8000
+
+
+
+
+                                                       Done
+                                                                    T.800_FC-20
+
+
+                                      Figure C.20 – Initialization of the decoder
+
+
+BP, the pointer to the compressed image data, is initialized to BPST (pointing to the first compressed byte). The first byte
+of the compressed image data is shifted into the low order byte of Chigh, and a new byte is then read in. The C-register
+is then shifted by 7 bits and CT is decremented by 7, bringing the C-register into alignment with the starting value of A.
+The interval register A is set to match the starting value in the encoder. The initial settings for MPS and I are shown in
+Table D.7.
+
+C.3.6     Resetting arithmetic coding statistics
+At certain points during the decoding some or all of the arithmetic coding statistics are reset. This process involves
+returning I(CX) and MPS(CX) to their initial values as defined in Table D.7 for some or all values of CX.
+
+C.3.7     Saving arithmetic coding statistics
+In some cases, the decoder needs to save or restore some values of I(CX) and MPS(CX).
+
+
+
+
+96         Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+

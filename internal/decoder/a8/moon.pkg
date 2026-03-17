@@ -1,0 +1,13 @@
+// T.800-2015 Annex A.8 packet header parsing
+import {
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/geometry" @geometry,
+  "trkbt10/jpeg2000/internal/decoder/input" @input,
+  "trkbt10/jpeg2000/internal/decoder/packet" @packet,
+  "trkbt10/jpeg2000/internal/decoder/subband" @subband,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

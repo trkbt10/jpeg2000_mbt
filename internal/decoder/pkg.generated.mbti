@@ -1,0 +1,47 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "trkbt10/jpeg2000/internal/decoder"
+
+// Values
+pub fn decode_samples(Bytes) -> Result[DecodeSamplesResult, String]
+
+pub fn decode_samples_all_components(Bytes) -> Result[DecodeAllComponentsResult, String]
+
+pub fn decode_samples_all_components_audit(Bytes, packet_audit_limit? : Int) -> Result[DecodeAllComponentsResult, String]
+
+pub fn decode_samples_all_components_debug(Bytes) -> Result[DecodeAllComponentsResult, String]
+
+pub fn decode_samples_audit(Bytes, packet_audit_limit? : Int, force_relocated_ppt? : Bool) -> Result[DecodeSamplesResult, String]
+
+// Errors
+
+// Types and methods
+pub struct DecodeAllComponentsResult {
+  num_components : Int
+  sample_layout : String
+  components : Array[DecodeSamplesComponentResult]
+}
+
+pub struct DecodeSamplesComponentResult {
+  component_index : Int
+  width : Int
+  height : Int
+  bits_per_component : Int
+  is_signed : Bool
+  sample_layout : String
+  samples : Bytes
+}
+
+pub struct DecodeSamplesResult {
+  width : Int
+  height : Int
+  num_components : Int
+  bits_per_component : Int
+  is_signed : Bool
+  sample_layout : String
+  samples : Bytes
+}
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,27 @@
+7         Decoder requirements
+A decoding process converts compressed image data to reconstructed image data. Annexes A to H describe and specify
+the decoding process. All decoding processes are normative.
+A decoder is an embodiment of the decoding process. In order to conform to this Recommendation | International
+Standard, a decoder shall convert all, or specific parts of, any compressed image data that conform to the codestream
+syntax specified in Annex A to a reconstructed image.
+There is no normative or required implementation for the encoder or decoder. In some cases, the descriptions use particular
+implementation techniques for illustrative purposes only.
+
+
+10            Rec. ITU-T T.800 (11/2015)
+                                                                                              ISO/IEC 15444-1:2016 (E)
+
+7.1       Codestream syntax requirements
+Annex A describes the codestream syntax that defines the coded representation of compressed image data for exchange
+between application environments. Any compressed image data shall comply with the syntax and code assignments
+appropriate for the coding processes defined in this Recommendation | International Standard.
+This Recommendation | International Standard does not include a definition of compliance or conformance. The parameter
+values of the syntax described in Annex A are not intended to portray the capabilities required to be compliant.
+
+7.2       Optional file format requirements
+Annex I describes the optional file format containing metadata about the image in addition to the codestream. This data
+allows, for example, screen display or printing at a specific resolution. The optional file format, when used, shall comply
+with the file format syntax and code assignments appropriate for the coding processes defined in this Recommendation |
+International Standard.
+
+

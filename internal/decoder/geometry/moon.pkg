@@ -1,0 +1,9 @@
+// Tile/component geometry and codec context resolution
+import {
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/input" @input,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

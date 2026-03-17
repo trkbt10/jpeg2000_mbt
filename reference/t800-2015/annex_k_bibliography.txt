@@ -1,0 +1,193 @@
+                                                  Annex K
+
+                                               Bibliography
+          (This annex does not form an integral part of this Recommendation | International Standard.)
+
+K.1    General
+[1]    BOLIEK (M.), GORMISH (M.J.), SCHWARTZ (E.L.), KEITH (A.): Decoding compression with reversible
+       embedded wavelets (CREW) codestreams, Electronic Imaging, Vol. 7, No. 3, July 1998.
+[2]    EBRAHIMI (T.), CHRISTOPOULOS (C.): JPEG 2000 standard: Still image compression scheme of
+       21st century, Tampere, Finland, 5-8 September 2000.
+[3]    MARCELLIN (M.W.), GORMISH (M.), BILGIN (A.), BOLIEK (M.): An Overview of JPEG-2000, Proc. of
+       IEEE Data Compression Conference, Snowbird, Utah, March 2000.
+[4]    SKODRAS (A.), CHRISTOPOULOS (C.), EBRAHIMI (T.): JPEG2000: The upcoming still image
+       compression standard, (Invited paper) Proceedings of the 11th Portuguese Conference on Pattern Recognition
+       (RECPAD 2000), pp. 359-366, Porto, Portugal, 11-12 May 2000.
+[5]    ZANDI (A.), ALLEN (J.D.), SCWHARTZ (E.L.), BOLIEK (M.): CREW: Compression with reversible
+       embedded wavelets, Proceedings of Data Compression Conference, Snowbird, Utah, pp. 212-221, March 1995.
+
+K.2    Quantization and entropy coding
+[6]    ORDENTLICH (E.), WEINBERGER (M.J.), SEROUSSI (G.): A low-complexity modelling approach for
+       embedded coding of wavelet coefficients, Proceedings of Data Compression Conference, pp. 408-417,
+       Snowbird, Utah, March 29-April 1, 1998.
+[7]    ORDENTLICH (E.), TAUBMAN (D.), WEINBERGER (M.J.), SEROUSSI (G.), MARCELLIN (M.): Memory
+       Efficient Scalable Line-based Image Coding, Proceedings of Data Compression Conference, pp. 218-227,
+       Snowbird, Utah, March 29-31, 1999.
+[8]    PENNEBAKER (W.), MITCHELL (J.): JPEG Still Image Data Compression Standard, Van Nostrand Reinhold,
+       New York, 1993.
+[9]    SEMENTILLI (P.J.), BILGIN (A.), KASNER (J.H.), MARCELLIN (M.W.): Wavelet TCQ: Submission to
+       JPEG 2000, (invited paper), Proceedings, Applications of Digital Image Processing, SPIE, San Diego,
+       California, July 1998.
+[10]   TAUBMAN (D.), ZAKHOR (A.): Multirate 3-D subband coding of video, IEEE Trans. Image Processing,
+       Vol. 3, pp. 572-88, September 1994.
+[11]   TAUBMAN (D.): High performance scalable image compression with EBCOT, IEEE Trans. on Image
+       Processing, July 2000.
+[12]   WOODS (J.W.), NAVEEN (J.): A filter based bit allocation scheme for subband compression of HDTV, IEEE
+       Trans. on Image Processing, July 1992.
+
+K.3    Wavelet transformation
+[13]   ADAMS (M.D.), KOSSENTINI (F.): Reversible integer-to-integer wavelet transforms for image compression:
+       performance evaluation and analysis, IEEE Trans. on Image Processing, 2000.
+[14]   ANTONINI (M.), BARLAUD (M.), MATHIEU (P.), DAUBECHIES (I.): Image coding using wavelet
+       transform, IEEE Trans. on Image Processing Vol. 1, pp. 205-220, April 1992.
+[15]   BRISLAWN (C.M.): Classification of nonexpansive symmetric extension transforms for multirate filter banks,
+       Applied and Computational Harmonic Analysis, Vol. 3, pp. 337-57, 1996.
+[16]   CALDERBANK (A.R.), DAUBECHIES (I.), SWELDENS (W.), YEO (B.-L.): Wavelet transforms that map
+       integers to integers, Applied and Computational Harmonic Analysis, Vol. 5, No. 3, pp. 332-369, July 1998.
+
+
+
+
+                                                                            Rec. ITU-T T.800 (11/2015)       211
+ISO/IEC 15444-1:2016 (E)
+
+[17]    CHRYSAFIS (C.), ORTEGA (A.), Line-Based, Reduced Memory, Wavelet Image Compression, IEEE Trans.
+        on Image Processing, Vol. 9, No 3, pp. 378-389, March 2000.
+[18]    CHUI (C.K.): An Introduction to Wavelets, Academic Press, Boston, 1992.
+[19]    CHUI (C.K.): Wavelets: A Mathematical Tool for Signal Analysis, SIAM Publ., Philadelphia, 1997.
+[20]    DAUBECHIES (I.): Ten Lectures on Wavelets, SIAM Publ., Philadelphia, 1992.
+[21]    DAUBECHIES (I.), SWELDENS (W.): Factoring wavelet transforms into lifting steps, Journal of Fourier
+        Analysis and Applications, Vol. 4, No. 3, pp. 247-269, 1999.
+[22]    LEGALL (D.), TABATABAI (A.): Subband coding of digital images using symmetric short kernel filters and
+        arithmetic coding techniques, IEEE International Conference on Acoustics, Speech and Signal Processing,
+        New York, NY, pp. 761-765, 1988.
+[23]    MALLAT (S.): A Wavelet Tour of Signal Processing, Academic Press, 2nd Edition, San Diego, 1999.
+[24]    SHENG (F.), BILGIN (A.), SEMENTILLI (P.J.), MARCELLIN (M.W.): Lossy and lossless image
+        compression using reversible integer wavelet transforms, Proceedings, IEEE International Conference on
+        Image Processing, Chicago, Illinois, October 1998.
+[25]    SWELDENS (W.): The lifting scheme: a custom-design construction of biorthogonal wavelets, Applied and
+        Computational Harmonic Analysis, Vol. 3, No. 2, pp 186-200, 1996.
+[26]    SWELDENS (W.): The lifting scheme: A construction of second generation wavelets, SIAM Journal on
+        Mathematical Analysis, Vol. 29, No. 2, pp 511-546, 1997.
+
+K.4     Region of interest coding
+[27]    CHRISTOPOULOS (C.), ASKELOF (J.), LARSSON (M.): Efficient methods for encoding regions of interest
+        in the upcoming JPEG2000 still image coding standard, IEEE Signal Processing letters, September 2000.
+[28]    ATSUMI (E.), FARVARDIN (N.): Lossy/lossless region-of-interest image coding based on set partitioning in
+        hierarchical trees, Proc. IEEE International Conference on Image Processing (ICIP-98), pp. 87-91, 4-7 October
+        1998, Chicago, Illinois.
+[29]    NISTER (D.), CHRISTOPOULOS (C.): Lossless Region of Interest with a naturally progressive still image
+        coding algorithm, Proceedings of IEEE International Conference on Image Processing (ICIP 98), pp. 856-860,
+        4-7 October 1998, Chicago, Illinois,
+[30]    NISTER (D.), CHRISTOPOULOS (C.): Lossless region of interest with embedded wavelet image coding,
+        Signal Processing, Vol. 78, No. 1, pp. 1-17, October 1999.
+[31]    SANTA CRUZ (D.), LARSSON (M.), ASKELOF (J.), EBRAHIMI (T.), CHRISTOPOULOS (C.): Region of
+        Interest coding in JPEG2000 for interactive client/server applications, IEEE International Workshop on
+        Multimedia Signal Processing, Copenhagen, Denmark, 13-15 September 1999.
+
+K.5     Visual frequency weighting
+[32]    ALBANESI (M.), BERTOLUZZA (S.): Human vision model and wavelets for high-quality image compression,
+        Proc. of 5th Int. Conference in Image Processing and its Applications, Edinburgh, UK, No. 410, pp. 311-315,
+        4-6 July 1995.
+[33]    ECKERT (M.): Lossy compression using wavelets, block DCT, and lapped orthogonal transforms optimised
+        with a perceptual model, SPIE, Vol. 3031, pp. 339-350, 1997.
+[34]    O’ROURKE (T.), STEVENSON (R.): Human visual system based wavelet decomposition for image
+        compression, J. VCIP V. 6, pp. 109-121, 1995.
+[35]    WATSON (A.B.), YANG (G.), SOLOMON (J.), VILLASENOR (J.): Visibility of wavelet quantization noise,
+        IEEE Trans. on Image Processing, Vol. 6, pp. 1164-1175, 1997.
+
+K.6     Error resilience
+[36]    MAN (H.), KOSSENTINI (F.), SMITH (M.): A Family of Efficient and Channel Error Resilient
+        Wavelet/Subband Image Coders, Special issue of the IEEE Transactions on Circuits and Systems for Video
+        Technology on Interactive Multimedia, 9(2), February 1999.
+
+
+
+212      Rec. ITU-T T.800 (11/2015)
+                                                                                       ISO/IEC 15444-1:2016 (E)
+
+[37]   LIANG (J.), TALLURI (R.): Tools for Robust Image and Video Coding in JPEG2000 and MPEG-4 Standards,
+       Proceedings of SPIE Visual Communications and Image Processing Conference (VCIP), January 1999, San
+       Jose, CA.
+[38]   MOCCAGATA (I.), SODAGAR (S.), LIANG (J.), CHEN (H.): Error Resilient Coding in JPEG-2000 and
+       MPEG-4, IEEE Journal of Selected Areas in Communications (JSAC), June 2000.
+
+K.7    Scan-based coding
+[39]   LAMBERT-NEBOUT (C.), LATRY (C.), MOURY (G.), ANTONINI (M.), BARLAUD (M.), PARISOT (C.):
+       On-Board Optical image compression for future high resolution space remote sensing systems, Proc. SPIE,
+       Vol. 4115, 31 July-3 August 2000.
+[40]   FLOHR (T.J.), MARCELLIN (M.W.), ROUNTREE (J.C.): Scan-Based Processing with JPEG 2000, Proc.
+       SPIE, Vol. 4115, 31 July-3 August 2000.
+
+K.8    Colour
+[41]   International Color Consortium (ICC), Specification ICC.1-1998-09, File Format for Color Profiles (1998).
+[42]   IEC 61966-2-1 (1999), Multimedia systems and equipment – Colour measurement and management – Part 2-1:
+       Colour management – Default RGB colour space – sRGB.
+[43]   LAM (K.M.): Metamerism and Colour Constancy, University of Bradford, 1985.
+[44]   LUO (M.R.), LO (M.C.), KUO (W.G.): The LLab(l:c) Colour Model, Color Research and Application, Vol. 21,
+       pp. 412-429 (1996).
+[45]   LUO (M.R.), HUNT (R.W.G.): A Chromatic Adaptation Transform and a Colour Constancy Index, Color
+       Research and Appication, Vol. 23, pp. 154-158, 1997.
+[46]   LUO (M.R.), HUNT (R.W.G.): The Structure of the CIE 1997 Colour Appearance Model (CIECAM97s), Color
+       Research and Application, Vol. 23, 1997.
+[47]   NIELSEN (M.), STOKES (M.): The Creation of the sRGB ICC Profile, Proceedings of the IS&T/SID 6th Color
+       Imaging Conference, pp. 253-257, 1998.
+[48]   GIORGIANNI (E.), MADDEN (T.): Digital Color Management: Encoding Solution, Addision-Wesley, 1998.
+[49]   SPAULDING (K.E.), WOOLFE (G.J.), GIORGIANNI (E.J.): Reference Input/Output Medium Metric RGB
+       color encodings (RIMM/ ROMM RGB), Proc. PICS 2000 Conference, March 26-29, 2000, Portland, OR.
+
+K.9    Guidelines for digital cinema applications
+[50]   ETSI EN 300 744 V1.5.1 (2004-11), Digital Video Broadcasting (DVB); Framing structure, channel coding
+       and modulation for digital terrestrial television. http://www.etsi.org
+[51]   ETSI EN 300 421 V1.1.2 (1997-08), Digital Video Broadcasting (DVB); Framing structure, channel coding
+       and modulation for 11/12 GHz satellite services. http://www.etsi.org
+[52]   IEEE Std 802.16-2009, IEEE Standard for Local and metropolitan area networks – Part 16: Air Interface for
+       Broadband Wireless Access Systems. http://standards.ieee.org/getieee802
+[53]   IETF RFC 5371 (2008), RTP Payload Format for JPEG 2000 Video Streams. http://www.ietf.org/mail-
+       archive/web/ietf-announce/current/msg05302.html
+
+[54]   IEEE Std 802.11n-2009, IEEE Standard for Information technology – Telecommunications and information
+       exchange between systems – Local and metropolitan area networks – Specific requirements – Part 11:
+       Wireless LAN Medium Access Control (MAC) and Physical Layer (PHY) Specifications – Amendment 5:
+       Enhancements for Higher Throughput. http://standards.ieee.org/getieee802
+[55]   IETF RFC 5372 (2008), Payload Format for JPEG 2000 Video: Extensions for Scalability and Main Header
+       Recovery. http://www.ietf.org/mail-archive/web/ietf-announce/current/msg05303.html
+[56]   IETF RFC 3940 (2004), Negative-acknowledgment (NACK)-Oriented Reliable Multicast (NORM) Protocol.
+[57]   Micanti, P., Baruffa, G., Frescura, F., (2008), A Packetization Technique for D-Cinema Contents Multicasting
+       over Metropolitan Wireless Networks, Mobile WiMAX, February, Wiley, pp. 313-326.
+[58]   Michelson, A.A., (1927), Studies in Optics. Chicago, IL: Univ. Chicago Press.
+
+
+                                                                            Rec. ITU-T T.800 (11/2015)         213
+ISO/IEC 15444-1:2016 (E)
+
+[59]    Campbell, F.W. and Robson, J. G. (1968), Application of Fourier analysis to the visibility of gratings, Journal
+        of Physiology, London, 197: 551-566.
+[60]    Mannos, J.L., and Sakrison, J.D., (1974), The effects of a visual fidelity criterion on the encoding of images,
+        IEEE Trans. on Inform, Theory IT-20, pp. 525-536.
+[61]    SMPTE ST 377-1:2011, Material Exchange Format (MXF) – File Format specification.
+[62]    SMPTE ST 378:2004, Television Material Exchange Format (MXF) – Operational pattern 1a (Single Item,
+        Single Package).
+[63]    SMPTE ST 379-1:2009, Material Exchange Format (MXF) – MXF Generic Container.
+[64]    SMPTE ST 408:2006, Television – MXF – Operational Patterns 1c, 2c and 3c.
+[65]    SMPTE ST 382:2007, Material Exchange Format (MXF) – Mapping AES3 and Broadcast Wave Audio into
+        the MXF Generic Container.
+[66]    SMPTE ST 429-4:2006, D-Cinema Packaging – MXF JPEG 2000 Application.
+[67]    SMPTE ST 428-1:2006, D-Cinema Distribution Master (DCDM) – Image Characteristics.
+[68]    SMPTE ST 429-3:2006, D-Cinema Packaging – Sound and Picture Track File.
+[69]    SMPTE ST 429-5:2009, D-Cinema Packaging – Timed Text Track File.
+[70]    SMPTE ST 429-6:2006, D-Cinema Packaging – MXF Track File Essence Encryption.
+[71]    SMPTE ST 429-7:2006, D-Cinema Packaging – Composition Playlist.
+[72]    SMPTE ST 429-8:2007, D-Cinema Packaging – Packing List.
+[73]    SMPTE ST 429-9:2007, D-Cinema Packaging – Asset Mapping and File Segmentation.
+[74]    SMPTE ST 430-1:2006, D-Cinema Operations – Key Delivery Message.
+[75]    SMPTE ST 430-2:2006, D-Cinema Operations – Digital Certificate.
+[76]    SMPTE ST 431-1:2006, D-Cinema Quality - Screen Luminance Level, Chromaticity and Uniformity
+[77]    SMPTE EG 432-1:2010, Digital Source Processing – Color Processing for D-Cinema
+
+
+
+
+214      Rec. ITU-T T.800 (11/2015)
+                                                                                             ISO/IEC 15444-1:2016 (E)
+

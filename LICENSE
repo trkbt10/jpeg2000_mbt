@@ -201,13 +201,20 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-Additional notices (test corpus/source attributions):
+Additional notices (test corpus attributions):
 
-1. `samples/corpus/*.j2k` and `samples/corpus/*.j2c` test files are copied
-   Upstream repositories:
-   - https://github.com/uclouvain/openjpeg-data
-   compatibility testing and marker-behavior analysis, but it is not required
-   to be distributed in this repository.
-3. See also:
-   - https://github.com/uclouvain/openjpeg-data/blob/master/input/nonregression/README.txt
-     (dataset notes)
+1. Test corpus files in `samples/corpus/` are JPEG 2000 codestreams used
+   solely for decoder conformance and regression testing:
+
+   a) `p0_*.j2k` and `p1_*.j2k` are ITU-T T.803 | ISO/IEC 15444-4
+      conformance test codestreams, distributed via the openjpeg-data
+      repository (https://github.com/uclouvain/openjpeg-data).
+
+      distributed under the 2-clause BSD license.
+      Copyright (c) 2002-2014, Universite catholique de Louvain (UCL).
+
+   See `samples/corpus/NOTICE` for full attribution and license terms.
+
+2. This implementation is based on the T.800-2015 (ITU-T T.800 | ISO/IEC
+   15444-1) specification. No source code from other implementations is
+   included or derived.

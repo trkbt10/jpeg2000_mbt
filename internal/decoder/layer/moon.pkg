@@ -1,0 +1,16 @@
+// T.800-2015 B.10 multi-layer accumulation and DWT bridge
+import {
+  "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder/a8" @a8,
+  "trkbt10/jpeg2000/internal/decoder/codeblock" @codeblock,
+  "trkbt10/jpeg2000/internal/decoder/dwt" @dwt,
+  "trkbt10/jpeg2000/internal/decoder/packet" @packet,
+  "trkbt10/jpeg2000/internal/decoder/precinct" @precinct,
+  "trkbt10/jpeg2000/internal/decoder/quant" @quant,
+  "trkbt10/jpeg2000/internal/decoder/subband" @subband,
+  "trkbt10/jpeg2000/internal/math" @math,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)

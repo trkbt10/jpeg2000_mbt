@@ -1,3 +1,20 @@
 import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
   "trkbt10/jpeg2000/internal/core" @core,
+  "trkbt10/jpeg2000/internal/decoder" @decoder,
+  "trkbt10/jpeg2000/internal/decoder/orchestrate" @orchestrate,
 }
+
+import {
+  "moonbitlang/x/fs" @fs,
+  "trkbt10/jpeg2000/internal/math" @math,
+} for "test"
+
+options(
+  link: { "native": { "cc": "clang" } },
+  targets: {
+    "jpeg2000_corpus_native_test.mbt": [ "native" ],
+    "jpeg2000_corpus_test.mbt": [ "native" ],
+    "corpus_test_helpers_test.mbt": [ "native" ],
+  },
+)

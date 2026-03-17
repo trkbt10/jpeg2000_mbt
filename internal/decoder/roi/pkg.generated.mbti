@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "trkbt10/jpeg2000/internal/decoder/roi"
+
+import {
+  "trkbt10/jpeg2000/internal/core",
+}
+
+// Values
+pub fn extract_roi_shift_per_tile_component(@core.Codestream) -> Map[Int, Map[Int, Int]]
+
+pub fn get_roi_shift(Map[Int, Map[Int, Int]], Int, Int) -> Int
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

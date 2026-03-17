@@ -183,17 +183,6 @@ fn coding_pass_codeword_bits(coding_passes : Int) -> String {
 }
 
 ///|
-fn floor_log2_positive_for_test(v : Int) -> Int {
-  let mut x = v
-  let mut k = 0
-  while x > 1 {
-    x = x >> 1
-    k += 1
-  }
-  k
-}
-
-///|
 fn fixed_width_bits(value : Int, width : Int) -> String {
   let mut out = ""
   let mut i = width - 1
@@ -217,7 +206,7 @@ fn single_codeblock_header_bits(
     prefix = prefix + "1"
   }
   prefix = prefix + "0"
-  let width = 3 + lblock_increment + floor_log2_positive_for_test(coding_passes)
+  let width = 3 + lblock_increment + @math.floor_log2(coding_passes)
   prefix + fixed_width_bits(length, width)
 }
 
@@ -420,11 +409,14 @@ test "failure case: SIZ component sampling must be positive" {
   guard marker_index_nth(broken, 0xFF, 0x51, 0) is Some(siz_at) else {
     fail("SIZ marker should exist")
   }
-  // SIZ payload start = siz_at + 4, then XRsiz at offset 35.
-  broken[siz_at + 4 + 35] = 0x00
-  let parsed = @jpeg2000.parse_codestream(broken)
+  // SIZ payload start = siz_at + 4, then first component XRsiz at offset 37.
+  broken[siz_at + 4 + 37] = 0x00
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: SIZ component sampling must be positive",
+  )
 }
 
 ///|
@@ -437,9 +429,12 @@ test "failure case: PLM marker segment length too short" {
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x01, 0xFF,
     0x93, 0xFF, 0xD9,
   ]
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: PLM marker segment length is too short",
+  )
 }
 
 ///|
@@ -452,9 +447,9 @@ test "failure case: invalid PLM chunk size mismatch" {
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x01, 0xFF,
     0x93, 0xFF, 0xD9,
   ]
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(msg, content="invalid marker payload: invalid PLM chunk bookkeeping")
 }
 
 ///|
@@ -463,14 +458,14 @@ test "failure case: invalid Zplm sequence" {
   let cod_payload = valid_cod_payload()
   let broken = [
     0xFF, 0x4F, 0xFF, 0x51, 0x00, 0x29, ..siz_payload, 0xFF, 0x52, 0x00, 0x0C, ..cod_payload,
-    0xFF, 0x5C, 0x00, 0x04, 0x00, 0x00, 0xFF, 0x57, 0x00, 0x04, 0x00, 0x01, // PLM z=0
-     0xFF, 0x57, 0x00, 0x04, 0x02, 0x01, // PLM z=2 (should be 1)
+    0xFF, 0x5C, 0x00, 0x04, 0x00, 0x00, 0xFF, 0x57, 0x00, 0x05, 0x00, 0x01, 0x01, // PLM z=0
+     0xFF, 0x57, 0x00, 0x05, 0x02, 0x01, 0x01, // PLM z=2 (should be 1)
      0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x01, 0xFF,
     0x93, 0xFF, 0xD9,
   ]
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(msg, content="invalid marker payload: PLM Z index is not consecutive")
 }
 
 ///|
@@ -488,54 +483,6 @@ test "strict parser accepts non-monotonic Zppt values" {
   ]
   let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Ok(_) else { fail("strict parser should accept Zppt values") }
-}
-
-///|
-fn marker_index(bytes : Array[Int], marker_hi : Int, marker_lo : Int) -> Int? {
-  for i in 0..<(bytes.length() - 1) {
-    if bytes[i] == marker_hi && bytes[i + 1] == marker_lo {
-      return Some(i)
-    }
-  }
-  None
-}
-
-///|
-fn marker_index_nth(
-  bytes : Array[Int],
-  marker_hi : Int,
-  marker_lo : Int,
-  nth : Int,
-) -> Int? {
-  let mut count = 0
-  for i in 0..<(bytes.length() - 1) {
-    if bytes[i] == marker_hi && bytes[i + 1] == marker_lo {
-      if count == nth {
-        return Some(i)
-      }
-      count += 1
-    }
-  }
-  None
-}
-
-///|
-fn insert_bytes_at(
-  data : Array[Int],
-  at : Int,
-  extra : Array[Int],
-) -> Array[Int] {
-  let out : Array[Int] = []
-  for i in 0..<at {
-    out.push(data[i])
-  }
-  for b in extra {
-    out.push(b)
-  }
-  for i in at..<data.length() {
-    out.push(data[i])
-  }
-  out
 }
 
 ///|
@@ -863,10 +810,9 @@ test "decode codeblock segment lengths helper: single segment" {
 
 ///|
 test "decode codeblock segment lengths helper: multiple segments (B.10.7.2)" {
-  // segment1: passes=1, inc=0, width=3, len=6  => 0 110
-  // segment2: passes=2, inc=1, width=5, len=17 => 10 10001
-  // segment3: passes=1, inc=0, width=4, len=9  => 0 1001
-  let bits = bits_to_bytes("0110101000101001")
+  // B.10.7.2: one Lblock increment prefix covers the whole sequence.
+  // increment=1 => 10, widths become 4/5/4 for passes 1/2/1.
+  let bits = bits_to_bytes("100110100011001")
   let result = @jpeg2000.decode_codeblock_segment_lengths_from_bits(bits, 3, [
     1, 2, 1,
   ])
@@ -874,7 +820,7 @@ test "decode codeblock segment lengths helper: multiple segments (B.10.7.2)" {
     fail("expected decode success")
   }
   assert_eq(lengths, [6, 17, 9])
-  assert_eq(consumed, 16)
+  assert_eq(consumed, 15)
 }
 
 ///|
@@ -912,9 +858,12 @@ test "failure case: tag-tree inclusion decode invalid threshold" {
 
 ///|
 test "packet header single packet with tag-tree inclusion" {
-  // non-zero packet + inclusion tag-tree bits(2x2) + per-included block payload
-  // inclusion flags become [true, false, true, false]
-  let bits = bits_to_bytes("111010100011011000101")
+  // non-zero packet + per-CB interleaved: inclusion→zbp→passes→lengths
+  // CB(0,0): included, zbp=0, passes=1, seg=[3]
+  // CB(0,1): not included
+  // CB(1,0): included, zbp=1, passes=2, seg=[5]
+  // CB(1,1): not included
+  let bits = bits_to_bytes("1111100011010110001010")
   let result = @jpeg2000.parse_packet_header_single_packet_with_tag_tree(
     bits, 2, 2, 0,
   )
@@ -951,8 +900,8 @@ test "failure case: packet header with tag-tree inclusion truncated" {
 
 ///|
 test "packet header with tag-tree inclusion and pass splits" {
-  // non-zero + inclusion(1x1) + zbp(0) + passes(3) + lengths for [1,2]: 2 and 5
-  let bits = bits_to_bytes("111110000101000101")
+  // non-zero + inclusion(1x1) + zbp(0) + passes(3) + one Lblock prefix for [1,2]
+  let bits = bits_to_bytes("111110000100101")
   let result = @jpeg2000.parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
     bits,
     1,
@@ -973,7 +922,7 @@ test "packet header with tag-tree inclusion and pass splits" {
 
 ///|
 test "failure case: tag-tree pass splits mismatch coding passes" {
-  let bits = bits_to_bytes("111110000101000101")
+  let bits = bits_to_bytes("111110000100101")
   let result = @jpeg2000.parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
     bits,
     1,
@@ -987,10 +936,12 @@ test "failure case: tag-tree pass splits mismatch coding passes" {
 
 ///|
 test "packet header with tag-tree pass splits on 2x2 code-blocks" {
-  // non-zero + inclusion(tag-tree 2x2 => [T,F,T,F]) +
-  // cb0: zbp=0, passes=3, split [1,2], lengths [2,5]
-  // cb2: zbp=1, passes=1, length [3]
-  let bits = bits_to_bytes("111010111000010001010100011")
+  // Per-CB interleaved: inclusion→zbp→passes→lengths
+  // cb0: included, zbp=0, passes=3, split [1,2], lengths [2,5]
+  // cb1: not included
+  // cb2: included, zbp=1, passes=1, split [1], length [3]
+  // cb3: not included
+  let bits = bits_to_bytes("111111100001001010101000110")
   let result = @jpeg2000.parse_packet_header_single_packet_with_tag_tree_and_pass_splits(
     bits,
     2,
@@ -1056,7 +1007,8 @@ test "failure case: packet headers tag-tree sequence invalid packet count" {
 test "packet headers tag-tree sequence with pass splits on second layer" {
   // packet1(1x1): include first time, zbp=2, passes=1, len=3
   // packet2(1x1): included again, passes=3 split as [1,2], lengths [2,5]
-  let bits = bits_to_bytes("1100100011000000111100001000101")
+  // packet headers are byte-aligned between packets.
+  let bits = bits_to_bytes("110010001100000011110000100101")
   let result = @jpeg2000.parse_packet_headers_with_tag_tree_sequence_and_pass_splits(
     bits,
     1,
@@ -1077,7 +1029,7 @@ test "packet headers tag-tree sequence with pass splits on second layer" {
 
 ///|
 test "failure case: sequence pass splits mismatch coding passes" {
-  let bits = bits_to_bytes("1100100011000000111100001000101")
+  let bits = bits_to_bytes("110010001100000011110000100101")
   let result = @jpeg2000.parse_packet_headers_with_tag_tree_sequence_and_pass_splits(
     bits,
     1,
@@ -1611,9 +1563,12 @@ test "failure case: SOT length must be 10" {
   }
   broken[sot_at + 2] = 0x00
   broken[sot_at + 3] = 0x08
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: SOT marker segment length must be 10",
+  )
 }
 
 ///|
@@ -1624,9 +1579,12 @@ test "failure case: COD progression order out of range" {
   }
   // COD payload starts at cod_at + 4, SGcod progression order at +1.
   broken[cod_at + 5] = 0x05
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: COD progression order is out of range",
+  )
 }
 
 ///|
@@ -1638,9 +1596,12 @@ test "failure case: COD layers must be positive" {
   // number of layers (2 bytes) at payload offsets 2..3.
   broken[cod_at + 6] = 0x00
   broken[cod_at + 7] = 0x00
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: COD number of layers must be positive",
+  )
 }
 
 ///|
@@ -1652,9 +1613,12 @@ test "failure case: COD code-block size exponents invalid" {
   // SPcod cblk width/height exponents minus 2.
   broken[cod_at + 10] = 0x08
   broken[cod_at + 11] = 0x08
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: COD code-block size exponents are invalid",
+  )
 }
 
 ///|
@@ -1665,9 +1629,12 @@ test "failure case: COD precinct length inconsistency" {
   }
   // Enable precincts in Scod without adding precinct bytes.
   broken[cod_at + 4] = 0x01
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: COD marker segment length is inconsistent with precinct settings",
+  )
 }
 
 ///|
@@ -1678,9 +1645,12 @@ test "failure case: QCD quantization style invalid" {
   }
   // SQcd lower bits encode quantization style.
   broken[qcd_at + 4] = 0x03
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: QCD quantization style is invalid",
+  )
 }
 
 ///|
@@ -1691,9 +1661,12 @@ test "failure case: QCD derived style requires even parameter bytes" {
   }
   // Keep minimal length but switch to scalar-derived style (requires 2-byte steps).
   broken[qcd_at + 4] = 0x01
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: QCD quantization parameters have invalid byte count",
+  )
 }
 
 ///|
@@ -1707,9 +1680,12 @@ test "failure case: duplicate COC in same header" {
     0x53, 0x00, 0x05, ..coc_payload, 0xFF, 0x90, 0x00, 0x0A, 0, 0, 0, 0x0A, 0, 0,
     0, 1, 0xFF, 0x93, 0xFF, 0xD9,
   ]
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: COC duplicated for component in same header",
+  )
 }
 
 ///|
@@ -1722,9 +1698,9 @@ test "failure case: PPM and PPT mixed" {
      0xFF, 0x90, 0x00, 0x0A, 0, 0, 0, 0x0A, 0, 0, 0, 1, 0xFF, 0x61, 0x00, 0x03, 0x00, // PPT
      0xFF, 0x93, 0xFF, 0xD9,
   ]
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(msg, content="invalid marker payload: PPM and PPT cannot be mixed")
 }
 
 ///|
@@ -1738,9 +1714,9 @@ test "failure case: CRG length mismatch to components" {
      0xFF, 0x52, 0x00, 0x0C, ..cod_payload, 0xFF, 0x5C, 0x00, 0x04, 0, 0, 0xFF, 0x90,
     0x00, 0x0A, 0, 0, 0, 0x0A, 0, 0, 0, 1, 0xFF, 0x93, 0xFF, 0xD9,
   ]
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(msg, content="invalid marker payload: CRG must appear at most once")
 }
 
 ///|
@@ -1766,9 +1742,12 @@ test "failure case: CRG length mismatch with Csiz=2" {
      0xFF, 0x52, 0x00, 0x0C, ..cod_payload, 0xFF, 0x5C, 0x00, 0x04, 0, 0, 0xFF, 0x90,
     0x00, 0x0A, 0, 0, 0, 0x0A, 0, 0, 0, 1, 0xFF, 0x93, 0xFF, 0xD9,
   ]
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: CRG marker segment length does not match component count",
+  )
 }
 
 ///|
@@ -1781,9 +1760,9 @@ test "failure case: RGN style invalid" {
      0xFF, 0x5C, 0x00, 0x04, 0, 0, 0xFF, 0x90, 0x00, 0x0A, 0, 0, 0, 0x0A, 0, 0, 0,
     1, 0xFF, 0x93, 0xFF, 0xD9,
   ]
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(msg, content="invalid marker payload: RGN style is invalid")
 }
 
 ///|
@@ -1794,9 +1773,12 @@ test "failure case: POC progression order out of range" {
   }
   // Ppoc byte in 1-component form.
   broken[poc_at + 10] = 0x05
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: POC progression order is out of range",
+  )
 }
 
 ///|
@@ -1807,9 +1789,9 @@ test "failure case: POC CSpoc out of range" {
   }
   // CSpoc byte in 1-component form; set beyond Csiz.
   broken[poc_at + 5] = 0xFF
-  let result = @jpeg2000.parse_codestream(broken)
+  let result = @jpeg2000.parse_codestream_strict(broken)
   guard result is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(msg, content="invalid marker payload: POC CSpoc is out of range")
 }
 
 ///|
@@ -1820,9 +1802,12 @@ test "failure case: invalid PLT packet length sequence" {
   }
   // Lplt=4, payload=[Zplt, Iplt]. Make Iplt unterminated (0x80).
   broken[plt_at + 5] = 0x80
-  let parsed = @jpeg2000.parse_codestream(broken)
+  let parsed = @jpeg2000.parse_codestream_strict(broken)
   guard parsed is Err(msg) else { fail("expected parser failure") }
-  inspect(msg, content="invalid marker payload")
+  inspect(
+    msg,
+    content="invalid marker payload: invalid PLT packet length sequence",
+  )
 }
 
 ///|

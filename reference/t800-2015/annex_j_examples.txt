@@ -1,0 +1,2811 @@
+                                                      Annex J
+
+                                            Examples and guidelines
+             (This annex does not form an integral part of this Recommendation | International Standard.)
+
+
+This annex includes a number of examples intended to indicate how the encoding process works, and how the resulting
+codestream should be output. This annex is entirely informative.
+
+J.1      Software conventions adaptive entropy decoder
+This annex provides some alternate flowcharts for a version of the adaptive entropy decoder. This alternate version may
+be more efficient when implemented in software, as it has fewer operations along the fast path.
+The alternate version is obtained by making the following substitutions. Replace the flowchart in Figure C.20 with the
+flowchart in Figure J.1. Replace the flowchart in Figure C.15 with the flowchart in Figure J.2. Replace the flowchart in
+Figure C.19 with the flowchart in Figure J.3.
+
+
+                                                     INITDEC
+
+
+
+
+                                                    BP = BPST
+                                              C = (B XOR 0xFF) << 16
+
+
+
+
+                                                      BYTEIN
+
+
+
+
+                                                    C = C << 7
+                                                    CT = CT – 7
+                                                    A = 0x8000
+
+
+
+                                                        Done
+
+                                                                     T.800_FJ-1
+
+
+                           Figure J.1 – Initialization of the software-conventions decoder
+
+
+
+
+                                                                                  Rec. ITU-T T.800 (11/2015)        163
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                              DECODE
+
+
+
+
+                                                        A = A – Qe(I(CX))
+
+
+
+
+                                                 Yes                                No
+                                                              Chigh < A?
+
+
+
+
+                                            No
+                    A AND 0x8000 = 0?
+                                                                                              Chigh = Chigh – A
+                                Yes
+
+
+                  D = MPS_EXCHANGE                        D = MPS(CX)                       D = LPS_EXCHANGE
+
+
+
+
+                       RENORMD                                                                   RENORMD
+
+
+                                                                                                           T.800_FJ-2
+
+
+
+
+                                                              Return D
+
+
+
+                   Figure J.2 – Decoding an MPS or an LPS in the software-conventions decoder
+
+
+                                                                            BYTEIN
+
+
+
+
+                                                              Yes                           No
+                                                                           B = 0xFF?
+
+
+                                                                                                BP = BP + 1
+                                   No                               Yes
+                                                 B1 > 0x8F?                              C = C + 0xFF00 – (B << 8)
+                                                                                                  CT = 8
+
+
+
+                       BP = BP + 1
+                C = C + 0xFE00 – (B << 9)                                   CT = 8
+                         CT = 7
+
+
+
+
+                                                                             Done
+
+                                                                                             T.800_FJ-3
+
+
+             Figure J.3 – Inserting a new byte into the C register in the software-conventions decoder
+
+J.2       Selection of quantization step sizes for irreversible transformations
+For irreversible compression, no particular selection of the quantization step size is required in this Recommendation |
+International Standard. Different applications may specify the quantization step sizes according to specific tile-component
+
+
+164        Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+characteristics. One effective way of selecting the quantizer step size for each sub-band b is to scale a default step size Δd
+by taking into account the horizontal and vertical filtering procedures which produced these sub-band coefficients. One
+method consists of scaling Δd with an energy weight parameter b (the amount of squared errors introduced by a unit error
+in a transformed coefficient of sub-band b) in the following way [12]:
+
+                                                                     d
+                                                              b                                                       (J-1)
+                                                                       γb
+
+J.3       Filter impulse responses corresponding to lifting-based irreversible filtering procedures
+The irreversible filtering procedures described in Annex F implement the 9-tap/7-tap Cohen-Daubechies-Feauveau
+convolutional filter bank [20], [21]. Equivalent impulse responses of the analysis and synthesis filters are given in
+Tables J.1 and J.2.
+
+               Table J.1 – Definition of impulse responses for the 9-7 irreversible analysis filter bank
+
+                n                           Low-pass filter                             Approximate value
+
+                                     5 x1 48 x2  16 x2  3 / 32
+                                                  2
+                0                                                                     0.602 949 018 236 360
+                                                               
+
+                                         5 x1 8 x2  x2  / 8
+                                                     2
+               1                                                                     0. 266 864 118 442 875
+                                                            
+
+                                      5 x1 4 x2  4x2  1 / 16
+                                                  2
+               2                                                                     –0.078 223 266 528 990
+                                                             
+
+               3                            5x1x2  / 8                           –0.016 864 118 442 875
+
+               4                               5x1 / 64                             0.026 748 757 410 810
+
+                n                           High-pass filter                            Approximate value
+
+               –1                             6x1  1 / 8x1                         1.115 087 052 457 000
+
+              –2, 0                         16x1  1 / 32x1                        –0.591 271 763 114 250
+
+              –3, 1                          2x1  1 / 16x1                         –0.057 543 526 228 500
+
+              –4, 2                              1 / 32x1                            0.091 271 763 114 250
+
+
+              Table J.2 – Definition of impulse responses for the 9-7 irreversible synthesis filter band
+
+                n                           Low-pass filter                             Approximate value
+
+                0                             6x1  1 / 8x1                         1.115 087 052 457 000
+
+               1                           16x1  1 / 32x1                         0.591 271 763 114 250
+
+               2                            2x1  1 / 16x1                         –0.057 543 526 228 500
+
+               3                               1 / 32x1                              –0.091 271 763 114 250
+
+                n                           High-pass filter                            Approximate value
+
+                                     5 x1 48 x2  16 x2  3 / 32
+                                                  2
+                1                                                                     0.602 949 018 236 360
+                                                               
+
+                                         5 x1 8 x2  x2  / 8
+                                                    2
+              0, 2                                                                    –0.266 864 118 442 875
+                                                           
+
+                                      5 x1 4 x2  4x2  1 / 16
+                                                 2
+              –1, 3                                                                   –0.078 223 266 528 990
+                                                             
+
+              –2, 4                           5x1x2  / 8                           0.016 864 118 442 875
+
+              –3, 5                             5x1 / 64                             0.026 748 757 410 811
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)            165
+ISO/IEC 15444-1:2016 (E)
+
+J.4      Example of discrete wavelet transformation
+Table J.3 contains the integer-valued samples I(x, y) of a tile component that is 13 samples wide and 17 samples high.
+
+                                           Table J.3 – Source tile component samples
+
+              I(x, y)        0         1     2        3        4    5    6        7         8    9    10       11   12
+                0            0         1     2        3        4    5    6        7         8    9    10       11   12
+                1            1         1     2        3        4    5    6        7         8    9    10       11   12
+                2            2         2     2        3        4    5    6        7         8    9    10       11   12
+                3            3         3     3        4        5    5    6        7         8    9    10       11   12
+                4            4         4     4        5        5    6    7        8         8    9    10       11   12
+                5            5         5     5        5        6    7    7        8         9    10   11       12   13
+                6            6         6     6        6        7    7    8        9         10   10   11       12   13
+                7            7         7     7        7        8    8    9        9         10   11   12       13   13
+                8            8         8     8        8        8    9    10       10        11   12   12       13   14
+                9            9         9     9        9        9    10   10       11        12   12   13       14   15
+                10          10       10     10        10       10   11   11       12        12   13   14       14   15
+                11          11       11     11        11       11   12   12       13        13   14   14       15   16
+                12          12       12     12        12       12   13   13       13        14   15   15       16   16
+                13          13       13     13        13       13   13   14       14        15   15   16       17   17
+                14          14       14     14        14       14   14   15       15        16   16   17       17   18
+                15          15       15     15        15       15   15   16       16        17   17   18       18   19
+                16          16       16     16        16       16   16   17       17        17   18   18       19   20
+
+J.4.1    Example of 9-7 irreversible wavelet transformation
+Tables J.4, J.5, J.6, J.7, J.8, J.9 and J.10 contain the coefficients of the sub-bands 2LL, 2HL, 2LH, 2HH, 1HL, 1LH, 1HH
+resulting from the two-level decomposition with the 9-7 irreversible transformation of the source tile component samples
+given in Table J.3 (see Figure F.18). The coefficients' values displayed in the tables have been rounded to the nearest
+integer.
+
+                    Table J.4 – 2LL sub-band coefficients (9-7 irreversible wavelet transformation)
+
+                        a2LL(u, v)               0                  1                  2                  3
+                            0                    1                  4                  8                  11
+                            1                    4                  5                  8                  11
+                            2                    8                  9                  11                 13
+                            3                    12                 12                 14                 16
+                            4                    15                 15                 17                 18
+
+
+                    Table J.5 – 2HL sub-band coefficients (9-7 irreversible wavelet transformation)
+
+                          a2HL(u, v)                       0                  1                       2
+                                 0                         0                  0                       0
+                                 1                         0                  0                       0
+                                 2                         0                  0                       0
+                                 3                         0                  0                       0
+                                 4                         0                  0                       0
+
+
+
+
+166        Rec. ITU-T T.800 (11/2015)
+                                                                                 ISO/IEC 15444-1:2016 (E)
+
+Table J.6 – 2LH sub-band coefficients (9-7 irreversible wavelet transformation)
+
+    a2LH(u, v)         0                     1              2                        3
+        0              0                     0              0                        0
+        1              0                     0              0                        0
+        2              0                     0              0                        0
+        3              0                     0              0                        0
+
+
+Table J.7 – 2HH sub-band coefficients (9-7 irreversible wavelet transformation)
+
+      a2HH(u, v)               0                      1                          2
+            0                  –1                     0                          0
+            1                  0                      –1                         0
+            2                  0                      0                          0
+            3                  0                      0                          0
+
+
+Table J.8 – 1HL sub-band coefficients (9-7 irreversible wavelet transformation)
+
+      a1HL(u, v)           0            1        2         3             4               5
+            0              0            0        0         0             0               0
+            1              0            0        0         0             0               0
+            2              0            0        0         0             0               0
+            3              0            –1       0         0             0               0
+            4              0            0        0         –1            0               0
+            5              0            0        1         1             0               –1
+            6              0            0        0         0             0               0
+            7              0            0        –1        –1           –1               0
+            8              0            0        0         0             0               0
+
+
+Table J.9 – 1LH sub-band coefficients (9-7 irreversible wavelet transformation)
+
+     a1LH(u, v)        0            1        2        3         4            5            6
+            0          0            0        0        0         0            0            0
+            1          0            0        0        –1        0            0            0
+            2          0            0        0        0         0            1            1
+            3          0            0        0        0         –1           1            0
+            4          0            0        0        0         0            0            1
+            5          0            0        0        0         0            0            0
+            6          0            0        0        0         0            0            0
+            7          0            0        0        0         0            0            0
+
+
+Table J.10 – 1HH sub-band coefficients (9-7 irreversible wavelet transformation)
+
+      a1HH(u, v)           0            1        2         3             4               5
+            0           –1              0        0         0             0               0
+            1              0            0        –1        0             0               0
+            2              0            –1       1         0             0               0
+            3              0            0        0         0             0               1
+            4              0            0        0         0            –1               0
+            5              0            0        0         0             0               0
+            6              0            0        –1        0            –1               1
+            7              0            0        0         0            –1               0
+
+
+
+                                                                    Rec. ITU-T T.800 (11/2015)       167
+ISO/IEC 15444-1:2016 (E)
+
+J.4.2    Example of 5-3 reversible wavelet transformation
+Tables J.11, J.12, J.13, J.14, J.15, J.16 and J.17 contain the coefficients of the sub-bands 2LL, 2HL, 2LH, 2HH, 1HL,
+1LH, 1HH resulting from the two-level decomposition with the 5-3 irreversible transformation of the source tile
+component samples given in Table J.3 (see Figure F.18). The coefficients' values displayed in the tables have been
+rounded to the nearest integer.
+
+                 Table J.11 – 2LL sub-band coefficients (5-3 reversible wavelet transformation)
+
+                     a2HL(u, v)          0               1                2                 3
+                         0               0               4                8                 12
+                         1               4               5                8                 12
+                         2               8               8               11                 15
+                         3              12               12              14                 18
+                         4              16               16              18                 20
+
+
+                 Table J.12 – 2HL sub-band coefficients (5-3 reversible wavelet transformation)
+
+                       a2HL(u, v)              0                    1                   2
+                             0                 0                    0                   0
+                             1                 0                    1                   0
+                             2                 0                    1                   0
+                             3                 0                    0                   1
+                             4                 0                    0                   0
+
+
+                  Table J.13 – 2LH sub-band coefficient (5-3 reversible wavelet transformation)
+
+                     a2LH(u, v)          0               1                2                 3
+                         0               0               0                0                 0
+                         1               0               1                1                 1
+                         2               0               0                0                 0
+                         3               0               0                0                 0
+
+
+                 Table J.14 – 2HH sub-band coefficients (5-3 reversible wavelet transformation)
+
+                       a2HH(u, v)              0                    1                   2
+                             0                 –1                   0                   0
+                             1                 0                   –1                   0
+                             2                 0                    1                   0
+                             3                 0                    0                   0
+
+
+                 Table J.15 – 1HL sub-band coefficients (5-3 reversible wavelet transformation)
+
+                       a1HL(u, v)         0         1          2         3         4             5
+                             0            0         0          0         0         0             0
+                             1            0         0          0         0         0             0
+                             2            0         1          0         1         0             0
+                             3            0         0          0         0         –1            1
+                             4            0         0          0         0         1             1
+                             5            0         0          1         1         0             –1
+                             6            0         0          1         0         1             1
+                             7            0         0          0         0         0             0
+                             8            0         0          0         0         0             0
+
+
+
+168        Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+                  Table J.16 – 1LH sub-band coefficients (5-3 reversible wavelet transformation)
+
+                        a1LH (u, v)        0         1         2        3         4            5       6
+                            0              0         0         0        0         0            0       0
+                            1              0         0         1        0         0            0       0
+                            2              0         0         0        0         0            1       1
+                            3              0         0         1        0         0            1       1
+                            4              0         0         0        0         1            0       2
+                            5              0         0         0        0         0            0       1
+                            6              0         0         0        0         0            0       1
+                            7              0         0         0        0         1            1       0
+
+
+                  Table J.17 – 1HH sub-band coefficients (5-3 reversible wavelet transformation)
+
+                        a1HH (u, v)            0         1         2          3            4          5
+                             0                 0         0         0          0            0          0
+                             1                 0         0         0          0            0          0
+                             2                 0         0         1          0            1          0
+                             3                 0         0         0          0            0          1
+                             4                 0         0         0          0            0          1
+                             5                 0         0         0          1            0          0
+                             6                 0         0         0          0            0          1
+                             7                 0         0         0          0           –1          0
+
+
+J.5       Row-based wavelet transform
+Described here is an example of a row-based wavelet transformation for the 9-7 irreversible filter that is well-suited for
+compression devices which receive and transfer image data in a serial manner. Traditional wavelet transformation
+implementations require the whole image to be buffered, and then the filtering to be performed in vertical and horizontal
+directions. While filtering in the horizontal direction is very simple, filtering in the vertical direction is more involved.
+Filtering along a row requires one row to be read; filtering along a column requires the whole image to be read. This
+explains the huge bandwidth requirements of the traditional wavelet transformation implementation. The row-based
+wavelet transformation overcomes the previous limitation while providing the exact same transformed coefficients as a
+traditional wavelet transformation implementation. However, the row-based wavelet transformation alone does not
+provide a complete row-based encoding paradigm. A complete row-based coder also has to take into account all the
+following coding stages up to the entropy coding and rate allocation stages.
+
+J.5.1     The FDWT_ROW procedure
+The FDWT_ROW procedure for the 9-7 irreversible filter uses one buffer buf(i, j) of five rows, 0  i  4, to perform the
+equivalent of the 2D_SD procedure described in F.4.2, except for the 2D_DEINTERLEAVE procedure. The range of the
+samples of input tile component I(x, y) is assumed to be defined by Equation (F-1). Each row of the buffer buf(i, j) is of
+size tcx1 – tcx0 + 1. The general description of the FDWT_ROW applied to one image tile component is illustrated in
+Figure J.4 for the first level of decomposition. The FDWT_ROW takes as input a level shifted image tile component row
+of samples and produces as output one row of transform coefficients. It is assumed throughout this clause that the image
+tile component has at least five rows.
+
+
+
+
+                                                                                      Rec. ITU-T T.800 (11/2015)         169
+ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                                    Figure J.4 – The FDWT_ROW procedure
+
+J.5.1.1   The GET_ROW procedure
+In this description, the level shifted image tile component is assumed to be stored in an external memory I(x, y). As
+illustrated in Figure J.5, the GET_ROW procedure reads one row of samples of the level shifted image tile component
+and transfers this row of samples in the buffer, buf.
+
+
+
+
+170        Rec. ITU-T T.800 (11/2015)
+                                                                                            ISO/IEC 15444-1:2016 (E)
+
+
+
+
+                                       Figure J.5 – The GET_ROW procedure
+
+J.5.2    The INIT procedure
+As illustrated in Figure J.6, the INIT procedure reads five rows of samples of the level shifted image tile component and
+transfers these rows of samples to the buffer, buf.
+
+
+
+
+                                                                                Rec. ITU-T T.800 (11/2015)           171
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                        INIT
+
+
+
+
+                                                        i0
+
+
+
+
+                                                  GET_ROW(y, buf)
+
+
+
+
+                                                      ii+1
+                                                      yy+1
+
+
+
+                                            No
+                                                         i5
+
+
+                                                               Yes
+
+
+                                                        Done
+
+                                                               T.800_FJ-6
+
+
+                                             Figure J.6 – The INIT procedure
+
+J.5.3     The START_VERT procedure
+As illustrated in Figure J.7, the START_VERT procedure modifies the coefficients in the buffer buf(i, j). In this figure,
+as well as in all the following figures of this clause, the expression buf(i)  buf(i) +  · buf(i2) is equivalent to buf(i, j) 
+buf(i, j) +  · buf(i2, j) for d  j < tcx0 – tcx1 + d.
+
+
+
+
+172         Rec. ITU-T T.800 (11/2015)
+                                                                                                     ISO/IEC 15444-1:2016 (E)
+
+
+                                                     START_VERT
+
+
+                                                                                     buf(1)  buf(1) + · buf(0)
+               buf(0)  buf(0) + 2· buf(1)                                         buf(1)  buf(1) + · buf(2)
+                buf(2)  buf(2) + · buf(1)                             Yes
+                                                     mod(tcy0, 2) = 0                buf(0)  buf(0) + 2· buf(1)
+                buf(1)  buf(1) + · buf(0)                                         buf(3)  buf(3) + · buf(2)
+                buf(2)  buf(2) + · buf(3)                                         buf(2)  buf(2) + · buf(1)
+                buf(1)  buf(1) + · buf(2)                                          buf(1)  buf(1) + · buf(0)
+                                                                 No
+               buf(0)  buf(0) + 2· buf(1)                                         buf(3)  buf(3) + · buf(4)
+               buf(4)  buf(4) + 2· buf(3)   No                                    buf(2)  buf(2) + · buf(3)
+                buf(3)  buf(3) + · buf(2)          y < tcy1 – tcy0                 buf(1)  buf(1) + · buf(2)
+                buf(2)  buf(2) + · buf(1)                                         buf(0)  buf(0) + 2· buf(1)
+                buf(1)  buf(1) + · buf(0)
+                    buf(0)  K· buf(0)                        Yes                        buf(0)  1· buf(0)
+                                                                                                   K
+
+
+
+                                               buf(0)  buf(0) + 2· buf(1)
+                          Done                  buf(2)  buf(2) + · buf(1)                     Done
+                                                buf(1)  buf(1) + · buf(0)
+                                                buf(2)  buf(2) + · buf(3)
+                                                buf(1)  buf(1) + · buf(2)
+                                               buf(0)  buf(0) + 2· buf(1)
+                                                buf(4)  buf(4) + · buf(3)
+                                                buf(3)  buf(3) + · buf(2)
+                                                buf(2)  buf(2) + · buf(1)
+                                                buf(1)  buf(1) + · buf(0)
+                                                    buf(0)  K· buf(0)
+                                                                        T.800_FJ-7
+
+
+
+
+                                                          Done
+
+
+
+                                      Figure J.7 – The START_VERT procedure
+
+J.5.3.1   The RB_VERT_1 procedure
+As illustrated in Figure J.8, the RB_VERT_1 procedure modifies the coefficients in buf(i, j).
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)        173
+ISO/IEC 15444-1:2016 (E)
+
+
+           RB_VERT_1
+
+
+
+
+                                 buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + · buf(mod(y, 5))
+                                buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))
+                             No buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 2, 5))
+          mod(tcy0, 2) = 0                                                                                          Done
+                                buf(mod(y – 4, 5)) buf(mod(y – 4, 5)) + · buf(mod(y – 3, 5))
+                                                                1
+                                           buf(mod(y – 4, 5))  K· buf(mod(y – 4, 5))
+                    Yes
+
+
+
+
+                                                                buf(mod(y, 5)) buf(mod(y,5)) + 2· buf (mod(y – 1, 5))
+                             No                              buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + · buf(mod(y – 2, 5))
+       y < tcy1 – tcy0 – 1                                   buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+                                                             buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 4, 5))
+                                                                       buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))
+                    Yes
+
+
+
+
+          buf(mod(y, 5)) buf(mod(y,5)) + · buf(mod(y – 1, 5))                         Done
+      buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + · buf(mod(y – 2, 5))
+      buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+      buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 4, 5))
+                buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))
+
+                                                              T.800_FJ-8
+
+
+
+
+                                    Done
+
+
+
+                                           Figure J.8 – The RB_VERT_1 procedure
+
+J.5.3.2      The RB_VERT_2 procedure
+As illustrated in Figure J.9, the RB_VERT_2 procedure modifies the coefficients in buf(i, j).
+
+
+
+
+174           Rec. ITU-T T.800 (11/2015)
+                                                                                                       ISO/IEC 15444-1:2016 (E)
+
+
+           RB_VERT_2
+
+
+
+
+                                                              buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + · buf(mod(y, 5))
+                                                             buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))
+                                                    Yes      buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 2, 5))
+          mod(tcy0, 2) = 0                                   buf(mod(y – 4, 5)) buf(mod(y – 4, 5)) + · buf(mod(y – 3, 5))
+                                                                                              1
+                    No                                                   buf(mod(y – 4, 5))  K · buf(mod(y – 4, 5))
+
+
+
+
+                                                                                            Done
+
+
+
+
+                                                                 buf(mod(y, 5)) buf(mod(y, 5)) + · buf(mod(y – 1, 5))
+                                                    Yes      buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + · buf(mod(y – 2, 5))
+           y < tcy1 – tcy0                                   buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+                                                             buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 4, 5))
+                                                                       buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))
+                    No
+                                                                                                                        T.800_FJ-9
+
+
+
+
+         buf(mod(y, 5)) buf(mod(y, 5)) + 2· buf(mod(y – 1, 5))
+      buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + · buf(mod(y – 2, 5))
+      buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))                      Done
+      buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 4, 5))
+               buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))
+
+
+
+                                         Figure J.9 – The RB_VERT_2 procedure
+
+J.5.3.3    The END_1 procedure
+The END_1 procedure is detailed in Figure J.10.
+
+
+
+
+                                                                                         Rec. ITU-T T.800 (11/2015)                  175
+ISO/IEC 15444-1:2016 (E)
+
+
+                             END_1                                  buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + 2· buf(mod(y – 2, 5))
+                                                                     buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+                                                                     buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 4, 5))
+                                                           Yes                buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))
+                         mod(tcy0, 2) = 0
+
+                                               No
+buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))                            i mod(y – 4, 5)
+buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 2, 5))
+buf(mod(y – 4, 5)) buf(mod(y – 4, 5)) + · buf(mod(y – 3, 5))
+                                1
+           buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))                                buf(i) = 1D_SD(buf(i), i0, i1)
+                                K
+
+
+                        i mod(y – 4, 5)                                               OUTPUT_ROW(buf(i))
+
+
+
+                   buf(i) = 1D_SD(buf(i), i0, i1)                   buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))
+                                                                    buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 2, 5))
+                                                                                                    1
+                                                                               buf(mod(y – 3, 5)) · buf(mod(y – 3, 5))
+                    OUTPUT_ROW(buf(i))                                                              K
+
+
+
+                                                                                            i mod(y – 3, 5)
+buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + 2· buf(mod(y – 2, 5))
+buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+          buf(mod(y – 3, 5)) · buf(mod(y – 3, 5))
+                                                                                       buf(i) = 1D_SD(buf(i), i0, i1)
+
+
+
+                        i mod(y – 3, 5)                                               OUTPUT_ROW(buf(i))
+
+
+
+                   buf(i) = 1D_SD(buf(i), i0, i1)                   buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + 2· buf(mod(y – 2, 5))
+                                                                              buf(mod(y – 2, 5)) · buf(mod(y – 2, 5))
+                                                                                                    1
+                                                                               buf(mod(y – 1, 5)) · buf(mod(y – 1, 5))
+                    OUTPUT_ROW(buf(i))                                                              K
+
+
+
+ buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))                           i mod(y – 2, 5)
+                                1 buf(mod(y – 2, 5))
+           buf(mod(y – 2, 5)) ·
+                                K
+                                                                                       buf(i) = 1D_SD(buf(i), i0, i1)
+           buf(mod(y – 1, 5)) · buf(mod(y – 1, 5))
+
+
+
+                                                                                        OUTPUT_ROW(buf(i))
+
+
+
+                                                                                            i mod(y – 1, 5)
+
+
+
+                                   Done             OUTPUT_ROW(buf(i))                 buf(i) = 1D_SD(buf(i), i0, i1)
+                                                                                                                              T.800_FJ-10
+
+
+                                               Figure J.10 – The END_1 procedure
+
+
+
+
+176         Rec. ITU-T T.800 (11/2015)
+                                                                                                      ISO/IEC 15444-1:2016 (E)
+
+J.5.3.4   The END_2 procedure
+The END_2 procedure is detailed in Figure J.11
+                                                                     buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))
+                             END_2                                   buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 2, 5))
+                                                                     buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+                                                          Yes                                       1
+                        mod(tcy0, 2) = 0                                      buf(mod(y – 4, 5)) ·
+                                                                                                   K buf(mod(y – 4, 5))
+                                            No
+                                                                                            i mod(y – 4, 5)
+buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + 2· buf(mod(y – 2, 5))
+ buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+ buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 4, 5))
+          buf(mod(y – 4, 5)) · buf(mod(y – 4, 5))                                 buf(i) = 1D_SD(buf(i), i0, i1)
+
+
+
+                        i mod(y – 4, 5)                                                OUTPUT_ROW(buf(i))
+
+
+                  buf(i) = 1D_SD(buf(i), i0, i1)
+                                                                    buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + 2· buf(mod(y – 2, 5))
+                                                                    buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 3, 5))
+                                                                              buf(mod(y – 3, 5)) · buf(mod(y – 3, 5))
+                    OUTPUT_ROW(buf(i))
+
+
+ buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))                           i mod(y – 3, 5)
+ buf(mod(y – 3, 5)) buf(mod(y – 3, 5)) + · buf(mod(y – 2, 5))
+                                1 buf(mod(y – 3, 5))
+           buf(mod(y – 3, 5)) ·
+                                K                                                     buf(i) = 1D_SD(buf(i), i0, i1)
+
+
+
+                        i mod(y – 3, 5)                                                OUTPUT_ROW(buf(i))
+
+
+                   buf(i)=1D_SD(buf(i), i0, i1)                      buf(mod(y – 2, 5)) buf(mod(y – 2, 5)) + · buf(mod(y – 1, 5))
+                                                                                                     1 buf(mod(y – 2, 5))
+                                                                               buf(mod(y – 2, 5)) ·
+                                                                                                    K
+                    3OUTPUT_ROW(buf(i))                                        buf(mod(y – 1, 5)) · buf(mod(y – 1, 5))
+
+
+
+buf(mod(y – 1, 5)) buf(mod(y – 1, 5)) + 2· buf(mod(y – 2, 5))                           i mod(y – 2, 5)
+          buf(mod(y – 2, 5)) · buf(mod(y – 2, 5))
+                               1
+          buf(mod(y – 1, 5)) · buf(mod(y – 1, 5))                                buf(i) = 1D_SD(buf(i), i0, i1)
+                               K
+
+
+                        i mod(y – 2, 5)                                                OUTPUT_ROW(buf(i))
+
+
+                  buf(i) = 1D_SD(buf(i), i0, i1)                                            i mod(y – 1, 5)
+
+
+
+                    OUTPUT_ROW(buf(i))                                                buf(i) = 1D_SD(buf(i), i0, i1)
+
+
+
+                        i mod(y – 1, 5)                                                OUTPUT_ROW(buf(i))
+                                                                                                                T.800_FJ-11
+
+
+                  buf(i) = 1D_SD(buf(i), i0, i1)           OUTPUT_ROW(buf(i))                     Done
+
+
+                                              Figure J.11 – The END_2 procedure
+
+
+                                                                                         Rec. ITU-T T.800 (11/2015)               177
+ISO/IEC 15444-1:2016 (E)
+
+J.5.4     OUTPUT_ROW procedure
+This procedure returns a row buf(i) of transformed coefficients, which correspond either to the 1LL and 1HL sub-band or
+to the 1LH and 1HH sub-band. This row of transform coefficients can be either stored in an external memory or processed
+immediately.
+
+J.6       Scan-based coding
+Some applications use scanning sensors that create images (possibly unconstrained in length) row by row and have limited
+amounts of processing memory. These applications need full scan-based coding where only the minimum required
+number of bytes is retained in memory at any given time without significant loss in performance. Example
+implementations of such scan-based coding systems have been demonstrated [39], [40]. The recommended procedure is
+outlined below.
+The example rate control described in J.13 requires buffering of the entire compressed codestream at a bit rate higher than
+the interleaved final bit rate. Alternatively, a scan-based approach can be used where the row-based wavelet
+transformation (see J.5) is followed by a scan-based rate allocation and coding procedure to ensure that compressed
+wavelet coefficients are transmitted soon after they have been generated. For this purpose, a limited memory buffer
+(the scan buffer) is introduced after the wavelet transform. The discrete compressed data segments within it are called
+"scan elements". A scan element consists of a localized set of wavelet coefficients. It may be a tile or a precinct, and
+corresponds to a small number of rows in image space. The scan buffer may contain one or more scan elements.
+The rate control algorithm is applied to the compressed data in the scan buffer and the first scan element is released to the
+bit stream. In case there is more than one scan element in the scan buffer, a sliding window rate control mechanism is
+implemented. This approach may give better compression results at the expense of a slight increase in complexity and
+memory requirements.
+This scan-based approach does not affect the JPEG2000 decoding process.
+
+J.7       Error resilience
+This clause describes a method for decoding images, which have been coded using an error resilient syntax.
+Many applications require the delivery of image data over different types of communication channels. Typical wireless
+communications channels give rise to random and burst bit errors. Internet communications are prone to loss due to traffic
+congestion. To improve the performance of transmitting compressed images over these error-prone channels,
+error-resilient bit stream syntax and tools are included in this Recommendation | International Standard.
+The error resilience tools (see Table J.18) in this Recommendation | International Standard deal with channel errors using
+the following approaches: compressed data partitioning and resynchronization, error detection and concealment, and
+Quality of Service (QoS) transmission based on priority. Error resilience tools are described in each category.
+
+                                            Table J.18 – Error resilience tools
+
+           Type of tool                                           Name                                     Reference
+                                    code-blocks
+                                    termination of the arithmetic coder for each pass
+ Entropy coding level               reset of contexts after each coding pass                                Annex D
+                                    selective arithmetic coding bypass
+                                    segmentation symbols
+                                    short packet format
+ Packet level                                                                                               Annex B
+                                    packet with resynchronization marker (SOP)
+
+The entropy coding of the quantized coefficients is done within code-blocks. Since encoding and decoding of the code-
+blocks are independent, bit errors in the bit stream of a code-block will be contained within that code-block (see Annex D).
+Termination of the arithmetic coder is allowed after every coding pass. Also, the contexts may be reset after each coding
+pass. This allows the arithmetic coder to continue to decode coding passes after errors (see D.4).
+The optional arithmetic coding bypass style puts raw bits into the bit stream without arithmetic coding. This prevents the
+types of error propagation to which variable length coding is susceptible (see D.6).
+Short packets are achieved by moving the packet headers to the PPM or PPT marker segments (see A.7.4 and A.7.5). If
+there are errors, the packet headers in the PPM or PPT marker segments can still be associated with the correct packet by
+using the sequence number in the SOP.
+
+
+
+178        Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+A segmentation symbol is a special symbol. The correct decoding of this symbol confirms the correctness of the decoding
+of this bit-plane which allows error detection. (see D.5).
+A packet with a resynchronization marker SOP (see A.8.1) allows spatial partitioning and resynchronization. This is
+placed in front of every packet in a tile with a sequence number starting at zero. It is incremented with each packet. Packet
+ordering is described in B.10.
+
+J.8       Implementing the Restricted ICC method outside of a full ICC colour management engine
+This annex describes the Restricted ICC method for specifying the colourspace of a JP2 file using ICC profiles based on
+version ICC.1:1998-09 of the ICC Profile Format Specification [41]. This annex is specifically targeted at developers
+who are not using a full ICC colour management engine and thus must extract the transformation parameters from the
+ICC profile and process the image using application specific code.
+
+J.8.1     Extracting the colour transformation from an ICC profile
+
+J.8.1.1   ICC profile format
+An ICC profile uses a tagged data format to organize its information. It is described in ISO 15076-1. The format consists
+of a 128-byte header, a tag table and tag data. Each tag is identified by a 32-bit signature which usually corresponds to
+four ASCII characters. The data for each tag is stored in a format which specifies the various data elements. Each format
+is identified by a data type signature which is the first 32 bits of the tag data. To get the data for a tag, first locate the
+signature for that tag in the tag table which specifies the position and size of the data for that tag, and then retrieve the
+data based on its position and size within the tag data. Once retrieved, the tag data type signature specifies how to interpret
+the tag data.
+The important tags used in processing of an image through a Restricted ICC profile are summarized in Table J.19.
+
+                             Table J.19 – Processing tags used by a Restricted ICC profile
+
+                                                                                          Tag data type
+                        Tag name             Tag signature         Tag data type
+                                                                                            signature
+                        redTRCTag                'rTRC'              curveType                'curv'
+                       greenTRCTag              'gTRC'               curveType                'curv'
+                       blueTRCTag               'bTRC'               curveType                'curv'
+                      redColorantTag             'rXYZ'              XYZType                'XYZ\040'
+                     greenColorantTag           'gXYZ'               XYZType                'XYZ\040'
+                     blueColorantTag            'bXYZ'               XYZType                'XYZ\040'
+                       grayTRCTag               'kTRC'               curveType                'curv'
+
+Note that an ICC profile and thus a Restricted ICC profile, may contain other tags such as mediaWhitePoint. While these
+tags are not used in the default processing path of a Restricted ICC profile as described in J.8.2, more complex rendering
+scenarios may take advantage of that information to provide a more accurate or optimized rendition of the image.
+The ICC profile format and thus a Restricted ICC profile, specifies a processing model which converts between device
+code values and the Profile Connection Space (PCS). This model consists of two parts, a set of three one-dimensional
+interpolation tables and a three-by-three matrix. The interpolation tables are formed from the redTRCTag, greenTRCTag
+and blueTRCTag. The matrix is formed from the redColorantTag, greenColorantTag and blueColorantTag. The basic
+processing model using these elements is specified in the ICC Profile Format Specification and described in J.8.2. Note
+that the profile describes the device values to PCS conversion. The matrix and interpolation tables must be inverted to
+convert from the PCS to device values.
+The complete specification of the format of an ICC profile (and thus a Restricted ICC profile) is contained in the ICC
+Profile requirements.
+
+J.8.1.2   Interpolation tables
+The interpolation tables use the curveType format. A tag of type curveType consists of a count followed by that number
+of unsigned 16-bit table entries.
+If the count is 1, the single table entry is an encoded gamma value. In this case, the one-dimensional table is formed using
+the formula:
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)             179
+ISO/IEC 15444-1:2016 (E)
+                                                                  tVal
+                                                         dVal  256
+                                               linear              65 535                                            (J-2)
+                                                         dMax 
+
+where dVal is the device component value dMax is the maximum device value, and tVal is the table entry value.
+If the count is more than one, the entries are the values of an interpolation table. The first entry corresponds to a device
+value of 0 and the last entry corresponds to the maximum device value (e.g., 255 for 8-bit data, 65 535 for 16-bit data).
+The remaining entries are uniformly spaced between these two entries. For example, if you have 8-bit data and 6 entries,
+then the fourth entry corresponds to a device value of 255 * ((4 – 1)/(6 – 1)) = 153. Note that 1 is subtracted from the
+position of the entry in the table to convert it to a zero-based index, and that 1 is subtracted from the number of entries to
+convert it to the number of intervals between entries.
+To convert the interpolation table to a look-up table, the number of entries in the interpolation must be adjusted to match
+the number of possible device values. In the case of 8-bit data, there are 256 possible values. If the interpolation table has
+6 entries, it would have to be expanded to 256 entries. There are several methods to do this and often linear interpolation
+is used. Using this method, entries between the supplied interpolation table entries are calculated by linearly interpolating
+between adjacent interpolation table entries using the device value as the interpolant. For example, consider a 6-entry
+interpolation table with values T3 in the 3rd entry and T4 in the 4th entry. Look-up table index 128 would have an
+interpolation table position of (128/255) * 5 = 2.5098. The look-up table value at index 128 is calculated by interpolating
+between the value at entry 3 and the value at entry 4 using an interpolant of 0.5098: value at index 128 = T3 + ((T4 – T3)
+* 0.5098).
+Each entry in the table can be converted to a floating point by dividing by 65 535.
+When processing a pixel, each component of the pixel is applied to its corresponding look-up table.
+
+J.8.1.3   Matrix
+The matrix is formed from the values of the redTRCTag, greenTRCTag and blueTRCTag. These tags use the XYZType,
+which contains three XYZNumberTypes. The first is the X component, the second is the Y component and the third is
+the Z component. Each XYZNumberType contains a signed 32-bit integer which can be converted to a floating point by
+dividing by 65 536. The XYZ values of each tag correspond to a row of the matrix. This matrix is multiplied by the
+column vector produced by the interpolation table to produce the XYZ PCS values.
+
+J.8.1.4   Combining source and destination profiles
+The profile embedded in the JP2 file describes how to convert the image data into the PCS. It is referred to as the "source"
+profile. Typically, the image data needs to be converted into the data for another device, such as the display. This device
+is referred to as the "destination" device and its profile is referred to as the destination profile. The conversion is done by
+combining the processing models of the source and destination profiles. Assuming that the destination device
+transformation is limited to a 3  3 matrix followed by a 1D table, the procedure would be:
+          1)   Obtain the interpolation tables and matrix from the source profile.
+          2)   Obtain the interpolation tables and matrix from the destination profile.
+          3)   Invert the interpolation tables and matrix of the destination profile.
+          4)   Combine the two matrices using matrix multiplication.
+This produces an overall processing model which is a set of one-dimensional tables, a matrix, and a second set of
+one-dimensional tables. This can be used to convert the source image pixels into destination pixel images.
+
+J.8.2     Colour processing equations for three-component RGB images
+The goal of the Restricted ICC profile method is to restrict the set of all ICC profiles down to a set which can be described
+using a simple set of colour processing equations. The ICC specification defines this class of profile as Three-Colour
+Matrix-Based Input Profiles and Monochrome Input Profiles. Profiles in the Three-Colour Matrix-Based Input Profile
+class can be described using the following equations:
+
+                                             linearr  redTRC decompress ed r 
+                                                                  
+                                           linearg  greenTRC decompress ed g                                           (J-3)
+                                            linearb  blueTRC decompress ed b 
+
+
+
+
+180        Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+                       connection x    redColorant x greenColorant x blueColorant x  linearr 
+                       connection   redColorant greenColorant blueColorant  linear 
+                                   y                y               y               y         g                (J-4)
+                       connection z  redColorant z greenColorant z blueColorant z  linearb 
+
+where decompressedrgb is the original decompressed pixel and connectionxyz is the pixel converted into the XYZ form of
+the Profile Connection Space (XYZPCS). In Equation (J-3), the three look-up tables are loaded from the Restricted ICC
+profile from the redTRCTag, greenTRCTag and blueTRCTag tags respectively, as defined in the ICC Profile Format
+Specification. In Equation (J-4), the rows of the matrix are loaded from the redColorantTag, greenColorantTag and
+blueColorantTag tags respectively, as defined in the ICC Profile Format Specification.
+The Monochrome Input Profile class can be described with the following equation:
+
+                                              connection  grayTRCdevice                                           (J-5)
+
+where device is the original decompressed pixel and connection is the achromatic channel of the Profile Connection
+Space. In Equation (J-5), the look-up table is loaded from the Restricted ICC profile from the grayTRCTag.
+
+J.8.3     Converting images to sRGB
+One of the most common application scenarios will be the situation where an image specified using the Restricted ICC
+profile method must be converted to the sRGB colourspace for softcopy display (for example desktop editing and web
+browsers) [42].
+This transformation is used in conjunction with the Restricted ICC method to create resulting sRGB values from original
+source colour values [47]. Where applicable, like transforms (1D look-up tables or matrices) may be combined to enhance
+processing performance. For this example, only the transformation from the Profile Connection Space (XYZ PCS) will be
+shown. It may later be combined with the transforms in Equations (J-3) and (J-4).
+To move colours encoded in the XYZPCS to colours encoded in the sRGB colourspace, there are three pieces necessary to
+complete the transformation. These pieces are embodied in two 3  3 matrices and a per channel, linear to non-linear
+conversion equation which may be applied in practice through three one dimensional look-up tables.
+The first matrix in the transformation is required to perform a chromatic adaptation transformation between the defined
+adaptive white point of the ICC Profile Connection Space (chromaticities of CIE D50) and the defined adaptive white
+point of sRGB (chromaticities of CIE D65). There are several different choices of transformation which can be used. For
+this example transformation, the Bradford chromatic adaptation transformation (BFD) will be used [43]. The Bradford
+transformation has been shown to produce accurate results and has been adopted as part of the CIE recommended colour
+appearance model (CIECAM97s) [44], [45]. The BFD transformation typically includes a linear and a non-linear portion.
+In the case of this example transform, the non-linear portion of the Bradford transformation has been left out to allow for
+simple 3  3 matrix processing. It has been shown that the Bradford transform's performance is still very good even with
+this omission [46].
+The second matrix in the transformation is a primary transformation matrix required to move colours from the primaries
+of the XYZPCS to the ITU-R BT.709-2 primary set as defined in the sRGB standard, IEC/TC100/PT61966-2.1.
+Separate to this, the transformation looks as follows with the primary transformation denoted by a PT and the Bradford
+chromatic adaptation matrix denoted by a BFD:
+
+ slinearr   3.2406 PT  1.5372 PT  0.4986 PT  0.9554 BDF  0.0231BDF 0.0633BDF  connection x 
+ slinear    0.9689      1.8758 PT   0.0415 PT   0.0284 BDF 1.0100 BDF 0.0211BDF  connection y        (J-6)
+         g           PT
+
+ slinearb   0.0557 PT  0.2040 PT 1.0570 PT  0.0123BDF  0.0205 BDF 1.3305 BDF  connection z 
+
+However, the matrices can be combined to form a single matrix as shown in the following equation:
+
+                              slinearr  3.1337  1.6173  0.4907  connection x 
+                              slinear    0.9785 1.9162 0.0334   connection                                   (J-7)
+                                      g                                          y
+
+                              slinearb  0.0720  0.2290 1.4056   connection z 
+
+It is then necessary to transformation the slinearrgb to non-linear sRGB values. For each red, green and blue channel of
+the slinearrgb value (referred to as slinearX), the respective channel of the non-linear sRGB value (referred to as sRGBX)
+is calculated using Equation (J-8).
+
+
+
+                                                                                   Rec. ITU-T T.800 (11/2015)          181
+ISO/IEC 15444-1:2016 (E)
+
+                                                   12.92  slinearX         slinearX  0.0031308 
+                        sRGBX                                                                                     (J-8)
+                                                                             slinearX  0.0031308 
+                                                    1, 0 / 2, 4 
+                                  1.055  slinearX                 0.055
+
+Note that the conversion from a decompressed pixel to sRGB can be optimized by combining the colourant matrix
+described in Equation (J-4) with the XYZ to sRGB conversion matrix described in Equation (J-7) as follows:
+
+ slinearr  3.1337  1.6173  0.4907   redColorant x greenColorant x blueColorant x   linearr 
+ slinear    0.9785 1.9162 0.0334  redColorant greenColorant blueColorant  linear                            (J-9)
+         g                                         y                y             y          g
+
+ slinearb  0.0720  0.2290 1.4056  redColorant z greenColorant z blueColorantz  linearz 
+
+This optimization reduces the colourspace processing from decompressed pixel to sRGB to the application of a 1D
+look-up table, a single 3  3 matrix and another 1D look-up table.
+The transforms shown above for sRGB can be generalized for use in converting to many other target colourspaces other
+than sRGB. In many cases, the steps taken will match exactly those needed for the conversion to sRGB. However, in
+other cases, fewer steps may be required such as when the adaptive white point of the target colourspace matches that of
+the PCS XYZ thus removing the need for a chromatic adaptation transform. It is also possible that some cases may require
+additional steps to compensate for different factors such as viewing condition differences. The actual viewing condition
+transforms are beyond the scope of this annex, but have been covered in other publications [41], [42], [46], [48].
+It should be noted that, depending on the storage colourspace, there may be a loss of information involved with the
+conversion to sRGB, or any other limited colour gamut output colourspace. For example, consider the case where the
+storage colourspace is an extended colour gamut colourspace. The conversion to sRGB will result in the clipping of
+colours that are outside the sRGB colour gamut. While this is a necessary step when displaying the image, colour
+transformations (such as a colour shift) may have been able to make use of that clipped data (by shifting into the sRGB
+gamut). As such, it is often preferable to perform most colour transformations on the original stored data before converting
+it to the sRGB colourspace. Also, if the image were then to be printed on an output device that was capable of printing
+the colours that had been clipped, then it would be preferable to go back to the image in the storage colourspace, rather
+than printing the sRGB image. As another example, consider the case where the storage colourspace image is an extended
+dynamic range scene colour encoding. The conversion to sRGB will necessarily include a rendering step where highlight
+and/or shadow information is clipped to the dynamic range of the output display. (The rendering step is commonly
+implemented by applying a tonescale function as part of the TRCs shown in Equation (J-3). The information that is lost
+in the rendering step can not be used to modify the image at a later time. Similarly, the conversion to sRGB may introduce
+quantization errors to the image which would limit the quality of the image. In both of these examples, it may be desirable
+to retain the image in the storage colourspace, and apply any image manipulations to the image there. Alternatively, the
+image could be converted to an intermediate large gamut colour encoding. The conversion to sRGB can be done for
+preview purposes only, or as a final step in the imaging chain.
+
+J.8.4     Converting images to other colourspaces
+Alternatively, it may be desirable in certain applications to convert images to other colourspaces besides sRGB for
+purposes of display on specific output devices, or manipulation in an application-specific colourspace. For example, if it
+is desired to display the image on a CRT which has known characteristics that are different from the reference sRGB
+display, then the matrix and nonlinearity specified in Equations (J-6) to (J-9) can be replaced with the corresponding
+matrix and nonlinearity for the particular CRT. Generally, a matrix related to the phosphor chromaticities and white point
+can be used to convert the PCS tristimulus values to the particular linear RGB values, and the nonlinearity can be used to
+relate the linear RGB values to the corresponding code values. Similarly, other additive RGB colourspaces, such as
+ROMM RGB can also be computed by substituting the appropriate matrix and nonlinearity [49].
+In some cases, it may be desirable to convert images to other colourspaces that can not be described by a simple matrix/
+nonlinearity transformation. This can be accomplished by replacing the transformation described in J.8.3 with the
+appropriate transformation to the desired colourspace. In many cases, this can conveniently be accomplished by using an
+ICC profile for the desired colourspace.
+
+J.8.5     Input and output ranges and quantization
+The input code values to the look-up tables in Equation (J-3) (redTRC, greenTRC and blueTRC) shall be integers of the
+same precision as the decompressed code values, and indexed such that TRC[i] produces the correct linear intensity value
+for an input code value of i. Input code values that are larger than the number of elements of the look-up table – 1 should
+be clipped to the number of elements of the look-up table – 1.
+The output pixel from Equation (J-3) shall be real linear intensity values nominally in the range (0.0, 1.0).
+
+
+
+
+182        Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+The input to the colourant matrix in Equation (J-4) shall also be real linear intensity values in the range (0.0, 1.0). The
+output of that equation (the XYZPCS values) is scaled such that the Y value will be in the range (0.0, 1.0). Neutral values
+in the image should map to XYZ values which have the chromaticity of the PCS whitepoint (this implies that
+X/Y = 0.9642, and Z/Y = 0.8250). If the application is converting the input code values to the sRGB colourspace, this
+output range allows direct concatenation of the matrices as in Equation (J-8).
+The ranges and quantization of the XYZPCS to sRGB transformation are similar. The inputs and outputs of Equation (J-6)
+and thus the inputs to Equation (J-8), are also real values in the range (0.0, 1.0).
+The outputs of Equation (J-8) are values in the range (0.0, 1.0). However, these values will generally be scaled by 255 to
+produce 8-bit sRGB values. This is highly application dependent and depends on what, if any, additional processing will
+be performed. However, it is strongly suggested that any colour processing be performed on the source image data
+(decompressedr, decompressedg, decompressedb) before it is converted to sRGB, as the possibility of significantly
+decreased quantization exists.
+
+J.8.6     Taking advantage of multiple colourspace specifications
+The JP2 format allows for a file to specify multiple methods to interpret the colourspace of an image. For example, one
+application might write images in which the pixel values have already been converted to the signals necessary for driving
+a particular output device. In this situation, it is useful for the application to provide a simple mechanism for the device
+to determine that additional colour processing is not required. This can be accomplished by specifying the device
+colourspace using the Enumerated Colourspace method in one Colour Specification box in the file.
+However, other applications, such as web browsers, must convert the image to signals suitable for display on other
+devices; it is very likely that these applications will not know the definition of this vendor-specific colourspace. It is thus
+very useful for the original file writer to write a second Colour Specification box in the file that uses the Restricted ICC
+profile method or the Generic ICC profile method. By providing a secondary mechanism, the number of applications that
+have the ability to properly interpret the colourspace of the image is dramatically increased.
+Note that the method for choosing from the multiple colour specification methods defined in a single file is not specified
+by this Recommendation | International Standard. Each application should select the method which best meets the
+requirements of that particular application.
+
+J.9       An example of the interpretation of multiple components
+An example of a non-traditional interpretation is the coding of Regions of Interest (ROIs) in a complex SAR data set.
+Each ROI may be thought of as a set of two image chips representing the real (I) and imaginary (Q) parts of the data. The
+ensemble of I and Q chips may be assembled into a set of "multiple components", even though the individual chips are
+disjoint and may have different spatial dimensions. Bypassing the colourspace transform, the ensemble of chips may then
+be subjected to lossless or lossy compression. This procedure has two advantages: all the ROIs in a given data set can be
+compressed in a single pass; and bit allocation can be optimized across the ensemble of ROIs rather than on a chip-by-chip
+basis.
+
+J.10      An example of decoding showing intermediate steps
+Consider the following compressed bit stream where the offset from the beginning of the file is given in octal on the left,
+and the values in the file are given in hexidecimal.
+       00000   FF4F      FF51     0029     0000      0000     0001     0000      0009
+       00020   0000      0000     0000     0000      0000     0001     0000      0009
+       00040   0000      0000     0000     0000      0001     0701     01FF      5C00
+       00060   0740      4048     4850     FF52      000C     0000     0001      0001
+       00100   0404      0001     FF90     000A      0000     0000     001E      0001
+       00120   FF93      C7d4     0C01     8F0D      C875     5DC0     7C21      800F
+       00140   B176      FFD9
+
+The various parts of this bit stream can be decoded as follows.
+
+
+
+
+                                                                                    Rec. ITU-T T.800 (11/2015)             183
+ISO/IEC 15444-1:2016 (E)
+
+J.10.1    Main header
+The main header starts at byte 0 as indicated by the SOC marker and ends before byte 0104 (octal), which is known
+because of the SOT marker.
+      00000    FF4F                               SOC marker
+      00002    FF51                               SIZ marker
+      00004    0029                               Lsiz SIZ marker length
+      00006    0000                               Rsiz
+      00010    0000     0001                      Xsiz
+      00014    0000     0009                      Ysiz
+      00020    0000     0000                      XOsiz
+      00024    0000     0000                      YOsiz
+      00030    0000     0001                      XTsiz
+      00034    0000     0009                      YTsiz
+      00040    0000     0000                      XTOsiz
+      00044    0000     0000                      YTOsiz
+      00050    0001                               Csiz
+      00052    07                                 Ssiz
+      00053    01                                 XRsiz
+      00054    01                                 YRsiz
+
+Thus the "image" is one component, with 8 bits/sample unsigned, 1 sample horizontally, and 9 samples vertically, and all
+samples are in a single tile.
+      00055    FF5C                              QCD marker
+      00057    0007                              Lqcd QCD marker length
+      00061    40                                Sqcd
+      00062    4048     4850                     SPqcd
+
+There are 2 guard bits, no quantization is done (other than possible truncation), and the quantizer step size exponents b
+are {8, 9, 9, 10}.
+      00066    FF52                             COD marker
+      00070    000C                             Lcod COD marker length
+      00072    00                               Scod (PPx = PPy = 15, No SOP, No EPH)
+      00073    00                               Progression order
+      00074    0001                             Number of layers
+      00076    00                               Multiple component transform
+      00077    01                               Number of decomposition levels
+      00100    04                               Code-block width exponent offset value
+      00101    04                               Code-block height exponent offset value
+      00102    00                               Style of the code-block coding passes
+      00103    01                               Transform
+
+No precincts are used. There is one level of wavelet transform. Progression is layer-resolution level-component-position,
+but there is only one layer. Code-blocks are 64  64 samples (note the size is 26 while the value in the bit stream is 4).
+There is no selective arithmetic coding bypass, no reset of context probabilities or termination at each coding pass, no
+vertical stripe causal contexts, no predictable termination, and no segmentation symbols. The 5-3 reversible filter is used.
+
+
+
+
+184        Rec. ITU-T T.800 (11/2015)
+                                                                                                   ISO/IEC 15444-1:2016 (E)
+
+J.10.2    Tile-part header
+The first and only tile-part header begins at byte 0104 octal with the SOT marker and ends at byte 0120 octal with the
+SOD marker.
+     00104     FF90                               SOT marker
+     00106     000A                               Lsot SOT marker length
+     00110     0000                               Isot
+     00112     0000     001E                      Psot
+     00116     00                                 TPsot
+     00117     01                                 TNsot
+This is tile number 0. The length of the tile-part is 30 bytes. Thus the next tile-part or the end of the codestream is at
+0104 + 036 = 0142. This is tile-part 0. There is only one tile-part for this tile.
+     00120     FF93                              SOD marker
+There were no CODs, or QCD or comment markers in this tile-part header. Thus all coding parameters are determined
+from the main header. The next 16 bytes are compressed data (30-byte length – 14 bytes of marker segments).
+Compressed data (packet headers and packet bodies)
+     00122     C7D4     0C01       8F0D    C875      5DC0       7C21    800F
+     00140     B176
+
+End of Image
+     00142     FFD9                                EOC marker
+
+J.10.3    Packet headers
+Because the image is 1  9, and there is one level of transform, (and the code-blocks, precincts and tiles are too large to
+have an effect), there will be 5 low-pass wavelet coefficients, and 4 horizontal low-pass vertical high-pass coefficients.
+The compressed data begins with a packet header which is decoded as shown in Table J.20.
+
+                                       Table J.20 – Decoding first packet header
+
+                      Codestream bytes                  Bits used                          Comments
+                            0xC7                            1                Non-zero length packet
+                                                            1                Only code-block is included
+                                                          0001               3 zero bit-planesa)
+                                                                             16 coding passes for this code-
+                           0xD4                        11 1101010
+                                                                             blockb)
+                                                            0                LBlock remains 3
+                            0x0C                        0000110              6 bytes of compressed datac)
+                                                            0                unused padding bit
+                 a)    Maximum bit-planes from Equation (E-2) is 9, 3 of them are zero, so first bit will be
+                       decoded into bit-plane 6.
+                 b)    Number of bits to read depends on compressed data; see Table B.2.
+                 c)    Number of bits to read is LBlock plus floor of base 2 log of number of passes:
+                       3 +  log 16  = 7.
+
+
+Decoding the first packet header requires 3 bytes and indicates that 6 bytes of arithmetic coded compressed data are used
+for the only code-block in this packet. Thus the next packet header begins at offset 0134. This packet header is decoded
+in Table J.21.
+
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)        185
+ISO/IEC 15444-1:2016 (E)
+
+                                        Table J.21 – Decoding second packet header
+
+                        Codestream bytes                      Bits used                             Comment
+                              0xC0                                 1                  Non-zero length packet
+                                                                   1                  Only code-block is included
+                              0x7C                            000000 01               7 zero bit-planesa)
+                                                                                      7 coding passes for this code-
+                              0x21                            111100 001
+                                                                                      block
+                                                                   0                  LBlock remains 3
+                              0x80                              0001 1                3 bytes of compressed datab)
+                                                               0000000                unused padding bits
+                 a)      Maximum bit-planes is 10, 7 of them are zero, so first bit will be decoded into bit-plane 3.
+                 b)      Number of bits to read is 3 +  log 7  = 5.
+
+J.10.4     Arithmetic-coded compressed data
+The six bytes of compressed data for the first code-block (from the first packet) can be decoded as shown in Table J.22.
+The first item is the context label from Annex D (which could be completely different for each implementation). The
+second item is the type of context. Finally the bit returned from the arithmetic coder is listed. These bits are used to
+determine the low-pass horizontal low-pass vertical coefficients. The bytes provided to the arithmetic coder are those
+beginning at offset 0125.
+      0000125          01     8F0D        C875           5D
+
+
+                                      Table J.22 – Arithmetic decode of first code-block
+
+  CTX                  Context Type                 Bit                                            Comment
+      17              C4(ZERO_RUN)                   1         No zero run.
+      18              C5(UNIFORM)                    1         First non-zero coefficient is the fourth (numbered from 1).
+      18              C5(UNIFORM)                    1
+      9                 C2(SIGN)                     1         Negative.
+      3       C1 (NEW_SIGNIFICANT)                   0         Fifth coefficient is not significant.
+                                                               Third coefficient is significant (first coefficient which is in the signifi-
+      3       C1 (NEW_SIGNIFICANT)                   1
+                                                               cance pass).
+      10                C2 (SIGN)                    0         Negative (XOR bit is 1).
+      3       C1 (NEW_SIGNIFICANT)                   1         Fifth coefficient significant in this coding pass.
+      10                C2 (SIGN)                    0         Negative (XOR bit is 1)
+      15               C3 (REFINE)                   0         Next bit of fourth coefficient is 0.
+      0       C1 (NEW_SIGNIFICANT)                   1         First coefficient is significant.
+      9                 C2 (SIGN)                    1         Negative.
+      4       C1 (NEW_SIGNIFICANT)                   1         Second coefficient is significant.
+      10                C2 (SIGN)                    0         Negative.
+      15               C3 (REFINE)                   1         All coefficients are in the refinement pass. Decoded bit is the next bit
+      15               C3 (REFINE)                   0         of the coefficient in order from first to fifth.
+      15               C3 (REFINE)                   1
+      16               C3 (REFINE)                   0
+      15               C3 (REFINE)                   0
+      16               C3 (REFINE)                   0         Next bit-plane.
+      16               C3 (REFINE)                   1
+      16               C3 (REFINE)                   1
+      16               C3 (REFINE)                   0
+      16               C3 (REFINE)                   0
+      16               C3 (REFINE)                   1         Next bit-plane.
+      16               C3 (REFINE)                   1
+      16               C3 (REFINE)                   1
+      16               C3 (REFINE)                   0
+      16               C3 (REFINE)                   1
+
+
+
+186         Rec. ITU-T T.800 (11/2015)
+                                                                                                    ISO/IEC 15444-1:2016 (E)
+
+
+                                   Table J.22 – Arithmetic decode of first code-block
+
+   CTX              Context Type               Bit                                     Comment
+    16              C3 (REFINE)                 0      Last bit-plane.
+    16              C3 (REFINE)                 0
+    16              C3 (REFINE)                 0
+    16              C3 (REFINE)                 0
+    16              C3 (REFINE)                 1
+
+Thus the decoded coefficients are:
+   -26, -22, -30, -32, -19
+The compressed data for the only code-block in the second packet, representing the vertical high pass horizontal lowpass
+sub-band begins at offset 0137 octal.
+   0000137 0F B176
+The decoding process is described in Table J.23.
+
+                                  Table J.23 – Arithmetic decode of second code-block
+
+   CTX              Context Type               Bit                                     Comment
+    17            C4 (ZERO_RUN)                 1      Not a zero run.
+    18             C5 (UNIFORM)                 0      First non-zero coefficient is 2nd.
+    18             C5 (UNIFORM)                 1
+    9                 C2 (SIGN)                 0      Positive.
+    3         C1 (NEW_SIGNIFICANT)              0      3rd and 4th coefficients in clean-up pass.
+    0         C1 (NEW_SIGNIFICANT)              0
+    3         C1 (NEW_SIGNIFICANT)              0      1st and 3rd coefficients in significance pass.
+    3         C1 (NEW_SIGNIFICANT)              0
+    14              C3 (REFINE)                 0      2nd coefficient.
+    0         C1 (NEW_SIGNIFICANT)              0      4th coefficient in clean-up pass.
+    3         C1 (NEW_SIGNIFICANT)              1      1st coefficient in significance pass.
+    10                C2 (SIGN)                 0      Positive.
+    3         C1 (NEW_SIGNIFICANT)              1      3rd coefficient in significance pass.
+    10                C2 (SIGN)                 0      Positive.
+    3         C1 (NEW_SIGNIFICANT)              0      4th coefficient in significance pass.
+    16              C3 (REFINE)                 1      2nd coefficient in refinement pass.
+
+The decoded vertical high pass horizontal low pass coefficients are:
+   1, 5, 1, 0
+
+J.10.5    Wavelet and level shift
+After the inverse 5-3 reversible filter and level shifting, the component samples in decimal are:
+   101, 103, 104, 105, 96, 97, 96, 102, 109
+
+J.11      Visual frequency weighting
+The human visual system plays an important role in the perceived image quality of compressed images. It is therefore
+desirable to allow system designers and users to take advantage of the current knowledge of visual perception, e.g., to
+utilize models of the visual system's varying sensitivity to spatial frequencies, as measured in the contrast sensitivity
+function (CSF). Since the CSF weight is determined by the visual frequency of the transformation coefficient, there will
+be one CSF weight per sub-band in the wavelet transform. The design of the CSF weights is an encoder issue and depends
+on the specific viewing condition under which the decoded image is to be viewed. Please refer to [34] and [35] for more
+details of the design of the CSF weights.
+In many cases, only one set of CSF weights is chosen and applied according to the viewing condition. This application of
+visual frequency weighting is referred to as fixed visual weighting. In the case of embedded coders, as the coding bit
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)         187
+ISO/IEC 15444-1:2016 (E)
+
+stream may be truncated later, the viewing conditions at different stages of embedding may be very different. At low bit
+rates, the quality of the compressed image is poor and the detailed features of the image are not available. The image is
+usually viewed at a relatively large distance and the observers are more interested in the global features. As more and
+more bits are received, the image quality improves, and the details of the image are revealed. The image is usually
+examined at a closer distance, or is even magnified for close examination, which is equivalent to decreasing the viewing
+distance. Thus, different sets of CSF weights are called for at different stages of the embedding. This adjustable
+application of visual frequency weighting is referred to as visual progressive coding. It is clear that fixed visual weighting
+can be viewed as a special case of visual progressive coding.
+In fixed visual weighting, a set of CSF weights, {wi}, is chosen according to the final viewing condition, where wi is the
+weight for the ith sub-band. The set of CSF weights can be incorporated in one of the following two ways.
+
+J.11.1    Modify quantization step size
+At the encoder, the quantization step size qi of the transformation coefficients of the ith sub-band is adjusted to be inversely
+proportional to the CSF weight wi. The smaller the CSF weight, the larger the quantization step size. The CSF-normalized
+quantization indices are then treated uniformly in the R-D optimization process, which is not modified to take into account
+any changes in the quantization step size. The CSF weights do not need to be transmitted to the decoder. The information
+is included in the quantization step sizes, which are explicitly transmitted for each sub-band. This approach needs to
+explicitly specify the quantizer. Therefore, it may not be very suitable for embedded coding, especially for embedded
+coding from lossy all the way to lossless.
+
+J.11.2    Modify the embedded coding order
+The quantization step sizes are not modified but the distortion weights fed into the R-D optimization are altered instead.
+This effectively controls the relative significance of including different numbers of bit-planes from the embedded bit
+stream of each code-block. The frequency-weighting table does not need to be transmitted explicitly. This approach is
+recommended since it produces similar results in J.11.1 and is compatible with lossless compression. This approach
+affects only the compressor and it is compatible with all quantization strategies, including implicit quantization.
+
+J.11.3    Visual progressive coding (VIP)
+If the visual frequency weights are to be changed during the embedded coding process, it is very clumsy to change the
+coefficient values or quantization step sizes. Furthermore, the performance of the subsequent entropy coder may degrade
+due to the changing statistics of the binary representation. An elegant way to implement the visual progressive coding
+(VIP) is to change on the fly, the order in which code-block sub-bit-planes should appear in the overall embedded bit
+stream based on the visual weights, instead of changing the coefficient values or quantization step sizes. In other words,
+the coding order rather than the coding content is affected by the visual weights.
+A series of visual weighting sets for different bit rate ranges are denoted as follows:
+
+                                 Weighting set 0 : r 0, with W0  w 0 0, w1 0, ..., w n 0 ;
+                                  Weighting set 1 : r 1, with W1  w 0 1, w1 1, ..., w n 1 ;
+                                                                                                                         (J-10)
+                                                              ...
+                              Weighting set m : r m , with Wm   w 0 m , w1 m , ..., w n m  ,
+
+where r(j) represents a bit-rate at which the weighting factors are changed, r(0) < r(1) <... < r(m), and w i(j) is the weight
+applied to sub-band i over the bit rate range from r(j) to r(j + 1). Each set of visual weights will take effect within a certain
+bit rate range. If m = 0, i.e., there is only one set of visual weights, it degenerates to the fixed visual weighting case. The
+sets of visual weights, W(0) to W(m), will be used to determine the embedding order in their corresponding bit rate ranges.
+For high bit rate embedding, especially embedded coding from lossy all the way to lossless, the final visual weights W(m)
+need to be all ones (as no weighting for lossless coding). Visual progressive coding can adjust the visual weights to
+achieve good visual quality for all bit rates.
+The VIP weighting affects only the encoder and no signalling is required at the decoder.
+The encoder is expected to compute the order in which code-block sub-bit-planes should appear in the layered hierarchy
+of the overall bit stream, based upon rate-distortion criteria. A simple implementation of progressive visual weighting
+changes the distortion metric progressively based on the visual weights during bit stream formation. Since bit stream
+formation is driven by post-compression R-D optimization, progressively changing visual weights effectively controls
+the embedding order of code-block sub-bit-planes on the fly.
+
+J.11.4    Recommended frequency weighting tables
+Table J.24 specifies three sets of CSF weights which were designed for the luminance component based on the CSF value
+at the mid-frequency of each sub-band. The viewing distance is supposed to be 1000, 2000 and 4000 samples (e.g.,
+
+
+188         Rec. ITU-T T.800 (11/2015)
+                                                                                                      ISO/IEC 15444-1:2016 (E)
+
+corresponding to 10 inches for 100 dpi, 200 dpi and 400 dpi print or display), respectively. Note that the tables are intended
+for a 5-level wavelet decomposition.
+Table J.24 does not include the weight for the lowest frequency sub-band, nLL, which is always 1. Levels 1, 2, …, 5
+denote the sub-band levels in low to high frequency order. (HL, LH, HH) denotes the three frequency orientations within
+each sub-band.
+
+                                       Table J.24 – Recommended frequency weighting
+
+                       Viewing distance 1000                 Viewing distance 2000                    Viewing distance 4000
+   Level
+                  HL           LH             HH        HL            LH             HH          HL            LH         HH
+       1           1            1              1         1             1             1            1             1             1
+       2           1            1              1         1             1             1            1             1       0.731 668
+       3           1            1              1         1             1       0.727 203      0.564 344     0.564 344   0.285 968
+       4           1            1        0.727 172   0.560 841     0.560 841   0.284 193      0.179 609     0.179 609   0.043 903
+       5       0.560 805     0.560 805   0.284 173   0.178 494     0.178 494   0.043 631      0.014 774     0.014 774   0.000 573
+
+For colour images, the frequency weighting tables of the Y, Cr and Cb components should differ in order to take advantage
+of the properties of the human visual system. For example, it is usually desirable to emphasize the luminance component
+more than the chrominance components. Table J.25 specifies three sets of CSF weights for luminance and chrominance
+components.
+
+               Table J.25 – Recommended frequency weighting for multiple component (colour) images
+
+   C       L          Viewing distance 1000                  Viewing distance 1700                    Viewing distance 3000
+   o       e
+   m       v     HL            LH          HH           HL           LH          HH              HL           LH          HH
+   p
+  Y        1      1             1              1         1            1              1            1            1              1
+ (Y0)
+           2      1             1              1         1            1              1            1            1              1
+           3      1             1              1         1            1              1        0.921 045    0.921 045    0.848 324
+           4 0.998 276     0.998 276     0.996 555   0.861 593    0.861 593    0.742 342      0.410 628    0.410 628    0.182 760
+           5 0.756 353     0.756 353     0.573 057   0.307 191    0.307 191    0.108 920      0.038 487    0.038 487    0.003 075
+  Cb       1 0.883 196     0.883 196     0.833 582   0.818 766    0.818 766    0.745 875      0.717 086    0.717 086    0.613 777
+ (Y1)
+           2 0.793 487     0.793 487     0.712 295   0.689 404    0.689 404    0.579 220      0.539 437    0.539 437    0.403 353
+           3 0.650 482     0.650 482     0.531 700   0.501 652    0.501 652    0.362 279      0.319 773    0.319 773    0.185 609
+           4 0.450 739     0.450 739     0.309 177   0.280 068    0.280 068    0.152 290      0.124 021    0.124 021    0.044 711
+           5 0.230 503     0.230 503     0.113 786   0.097 816    0.097 816    0.031 179      0.023 308    0.023 308    0.003 413
+  Cr       1 0.910 877     0.910 877     0.872 378   0.860 885    0.860 885    0.803 172      0.780 091    0.780 091    0.695 128
+ (Y2)
+           2 0.841 032     0.841 032     0.776 180   0.757 626    0.757 626    0.665 951      0.631 632    0.631 632    0.509 729
+           3 0.725 657     0.725 657     0.625 103   0.598 537    0.598 537    0.470 893      0.428 659    0.428 659    0.287 593
+           4 0.552 901     0.552 901     0.418 938   0.388 492    0.388 492    0.248 566      0.211 871    0.211 871    0.100 658
+           5 0.336 166     0.336 166     0.200 507   0.177 435    0.177 435    0.077 130      0.060 277    0.060 277    0.014 977
+
+
+J.12       Encoder sub-sampling of components
+It has become common practice in some compression applications to utilize component sub-sampling in conjunction with
+certain decorrelating transforms. A typical example is the use of an RGB to YCrCb decorrelation transformation followed
+by sub-sampling of the chrominance (Cr, Cb) components. While this is an effective way to reduce the amount of image
+data to encode for DCT-based compression algorithms (Rec. ITU-T T.81 | ISO/IEC 10918-1), it is not recommended for
+use in this Recommendation | International Standard.
+The multi-resolution nature of the wavelet transformation described in this Recommendation | International Standard may
+be used to achieve the same effect as that obtained from component sub-sampling. For example, if the 1HL, 1LH, and
+1HH sub-bands of a component's wavelet decomposition are discarded and all other sub-bands retained, a 2:1
+sub-sampling has been achieved in the horizontal and vertical dimensions of the component. This technique provides the
+same benefits as explicitly sub-sampling the component prior to any wavelet transform.
+
+
+
+                                                                                          Rec. ITU-T T.800 (11/2015)              189
+ISO/IEC 15444-1:2016 (E)
+
+Furthermore, it frequently proves to be beneficial in terms of image quality to retain a few of the wavelet coefficients in
+the 1HL, 1LH, 1HH sub-bands, while still discarding the vast majority. In such cases the number of coefficients is still
+approximately reduced 2:1, but the resultant decoded imagery will exhibit better quality with fewer compression artefacts.
+Using a sub-sampling technique denies encoders from making such choices and can impair decoded image quality.
+
+J.13      Rate control
+Rate control is useful for meeting a particular target bit-rate or transmission time. Rate control assures that the desired
+number of bytes is used by the codestream while assuring the highest image quality possible.
+
+J.13.1    Introduction to key concepts for rate control
+Divide each sub-band into code-blocks of samples which are coded independently. Since every code-block is coded
+completely independently using exactly the same algorithm in every sub-band, the association between sub-bands and
+code-blocks can be ignored for the moment and let {Bi}i=1,2,... denote the set of all code-blocks which represent the image.
+For each code-block, Bi, a separate bit-stream is generated without utilizing any information from any of the other code-
+blocks. Moreover, the bit-stream has the property that it can be truncated to a variety of discrete lengths Ri1, Ri2 , Ri3 , ...
+, and the distortion incurred when reconstructing each of these truncated subsets is estimated and denoted by
+Di1, Di2 , Di3 , ... The mean squared error distortion metric is often used, but this is not necessary. During the encoding
+process, the lengths, Rin , and the distortions, Din , are computed and temporarily stored in a compact form with the
+compressed bit-stream itself.
+Once the entire image has been compressed, a post-processing operation passes over all the compressed code-blocks and
+determines the extent to which each code-block's embedded bit-stream should be truncated in order to achieve a particular
+target bit-rate, distortion bound or other quality metric. More generally, the final bit-stream is composed from a collection
+of so-called “layers,” where each layer has an interpretation in terms of overall image quality. The first, lowest quality
+layer, is formed from the optimally truncated code-block bit-streams in the manner described above. Each subsequent
+layer is formed by optimally truncating the code-block bit-streams to achieve successively higher target bit-rates,
+distortion bounds or other quality metrics, as appropriate, and including the additional code words required to augment
+the information represented in previous layers to the new truncation points. These layered bit-stream concepts are
+discussed further in J.13.2.
+
+J.13.2    Layered bit-stream abstraction
+An important aspect is the manner by which the encoder forms a final bit-stream from the independent embedded
+bit-streams generated for every code-block. The bit-stream formation problem is very much simplified when the coder
+operates on entire sub-bands at a time, since the additional spatial organization imposed by independent code-blocks does
+not exist.
+Basically, the bit-stream is organized as a succession of layers, where each layer contains the additional contributions
+from each code-block (some contributions may be empty), as illustrated in Figure J.12. The code-block truncation points
+associated with each layer are optimal in the rate-distortion sense, which means that the bit stream obtained by discarding
+a whole number of least important layers will always be rate-distortion optimal. If the bit stream is truncated part way
+through a layer then it will not be strictly optimal, but the departure from optimally can be small if the number of layers
+is large. As the number of layers is increased so that the number of code bytes in each layer is decreased, the rate-distortion
+slopes associated with all code-block truncation points in the layer will become increasingly similar; however, the number
+of code-blocks which do not contribute to the layer will also increase so that the overhead associated with identifying the
+code-blocks which do contribute to the layer will increase. In practice, it is found that optimal compression performance
+for SNR progressive applications is achieved when the number of layers is approximately twice as large as the number of
+sub-bit-plane passes made by the entropy coder. The boundaries of the sub-bit-plane passes are also the truncation points
+for each code-block's embedded bit-stream. Consequently, on average each layer contains contributions from
+approximately half the code-blocks so that the cost of identifying whether or not a code-block contributes to any given
+layer (about 2 bits per code-block) is much less than the cost of identifying a strict order on the code-block contributions.
+Moreover, the relative contribution of this overhead to the overall bit-rate is independent of the size of the image.
+Figure J.12 is an illustration of code-block contributions to bit-stream layers. Only five layers are shown with seven code-
+blocks, for simplicity. Notice that not all code-blocks need contribute to every layer and that the number of bytes
+contributed by code-blocks to any given layer is generally highly variable. Notice also that the code-block coding
+operation proceeds vertically through each code-block independently, whereas the layered bit-stream organization is
+horizontal, distributing the coding passes of the code-block to the various layers.
+
+
+
+
+190         Rec. ITU-T T.800 (11/2015)
+                                                                                                        ISO/IEC 15444-1:2016 (E)
+
+                       block 1       block 2     block 3      block 4           block 5        block 6       block 7
+                      bit–stream   bit–stream   bit–stream   bit–stream        bit–stream     bit–stream   bit–stream
+
+
+                                     empty                         empty
+           layer 5
+
+
+
+
+                        empty                     empty                                         empty
+           layer 4
+
+
+
+                                                                                 empty                      empty
+           layer 3
+
+
+
+
+           layer 2
+
+
+
+                                                  empty
+           layer 1                                                                                              T.800_FJ-12
+
+
+                      Figure J.12 – Illustration of code-block contributions to bit-stream layers
+
+J.13.3    Rate-distortion optimization
+The rate-distortion algorithm described here is justified only, provided that the distortion measure adopted for the
+code-blocks is additive. That is, the distortion, D, in the final reconstructed image should satisfy:
+
+                                                          D    Din   i                                                      (J-11)
+                                                                   i
+
+where ni is the truncation point for code-block Bi. Subject to suitable normalization, this additive property is satisfied by
+the mean squared error (MSE) and weighted MSE (e.g., visually weighted MSE), provided the wavelet transformation is
+orthogonal. Additivity also holds if the quantization errors for individual sample values are uncorrelated, regardless of
+whether or not the transformation is orthogonal. In practice, the transformation is usually only approximately orthogonal
+and the quantization errors are not completely uncorrelated, so even squared error metrics are only approximately additive,
+but this is usually good enough. Let R denote the number of code bytes associated with a layer in the bit-stream (and all
+preceding layers). Then, for a set of truncation points, ni:
+
+                                                          R    Rin   i                                                      (J-12)
+                                                                   i
+
+The need is to find the set of ni values which minimizes D subject to the constraint R  Rmax. Constrained optimization
+problem by the method of Lagrange multipliers is a well-known solution to this problem. Specifically, the problem is
+equivalent to minimizing:
+
+                                                        Rin  Din 
+                                                               i           i                                                  (J-13)
+
+where the value of  must be adjusted until the rate yielded by the truncation points which minimize Equation (J-13)
+satisfies R = Rmax. There is no simple algorithm which can yield a globally optimal set of truncation points in general.
+However, any set of truncation points, ni, which minimizes Equation (J-13) for some  is guaranteed to be optimal in the
+sense that minimum distortion is achieved at the corresponding bit-rate. If the largest value of  is found such that the set
+of truncation points, ni, obtained by minimizing Equation (J-13), yields a rate R  Rmax, then it is not possible to find any
+set of truncation points which will yield a smaller overall distortion and a rate which is less than or equal to R. In practice,
+it is found that it is usually possible to find values of , such that R is very close to Rmax (almost always within 100 bytes),
+so that any residual deviation of the optimal , which would meet R = Rmax exactly, is of little concern.
+
+
+
+
+                                                                                            Rec. ITU-T T.800 (11/2015)          191
+ISO/IEC 15444-1:2016 (E)
+
+Returning now to the problem of minimizing the expression in Equation (J-13), it is a separate optimization problem for
+each individual code-block. Specifically, for each code-block, Bi, the truncation point, ni, needs to be found which
+               n            n
+                                 
+minimizes Ri i  Di i . A simple algorithm to do this is as follows:
+
+Set ni = 0 (i.e., no information included for the code-block)
+For k = 1,2,3,...
+                         n                        n
+Set  Rik  Rik  Ri i and  Dik  Dik  Di i
+
+                   
+If  Dik /  Rik  1 then set ni = k
+
+Since this algorithm might need to be executed for many different values of , it makes sense to first identify the subset,
+Ni, of thresholds such that the rate-distortion slope values, Sik   Dik /  Rik , are monotonically decreasing with k, for
+all k in Ni. Specifically, a suitable algorithm for determining Ni is as follows:
+          1)    Set Ni = {n}, i.e., the set of all truncation points.
+          2)    Set p = 0
+          3)    For k = 1, 2, 3, 4,...
+                If k belongs to Ni
+                                             p                  p
+                        Set  Rik  Rik  Ri and  Dik  Di  Dik
+
+                        Set Sik   Dik /  Rik
+                                         p
+                If p  0 and Sik  Si then remove p from Ni and go to step (2)
+                Otherwise, set p = k
+Once this information has been pre-computed, the optimization task for any given  is simply to set P equal to the largest
+k in Ni such that Sik  1 . Clearly,  may be interpreted as a quality parameter, since larger values of  correspond to
+less severe truncation of the code-block bit streams; its inverse may be identified as a rate-distortion slope threshold.
+
+The set Ni and the slopes S ik are computed immediately after code-block Bi is coded, and enough information to later
+determine the truncation points which belong to Ni and the corresponding Rik and S ik values during the rate-distortion
+optimization phase is stored. This information is generally smaller than the bit-stream itself which is stored for the code-
+block.
+
+J.13.4    Efficient distortion estimation for R-D optimal truncation
+The candidate truncation points for the embedded bit-stream representing each code-block correspond to the conclusion
+of each coding pass. During compression, the number of bytes, Rin , required to represent all coded symbols up to each
+truncation point, n, as well as the distortion, Dik , incurred by truncating the bit stream at each point, n, must be assessed.
+Actually, distortion estimation is not strictly necessary to generate a legal decompressible bit-stream, but it is important
+to the success of the rate-distortion optimization algorithm described in J.13.3.
+
+J.13.4.1 Considerations for non-reversible transformations
+The rate-distortion optimization algorithm described in J.13.3 depends only on the amount by which each coding pass
+reduces the distortion. Specifically, if Di0 denotes the distortion incurred by skipping the code-block altogether
+                                                                    n   n 1
+(i.e., setting all samples to zero), then only the differences, Di  Di        , need to be computed for n = 1, 2, 3,... It turns
+out that this computation can be performed with the aid of two small look-up tables which do not depend upon the coding
+pass, bit-plane or sub-band involved. To see this, let i 2i denote the contribution to distortion in the reconstructed
+image which would result from an error of exactly one step size in a single sample from code-block Bi. Here i is a
+positive weight, which is computed from the L2 norm of the relevant sub-band's wavelet synthesis waveform and may,
+additionally be modified to reflect visual weighting or other criteria. Now define:
+
+
+
+
+192         Rec. ITU-T T.800 (11/2015)
+                                                                                                         ISO/IEC 15444-1:2016 (E)
+
+                                                                          2  p vi m, n
+                                        vip m, n  2  p vi m, n  2                                                 (J-14)
+                                                                                 2       
+
+Thus, vip m, n holds the normalized difference between the magnitude of sample si[m, n] and the largest quantization
+threshold in the previous bit-plane which was not larger than the magnitude. It is easy to verify that 0  vip m, n  2 .
+Although si[m, n] is actually a quantized integer quantity, we will allow for the fact that the quantizer can supply fractional
+bits for si[m, n] and hence vi[m, n], which can be used in Equation (J-14) to produce accurate estimates of the distortion
+associated with coding passes in the less significant bit-planes. Now when a single sample first becomes significant in a
+given bit-plane, p, we must have vi m, n  2 p and hence vip m, n  1 and the reduction in distortion may be expressed
+as:
+
+
+                                                                                             
+                      2 2 p i 2i vip m, n 2  vip m, n  1,5 2  2 2 p i 2i f s vip m, n                        (J-15)
+
+
+provided the representation levels used during inverse quantization are midway between the quantization thresholds. Also,
+the reduction in distortion which may be attributed to magnitude refinement of a sample in bit-plane p may be expressed
+as:
+
+
+                                                                               
+                     2 2 p i 2i vip m, n  1 2  vip m, n  0,5  v 2  2 2 p i 2i f m vip m, n                (J-16)
+
+
+Thus, the reduction in distortion incurred during a single coding pass may be computed by summing the outputs of one
+of two different functions, fs(.) or fm(.) as appropriate, whenever a sample becomes significant or its magnitude is refined
+and then scaling the result at the end of the coding pass by a constant value which is easily computed from the bit-plane
+index and the value of i 2i . The argument to these functions, vip m, n , has a binary representation of the form v.xxxxx,
+where v, the only bit before the binary point, is simply the value of magnitude bit p, i.e., vip m, n . Exactly 6 extra bits
+beyond the binary point are used to index a 7-bit look-up table for fm(.) and a 6-bit look-up table for fs(.) (recall that we
+must have 1  vip m, n  2 when a sample first becomes significant). Each entry of these look-up tables holds a 16-bit
+                                                                            
+fixed point representation of 213 f s vip m, n or 213 f m vip m, n , as appropriate, which means that the total
+distortion reduction associated with any given coding pass may be computed by accumulating these integer values into a
+32-bit accumulator, without any risk of overflow.
+
+J.13.4.2 Considerations for reversible transformations
+Generally, the process for estimating distortion whilst encoding the coefficients produced by a reversible transformation
+is no different to that for a non-reversible transformation. There are however, two subtle differences which must be pointed
+out here. Equations (J-15) and (J-16) are based upon the assumption that the dequantizer will represent each coefficient
+with the mid-point of the relevant quantization interval. This is the most likely behaviour for the quantizer most of the
+time, except for the least significant bit-plane in the reversible mode. In this case ∆i = 1, with no quantization error;
+midpoint reconstruction makes no sense here and the dequantizer represents the transform coefficients using the lower
+(in magnitude) threshold of the relevant quantization interval. Accordingly, Equations (J-15) and (J-16) should be
+modified to:
+
+                                                                                   
+                                      22 p i 2i vip m, n2  22 p i 2i f m´ vip m, n                               (J-17)
+
+and:
+                                                                                      
+                                22 p i 2i vip m, n  1 2  22 p i 2i f m´ vip m, n                                (J-18)
+
+respectively.
+
+
+
+
+                                                                                            Rec. ITU-T T.800 (11/2015)       193
+ISO/IEC 15444-1:2016 (E)
+
+J.14     Guidelines on handling YCC codestream
+There are numerous applications and devices in both still and motion consumer imaging that cannot be considered without
+support for YCC and direct production of sub-sampled chrominance data. In such cases, the signalling of multiple
+component transformation within the codestream may not be necessary. This clause provides guidelines on how to handle
+YCC data.
+However, it is not intended to imply that YCC data shall be sub-sampled.
+
+J.14.1   Use of multiple component transformation
+It is not necessary to use the multiple component transformation in order to support YCC data as the components are
+already decorrelated. Therefore, the multiple component transformation signal of the SGcod parameter defined in
+Table A.17 shall always be "0000 0000".
+
+J.14.2   Using the JP2 format
+There are devices that will automatically output component transformed YCC data in an sYCC colourspace. The JP2
+format supports these cases by specifying the EnumCS value to "18" as defined in Table I.10.
+
+J.14.3   Chrominance offset
+Chrominance offset (a common term for the sub-sampling of chrominance components and their relative offsets) is
+specified in a JPEG 2000 codestream using the CRG marker (see A.9.1). Figures J.13, J.14, J.15 and J.16 shows examples
+of well-known chrominance offset patterns. Table J.26 shows example SIZ (see A.5.1) and CRG maker segment
+parameter values for each pattern.
+
+                                                                       Reference grid       CrCb
+                                                                                            Y
+                                                                                            YCrCb
+
+
+
+
+                                                                   T.800_FJ-13
+
+
+                                        Figure J.13 – 4:2:2 format (co-sited)
+
+                                                                       Reference grid      CrCb
+                                                                                           Y
+                                                                                           YCrCb
+
+
+
+
+                                                                   T.800_FJ-14
+
+
+                                        Figure J.14 – 4:2:2 format (centred)
+
+
+
+
+194        Rec. ITU-T T.800 (11/2015)
+                                                                                                        ISO/IEC 15444-1:2016 (E)
+
+                                                                              Reference grid            CrCb
+                                                                                                        Y
+                                                                                                        YCrCb
+
+
+
+
+                                                                         T.80FJ0_-15
+
+
+                                           Figure J.15 – 4:2:0 format (co-sited)
+
+                                                                                                        CrCb
+                                                                              Reference grid
+                                                                                                        Y
+                                                                                                        YCrCb
+
+
+
+
+                                                                         T.800_FJ-16
+
+
+                                           Figure J.16 – 4:2:0 format (centred)
+
+                                   Table J.26 – CRG (Component registration) values
+
+                                           Figure J.13            Figure J.14             Figure J.15             Figure J.16
+       Y          (XRsiz, YRsiz)              (2, 2)                 (2, 2)                    (2, 2)                (2, 2)
+                  (XOsiz, YOsiz)              (0, 0)                 (0, 0)                    (0, 0)                (0, 0)
+                   (Xcrg, Ycrg)               (0, 0)                 (0, 0)                    (0, 0)                (0, 0)
+       Cb         (XRsiz, YRsiz)              (4, 2)                 (4, 2)                   (4, 4)                  4, 4)
+                  (XOsiz, YOsiz)              (0, 0)                 (0, 0)                   (0, 0)                 (0, 0)
+                   (Xcrg, Ycrg)               (0, 0)              (16 384, 0)              (0, 16 384)          (16 384, 16 384)
+       Cr         (XRsiz, YRsiz)              (4, 2)                 (4, 2)                    4, 4)                  4, 4)
+                  (XOsiz, YOsiz)              (0, 0)                 (0, 0)                   (0, 0)                 (0, 0)
+                   (Xcrg, Ycrg)               (0, 0)              (16 384, 0)              (0, 16 384)          (16 384, 16 384)
+ NOTE – The CRG value is defined so that all component samples shall be located in the reference grid points. Therefore, (XRsiz,
+ YRsiz) = (2, 2) for Y does not mean samples of Y are also sub-sampled.
+
+
+J.15        Guidelines for digital cinema applications
+This clause is intended as guidelines for the usage of JPEG 2000 in the framework of digital cinema applications. It is
+split into four parts: the first is dedicated to multicast transmission; the second presents the recommended visual frequency
+weightings for the digital cinema environment; the third deals with the use of JPEG 2000 for film archive applications,
+and finally the fourth gives guidelines for digital cinema distribution.
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)               195
+ISO/IEC 15444-1:2016 (E)
+
+J.15.1    Reliable multicast transmission of JPEG 2000 codestreams
+
+J.15.1.1 Introduction
+Digital cinema (D-Cinema) content may be delivered to movie theatres by using several communication channels, and
+many of them can be wireless, such as, DVB-T [50], DVB-S [51], and WiMAX [52]. The destination of the video contents
+in this case, can also (at reduced resolution/quality) be a mobile user, such as, an audience located on a train or bus.
+In addition to the file transfer approach already used for digital cinema transfer to movie theatres, the use of streaming
+would allow for applications such as live events exhibition and (Near) movie on demand (in this case, however, additional
+methods for the reduction of the bit rate must be adopted).
+The delivery of JPEG 2000 compressed video is a well-known challenge for wireless IP networks. In the case of the
+Transmission Control Protocol (TCP), the variable delay is unacceptable for many types of real-time applications.
+D-Cinema will introduce even more stringent conditions, in terms of both the required bandwidth and high quality
+demand.
+Concerning the distribution, the requirements can be specified in the following terms:
+          –      low required bandwidth occupancy, not only of the JPEG 2000 compressed content itself, but also
+                 considering some signalling overhead;
+          –      reliable transmission of the content, by use of forward error correction (FEC) techniques and/or selective
+                 retransmission of lost data (selective ARQ).
+A possible solution can be that of adopting a multicast protocol, which can be adapted to the high bit rate and low packet
+loss rate necessary for the distribution of D-Cinema content. If using multicast transmission, a reliable protocol could be
+used, which guarantees the sender that every receiver has a copy equal to the original. NORM protocol [56] can be a
+viable solution for such needs: it uses a NACK-oriented reliable multicast, achieving reliability by means of negative
+ACKs that are sent back from the receivers to the sender. In addition, it is possible to specify even a small FEC layer,
+which reduces the retransmission rate at the expense of an added overhead.
+Moreover, in the case of multicast transmission of JPEG 2000 codestreams, there are some constraints in limited network
+bandwidth or in the capabilities of mobile devices. Consequently, new mechanisms are required to distribute D-cinema
+content to local movie theatres and high-end mobile users via wireless networks under the constrained conditions. In
+forwarding packets to a mobile user, an intermediate distributor may have such functions as adjusting the image quality
+or resolution for purposes of network bandwidth, network convergence, or limited capability of mobile devices.
+
+J.15.1.2 Distribution model
+Figure J.17 shows a possible scenario for content distribution. Different users, with different quality
+requirements/capabilities may be foreseen. In this scenario, an intermediate distributor is required with the role of
+adaptation of resolution/quality for forwarding capabilities.
+In Figure J.17, cinema content is transmitted from the production site (for example, studio post-production house) to
+regional movie theatres through satellite links. After that, a resolution or quality level is extracted from the original content
+and is distributed to local movie theatres, high-end mobile users, home and low-end mobile users by wireless networks
+such as DVB-T, WiMAX and WLAN (IEEE 802.11n) [54].
+
+                                                       Production
+                                                          site
+                                                                             Intermediate distributor
+                                                         satellite
+
+                                            Regional                 Regional            Resolution/quality
+                                             theatre                  theatre            reduction
+
+                             WiMAX               WiMAX                   WiMAX       WLAN (IEEE 802.11)
+
+                               Local        High-end                                Low-end
+                              theatre      mobile user                Home
+                                                                                   mobile user
+                                                                                     T.800-Amd.4(11)_FJ-17
+
+
+                           Figure J.17 – Distribution scenario for D-Cinema and live events
+
+
+
+
+196           Rec. ITU-T T.800 (11/2015)
+                                                                                                     ISO/IEC 15444-1:2016 (E)
+
+There are mainly three main problems in network delivery:
+          1)    limited bandwidth;
+          2)    convergence;
+          3)    packet loss.
+In forwarding a digital cinema stream to mobile users, an intermediate distributor such as a regional movie theatre might
+have functions of adjusting the image quality or resolution for the purpose of network bandwidth, network convergence,
+or the capability of mobile devices.
+
+J.15.1.3 Multicast protocol overview
+NORM (NACK oriented reliable multicast) is a multicast protocol designed to provide end-to-end reliable multicast
+transfer. This protocol uses generic IP multicast capabilities, and on top of this ittries to achieve a reliable transfer using
+NACKs (negative acknowledgments). It can work both on a reciprocal multicast network (i.e., wireless or wired LAN)
+or a unidirectional link (such as a unidirectional satellite); in this way, it can satisfy all of the transmission needs for digital
+cinema distribution [53].
+NORM repair capabilities are based on the use of negative acknowledgments (NACKs), sent from the receivers to the
+sender upon detection of an erroneous or missing packet. The sender transmits packets of data, segmented according to a
+precise strategy, each of which is identified by symbol numbers. As a receiver detects a missing packet, it initiates a repair
+request with a NACK message. Upon receipt of the NACKs, the sender prepares the appropriate repair messages, using
+FEC blocks. Each receiver can reinitiate a repair procedure if it does not receive repair blocks.
+Feedback suppression is applied, using a random back-off algorithm; each receiver, before sending a NACK for a certain
+packet, waits for a random-duration interval, during which it senses the medium and checks if other receivers requested
+a repair for the same packet; if so, it discards the NACK, otherwise it sends it and waits for the repair bits. When the
+sender receives the NACK, it enqueues repair bits (or the entire lost packet). Feedback suppression works efficiently in
+this protocol, and can achieve good results.
+NACK packets can be sent both in multicast or unicast mode, using the sender's address. In the second case, feedback
+suppression can be achieved using multicast advertising messages, sent from each sender, which allow the receivers to
+know which packets have a pending repair request.
+A NORM sender can even autonomously add FEC parity bits to each packet, thus enabling the receiver to correct errors
+and recover losses without starting a NACK procedure.
+
+
+
+
+                                                                                        Rec. ITU-T T.800 (11/2015)             197
+ISO/IEC 15444-1:2016 (E)
+                           Sender                              Receiver
+
+
+                            Start
+
+
+
+
+                     Enqueue segmented                    Received packet in
+                       data uniquely
+                                                       order and without errors?
+                         identified
+
+                                                                                          Yes
+                                                                    No
+
+
+                                                             Start NACK                   Accept
+                                                              procedure                   packets
+
+
+
+
+                                                            Wait random
+                                                           Back-off interval
+
+
+
+
+                                                            NACK sent for
+                                                           the same packet?
+
+                                                                                          Yes
+                                                                    No
+
+
+                                                           Send a multicast            Wait for repair
+                                                               NACK                       packet
+
+
+                    Stop sending data and
+                       enqueue repair
+                          packet(s)
+
+
+                                                            Repair packet
+
+
+
+
+                                                                 End
+                                                                                            T.800-Amd.4(11)_FJ.18
+
+
+                               Figure J.18 – Sender and receiver sequence of operations
+
+
+Figure J.18 shows a sequence of operations performed by a NORM sender and receiver during the normal transmission
+session. The sender node enqueues data packets, segmented according to parameters that can be changed by the user to
+accommodate for particular needs; in this case, JPEG 2000 codestreams are encapsulated and an additional header is
+included at the end of the NORM packet header. It also periodically enqueues control messages, such as round-trip
+collection and rate congestion control feedback.
+Each receiver controls if the packet is in order and error-free; in this case, it accepts the packet and passes it to the
+destination application. Otherwise, it enters the NACK procedure; this consists of picking a random back-off delay, based
+on parameters such as the greatest round-trip delay, usually supplied by the sender, and delaying NACK transmission
+until this interval is passed. In the meantime, if it receives a repair request for the same packet or the repair bits, the NACK
+is dropped; otherwise, it sends the NACK in multicast mode. Sending the NACK in multicast is useful for feedback
+suppression, as described previously.
+
+
+
+198         Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+When the sender receives the NACK, it stops usual data transmission and sends repair packets in the form of a bit sequence
+derived from a Reed-Solomon (RS) code. With these repair bits, receivers are able to recover from transmission errors. If
+a receiver loses a repair packet too, it can resend a new NACK for the same packet after waiting for a new back-off
+interval.
+
+J.15.1.4 Packetization strategy
+To achieve a correct delivery of the DC content to all users, the JPEG 2000 video content must be carefully split into
+network packets that will be sent via the multicast protocol. To this purpose, three main procedures are needed:
+          1)     preparation of the JPEG 2000 codestream (J2K);
+          2)     splitting of codestreams into network packets;
+          3)     adaptation of the multicast protocol packet header to J2K contest.
+
+J.15.1.4.1 J2K codestream preparation
+In the first stage, the J2K codestream is split into many pieces to be combined with the NORM header and UDP header
+as shown in Figure J.19. As a result, the network packet consists of the UDP header, the NORM header and one part of
+the J2K codestream.
+
+                                                            J2K codestream
+
+                 SOC                                                                                                        EOC
+
+
+
+
+      UDP NORM
+     header header
+                                           UDP NORM
+                                          header header
+                                                                               UDP NORM
+                                                                              header header
+                                                                                                                       ...
+               Network packet (1)                Network packet (2)                    Network packet (3)
+                                                                                                            T.800-Amd.4(11)_FJ-19
+
+
+                                    Figure J.19 – J2K codestream and network packets
+
+
+In this case, the problem is that it is difficult to control the image quality because there is no information on what kinds
+of J2K packets are contained in network packets.
+In order to solve the problem, a kind of J2K packet attribute information on the NORM J2K header is added to the
+following two cases.
+          –      Case 1: An intermediate distributor that can easily control the image quality by discarding the network
+                 packets containing higher layers.
+          –      Case 2: An intermediate distributor that can easily control the image resolution by discarding the network
+                 packets containing higher resolutions.
+The "attribute" concept is provided to indicate the attribute of J2K packets, and it is similar to "Priority" in the JPEG 2000
+RTP format. But "attribute" is simpler. "Attribute" is an incremental number classifying J2K packets by the same layer
+number and resolution level. Every J2K packet has an attribute number (> 0). The main header and tile-part header have
+a special attribute number (= 0).
+There are two types of attribute numbering:
+          –      "Layer-Resolution" attribute numbering
+                 •     applied to LRCP progression order.
+          –      "Resolution-Layer" attribute numbering
+                 •     applied to RLCP, RPCL, PCRL or CPRL progression order.
+
+
+
+
+                                                                                      Rec. ITU-T T.800 (11/2015)                    199
+ISO/IEC 15444-1:2016 (E)
+
+J.15.1.4.1.1        <Type-1> "Layer-Resolution" attribute numbering
+J2K packets are grouped by the layer and the resolution (Figure J.20).
+
+                             J2K pkts. of J2K pkts. of               J2K pkts. of                    J2K pkts. of
+       SOC
+              Main Tile-part Layer 0 and Layer 0 and
+             header header
+                                                              . . . Layer 0 and      ......        Layer (L 1) and     EOC
+                               Resol. 0     Resol. 1                Resol. (R 1)                  Resol. (R 1)
+
+                                                    Layer 0                                     Layer (L 1)
+                                                                                                        T.800-Amd.4(11)_FJ-20
+
+
+                                    Figure J.20 – Attribute numbering (Layer-Resolution)
+
+
+In "Layer-Resolution" attribute numbering, the attribute number is calculated as (layer number) * (number of resolution
+levels) + (resolution level) + 1.
+The attribute numbering can be applied for J2K codestream (LRCP).
+For example:
+             –      The attribute number of J2K packets belonging to "Layer 0 and Resolution 0" is 1.
+             –      The attribute number of J2K packets belonging to "Layer 0 and Resolution 1" is 2.
+                    …
+             –      The attribute number of J2K packets belonging to "Layer l and Resolution r" is "l * R + r + 1"
+                    …
+             –      The attribute number of J2K packets belonging to "Layer (L – 1) and Resolution (R – 1)" is "L * R"
+
+J.15.1.4.1.2        <Type-2> "Resolution-Layer" attribute numbering
+J2K packets are grouped by the resolution and the layer (Figure J.21).
+
+                             J2K pkts. of J2K pkts. of               J2K pkts. of                     J2K pkts. of
+      SOC
+              Main Tile-part Layer 0 and Layer 1 and
+             header header
+                                                           . . . Layer (L  1)      ......         Layer (L 1) and     EOC
+                               Resol. 0     Resol. 0                and Resol. 0                     Resol. (R 1)
+
+                                                  Resolution 0                                Resolution (R 1)
+                                                                                                          T.800-Amd.4(11)_FJ-21
+
+
+                                    Figure J.21 – Attribute numbering (Resolution-Layer)
+
+
+In "Resolution-Layer" attribute numbering, the attribute number is calculated as "(resolution number) * (number of layers)
++ (layer number) + 1".
+The attribute numbering can be applied for J2K codestreams (RLCP, RPCL, PCRL or CPRL).
+For example:
+             –      The attribute number of J2K packets belonging to "Layer 0 and Resolution 0" is 1.
+             –      The attribute number of J2K packets belonging to "Layer 1 and Resolution 0" is 2.
+                    …
+             –      The attribute number of J2K packets belonging to "Layer l and Resolution r" is "r * L + l + 1".
+                    …
+             –      The attribute number of J2K packets belonging to "Layer (L – 1) and Resolution (R – 1)" is "L * R".
+
+
+
+
+200              Rec. ITU-T T.800 (11/2015)
+                                                                                                         ISO/IEC 15444-1:2016 (E)
+
+J.15.1.4.2 Network packet and attribute number
+This clause explains the coordinating network packets (Figure J.19) to the J2K codestream. The J2K codestream in Figure
+J.22 is of the "Layer-Resolution" type, as shown in Figure J.20.
+
+       J2K Codestream
+                                                                          J2K pkts. of                             J2K pkts. of
+               Main Tile-part J2K pkts. of J2K pkts. of         ...                          ......
+        SOC   header header Layer 0 and Layer 0 and
+                                                                          Layer 0 and                            Layer (L  1) and      EOC
+                                Resol. 0     Resol. 1                    Resol. (R 1)                           Resol. (R  1)
+
+                                                       Layer 0                                              Layer (L 1)
+
+
+       Network packets
+
+        HDR                                   HDR
+
+
+
+
+                         The network packet contains attribute                The network packet contains attribute
+   UDP header +        numbers from 0 (J2K headers) to attribute             numbers from 1 (J2K packets of layer 0
+   NORM header           number 1 (J2K packets of layer 0 and                 and resolution 0) to attribute number
+                                     resolution 0)                       R (J2K packets of layer 0 and resolution (R 1))
+                                                                                                                         T.800-Amd.4(11)_FJ-22
+
+
+                                    Figure J.22 – Network packet and attribute number
+
+J.15.1.4.3 Multicast protocol header format
+It is important that the sender and the receiver jointly minimize the probability of retransmissions; this can be done by
+making them aware of the underlying codestream-based file structure. A number of fields can be added to the base NORM
+protocol header, based on the fields utilized by the JPEG 2000 RTP streaming protocol.
+
+                                                                                                     Attribute
+                                                                                                   extension flag
+
+
+                       Main version         Version              Type          Reserved      X
+                         Reserved          Packet ID                    Secondary ID
+
+
+                                                       Offset
+
+                                                    Image number
+                                                    Image length
+                       Attribute type        FROM                  TO             Reserved
+                                                                                                 T.800-Amd.4(11)_FJ-23
+
+
+                        Figure J.23 – Format of the header used for JPEG 2000 packetization
+
+
+A tabular view of the additional header fields is presented in Figure J.23; their meaning and aim are as follows:
+          –     main version (8 bits): it is always set to 0xCB. If the received packet has a different value for this field, it
+                is discarded.
+          –     version (8 bits): minor version of the protocol, currently 1. Any packet with a different minor version is
+                discarded from the receiver.
+          –     type (8 bits): it indicates the kind of transfer; in particular, it is related to the format of the codestream-
+                containing file. Currently, it can be set to 0xF1 when a set of .j2c files (raw codestreams) is sent or to 0xF6
+                if a single .mj2 video file (wrapped file format) is being transferred. Unrecognized types would result in
+                packet discarding.
+          –     X (1 bit): attribute extension flag, attribute extensions are valid only if X = 1.
+
+
+                                                                                          Rec. ITU-T T.800 (11/2015)                       201
+ISO/IEC 15444-1:2016 (E)
+
+             –      packet ID (8 bits): if a single codestream is fragmented at the sender, it indicates the progressive number
+                    of the transmission. This is especially useful when transmitting large codestreams, which can be divided
+                    into smaller portions at the data packet boundary. This is used for packet reordering upon receiving and
+                    checking missing packets.
+             –      secondary ID (16 bits): it can be used to order different tracks inside a video file, or to differentiate among
+                    video, audio and synchronization data.
+             –      image number (32 bits): progressive number of image (i.e., codestream) in a movie. This is used to
+                    reconstruct the video file in the correct order, and to check for the correct receiving of packets.
+             –      offset (64 bits): it represents the offset of the first data in this packet, starting from the beginning of the
+                    file; it is directly expressed in bytes (since DC video content files can be as large as 250 GB, 8 bytes are
+                    necessary for seeking). The receiver uses the value carried by this file for correctly placing the received
+                    packet in the destination file.
+             –      image length (32 bits): it denotes the total length of the codestream containing the image, expressed in
+                    bytes. It is used to check if the image has been completely received.
+             –      attribute type (8 bits): 0 denotes "Layer-Resolution" attribute, 1 denotes "Resolution-Layer" attribute, other
+                    values are reserved.
+             –      FROM (8 bits): attribute range, from.
+             –      TO (8 bits): attribute range, to.
+This header is added to each sent multicast packet for identification.
+Figure J.24 is an example of the "attribute header value". In the first NORM J2K extension header, the attribute range is
+from "0" to "1", and in the second header, the attribute range is from "1" to "R".
+
+      J2K codestream (LRCP progression order)
+                             J2K pkts. of J2K pkts. of                  J2K pkts. of                       J2K pkts.of
+       SOC
+              Main Tile-part
+             header header
+                             Layer 0 and Layer 0 and          ...       Layer 0 and      ......          Layer (L  1) and   EOC
+                               Resol. 0     Resol. 1                   Resol. (R  1)                    Resol. (R  1)
+
+                                                        Layer 0                                      Layer (L  1)
+
+
+      Network packets
+
+       HDR                                     HDR
+
+
+
+
+      UDP header + NORM header               UDP header + NORM header
+       Attribute extension header value:       Attribute extension header value:
+       - Attribute type = 0 (LRCP)             - Attribute type = 0 (LRCP)
+       - From = 0 (L_f = 0, R_f = 0)           - From = 1 (L_f = 0, R_f = 0)
+       - To = 1 (L_t = 0, R_t = 0)             - To = R (L_t = 0, R_t = (R  1))                             T.800-Amd.4(11)_FJ-24
+
+
+
+                                               Figure J.24 – Attribute header value
+
+J.15.1.5 Intermediate distributor function
+This clause explains the function of the intermediate distributor. Full quality NORM packets ("L" layers and "R"
+resolutions) will be distributed from the production site to the intermediate distributor, as shown in Figure J.25.
+The following workflow is an example of forwarding network packets to end users:
+             1)     An intermediate distributor determines the number of layers and the number of resolution levels to be
+                    forwarded to the end user by judging from the network bandwidth or display.
+             2)     After that, the distributor defines which network packets are to be forwarded, by using the attribute
+                    information of "FROM" and "TO", in the NORM J2K extension header.
+             3)     Determination of the number of layers and resolution is out of scope in this Recommendation | International
+                    Standard. Instead, a method of how to forward network packets by checking the attribute extension is
+                    presented in the following examples.
+
+
+
+202              Rec. ITU-T T.800 (11/2015)
+                                                                                                              ISO/IEC 15444-1:2016 (E)
+                                                     From production site
+                                                                  Full quality NORM packets
+                                                                  (L layers and R resolution levels)
+                                                            Distributor
+                                                     (e.g., regional theatre)
+
+                              Only 3 layers and 3                            Only 2 layers and 2
+                               resolutions will be                           resolutions will be
+                                        forwarded                            forwarded
+
+                                            Home user                   Mobile user
+                                                                                      T.800-Amd.4(11)_FJ-25
+
+
+                              Figure J.25 – Example of forwarding network packets
+
+
+Figure J.26 shows the procedure of forwarding packets by judging from the network bandwidth or display resolution of
+end users.
+Figure J.27 shows the procedure of determining the attribute extension header value (FROM(R_f and L_f) and TO(R_t
+and L_t)) and forwarding those packets that satisfy the conditional sentence in the "Resolution-Layer" type.
+Figure J.28 shows the procedure of determining the attribute extension header value (FROM(R_f and L_f) and TO(R_t
+and L_t)) and forwarding those packets that satisfy the conditional sentence in the "Layer-Resolution" type.
+
+
+                                                                Start
+
+
+
+
+                                            Judging from network bandwidth or
+                                             display resolution of end users, the
+                                          distributor determines the range of layer
+                                           (L_max) and resolution (R_max) to be
+                                                          forwarded.
+
+
+
+
+                                                         Packet forwarding
+
+
+
+
+                                                                 End
+
+
+                                                                         T.800-Amd.4(11)_FJ-26
+
+
+                           Figure J.26 – Packet forwarding in intermediate distributor
+
+
+
+
+                                                                                                 Rec. ITU-T T.800 (11/2015)       203
+ISO/IEC 15444-1:2016 (E)
+
+
+                                                       Start
+
+
+
+
+                                                Any more network              No
+                                                    packets?
+
+
+                                                           Yes
+
+                                         Calculate layer number and
+                                         resolution level of FROM attribute
+                                         and TO attribute:
+            Skip the packet              - R_f = INT ((FROM  1)/L)
+                                         - L_f = (FROM  1)  R_f * L
+                                         - R_t = INT ((TO  1) /L)
+                                         - L_t = (TO  1)  R_t * L
+
+                                                                                              End
+
+
+                       No              If (L_f  L_max && R_f  R_max ||
+                                         L_t  L_max && R_t  R_max ||
+                                                    R_f  R_t)
+
+
+                                                           Yes
+
+
+                                                Forward the packet
+                                                                                          T.800-Amd.4(11)_FJ-27
+
+
+                              Figure J.27 – Packet forwarding ("Resolution-Layer" type)
+
+
+
+
+204      Rec. ITU-T T.800 (11/2015)
+                                                                                                ISO/IEC 15444-1:2016 (E)
+
+
+                                                          Start
+
+
+
+
+                                                    Any more network            No
+                                                        packets?
+
+
+                                                             Yes
+
+                                           Calculate layer number and
+                                           resolution level of FROM attribute
+                                           and TO attribute:
+              Skip the packet              - L_f = INT ((FROM  1)/R)
+                                           - R_f = (FROM  1)  L_f * R
+                                           - L_t = INT ((TO  1) /R)
+                                           - R_t = (TO  1)  L_t * R
+
+                                                                                                        End
+
+
+                         No              If (L_f  L_max && R_f  R_max ||
+                                           L_t  L_max && R_t  R_max ||
+                                                      L_f  L_t)
+
+
+                                                             Yes
+
+
+                                                  Forward the packet
+                                                                                                    T.800-Amd.4(11)_FJ-28
+
+
+                                Figure J.28 – Packet forwarding ("Layer-Resolution" type)
+
+J.15.2    Implementation guidelines for digital cinema distribution
+
+J.15.2.1 Experimental conditions
+The following clauses explain frequency weightings and quantization steps for the 2K digital cinema obtained in specific
+experimental conditions:
+          –    2K projector calibrated with respect to SMPTE recommendations (see K.9);
+          –    distance between the screen and the observer = 1.5 width of the displayed content.
+
+J.15.2.2 Quantization steps for 2K visually lossless compression
+Table J.27 provides quantization steps for 2K visually lossless compression. The latter are based on perceptual thresholds
+above which transparency (visually lossless) is achieved.
+
+                        Table J.27 – Quantization steps for 2K visually lossless compression
+
+                        Sub-band               C0                      C1                  C2
+                           HL5              0.015625                0.03125             0.0078125
+                           LH5              0.03125                 0.03125             0.0078125
+                           HH5               0.0625                  0.0625             0.046875
+                           HL4             0.00390625              0.0078125           0.00390625
+                           LH4             0.00390625              0.0078125           0.00390625
+                           HH4              0.015625                0.015625            0.0078125
+                           HL3             0.00195313              0.00585938          0.00097656
+                           LH3             0.00195313              0.00390625          0.00048828
+
+
+
+                                                                                     Rec. ITU-T T.800 (11/2015)             205
+ISO/IEC 15444-1:2016 (E)
+
+
+                         Table J.27 – Quantization steps for 2K visually lossless compression
+
+                         Sub-band              C0                     C1                    C2
+                            HH3            0.00195313             0.00390625            0.00390625
+                            HL2            0.00097656             0.00195313            0.00097656
+                            LH2            0.00097656             0.00195313            0.00097656
+                            HH2            0.00097656             0.00195313            0.00195313
+                            HL1            0.00048828             0.00097656            0.00048828
+                            LH1            0.00048828             0.00097656            0.00048828
+                            HH1            0.00048828             0.00195313            0.00048828
+                            LL             0.00048828             0.00097656            0.00048828
+
+J.15.2.3 Visual frequency weighting in digital cinema environment
+The different researches on the Human Visual System propose some models concerning the way that humans discern the
+surrounding world. For example, some models have been created to characterize human sensitivity to brightness and to
+colours, with regard to spatial frequencies. One of these models is the contrast sensitivity function (CSF).
+To describe this function, it is necessary to introduce the notions of contrast threshold and contrast sensitivity. The contrast
+is a basic concept for vision science. It is explained by the fact that the information represented in the visual system does
+not correspond to the absolute brightness level, but to the contrast. The latter is the ratio between the local intensity and
+the average intensity of the whole image. The most representative definitions for contrast are those proposed by Michelson
+and Weber [58]. These definitions have been expressed, for example, from simple experiences on the luminance,
+representing a sine-wave grating in grey level.
+The neurons respond only to stimuli above a given contrast. The necessary contrast to provoke a neuron response is
+defined as the contrast threshold. The inverse of this threshold is called contrast sensitivity. The latter varies with spatial
+and temporal frequencies, which leads to the CSF concept.
+
+
+
+
+                 Figure J.29 – Experience of Campbell and Robson for the construction of the CSF:
+                                 modulation of a sine-wave grating for luminance
+
+
+It is generally admitted that the human eye is more sensitive to spatial low frequencies than to high frequencies. Campbell
+and Robson [59] were the first to try to demonstrate the effect of the CSF with a representation as the one given by Figure
+J.29. The pixels luminance varies in a sine-wave way in the horizontal direction. The spatial frequency of this modulation
+increases exponentially from the left to the right, and the amplitude decreases exponentially from the bottom to the top of
+the image. The min and max values according to the horizontal axis remain constant. However, it is not visible when we
+observe this image. The observer has the impression that on the left and right sides, the amplitude modulation was weaker.
+What the observer really perceives is his own contrast sensitivity function. If he could designate a line browsing the points
+where the stimulus confounds with the background of the image, he would finally have his own CSF curve of the
+luminance, as the one presented in Figure J.30.
+
+
+
+
+206         Rec. ITU-T T.800 (11/2015)
+                                                                                                          ISO/IEC 15444-1:2016 (E)
+                                    1
+
+
+
+
+                    Sensitivity
+                                   0.1
+
+
+
+
+                                                                                                 T.800-Amd.4(11)_FJ-30
+                                  0.01
+                                         0.1               1                    10         100
+                                                          Spatial frequency in cpd
+                                          CSF luminance
+
+                                                          Figure J.30 – CSF of luminance
+
+
+The physiological and psychophysical studies showed a low-pass behaviour of the eye and a high-pass behaviour of the
+retina. The general behaviour is therefore a band-pass with a sensitivity peak between 2 and 8 cpd (cycles per degree) and
+a cut-off frequency below 64 cpd. The most used model for this dependence has been proposed by Mannos and
+Sakrison [60] in 1974 for the case of the luminance, and joins the spatial sensitivity S to the spatial frequency f.
+One of the most common visual optimization strategies in image compression is the use of the CSF described previously
+and which characterizes the variation of visual system sensitivity in relation to 2D spatial frequencies. In general, the
+human eye is less sensitive to high frequency errors (artefacts) than low frequency ones. The CSF could be used to
+determine the necessary relative precision for the different spatial frequencies, where the term of weighting is used to
+describe the asked proportional precision. To use the CSF, described in visual frequencies as the cycle per degree (cpd),
+it must be mapped on the domain of the digital frequencies of the compression, as the cycles per pixel (cpp). A correct
+weighting in frequency or in colour can lead to an important preservation of the details and textures, without the
+introduction of colour distortions.
+In general, the visual weighting factors are more efficient for high observation distances or for large display or impression
+resolutions. Indeed, the weighting could also be used to reduce the artefacts of flickering in Motion JPEG 2000 that results
+in a noise linked to the movement in a scene.
+Digital cinema is quite a new application characterized by different viewing conditions that do not allow the use of already
+defined weighting factors without checking their validity. This is mainly due to the large aperture that introduces the
+peripheral vision in the process and low illumination that move our perception from the photopic domain to the
+photopic/mesopic one.
+
+J.15.2.3.1 Recommended frequency weighting tables for digital cinema distribution
+Table J.28 gives frequency weightings for digital cinema with respect to SMPTE recommendations 428 to 432.
+
+
+
+
+                                                                                           Rec. ITU-T T.800 (11/2015)         207
+ISO/IEC 15444-1:2016 (E)
+
+                  Table J.28 – Recommended frequency weighting for digital cinema environment
+                                                   a) Y weighting factors
+
+                                Level               HL                 LH                HH
+                                  5              0.260484           0.463463           0.651362
+                                  4              0.449002           0.754981           0.789797
+                                  3              0.912848           0.974562           0.976948
+                                  2              0.993774           0.997151           0.997898
+                                  1              1.000000           1.000000           1.000000
+
+                                                  b) Cx weighting factors
+
+                                Level               HL                 LH                HH
+                                  5              0.088143           0.111436           0.109352
+                                  4              0.094904           0.149177           0.152355
+                                  3              0.190024           0.347601           0.362426
+                                  2              0.472931           0.636333           0.661777
+                                  1              0.741372           0.830503           0.865330
+
+                                                  c) Cz weighting factors
+
+                                Level               HL                 LH                HH
+                                  5              0.204351           0.251607           0.262396
+                                  4              0.228638           0.420631           0.439335
+                                  3              0.567974           0.748305           0.754203
+                                  2              0.841546           0.913070           0.921399
+                                  1              0.951529           0.978377           0.976763
+
+J.15.3    Implementation guidelines for the use of JPEG 2000 in film archive applications
+
+J.15.3.1 Introduction
+The digital film archive system architecture has to provide a solution for two major use cases with partly oppositional
+requirements. These are, on the one hand, long-term archival with the requirement to store the source imagery without
+any loss of information. This practice usually requires lossless compression and results regarding the high spatial
+resolutions used in cinematic production, in large amounts of data. On the other hand, there is the requirement of frequent
+access to archived items. This practice usually does not require the original lossless quality of the source imagery. Instead
+the focus lies on easy and standardized access through local and remote channels. This results in the requirement for a
+significant reduction in the original amount of data and the restriction of certain coding parameters to ensure maximum
+compatibility with a wide range of decoding and playback equipment.
+The above requirements lead to a two-tier system architecture with different file formats and JPEG 2000 profile
+specifications for long-term storage and frequent access (access or viewing copies), both specified in Annex A,
+Table A.46. Archived material may be stored in either one of the two formats or in both formats simultaneously depending
+on the type of usage scenario for the material. The long-term storage format (with profile indication Rsiz=5) should be
+used if cinematic material needs to be preserved digitally in all of its aspects. The access format (with profile indication
+Rsiz=6) should be used if access to the material is the main concern. The latter can be generated through transcoding from
+the former. The access format is close to the 2K digital cinema profile (with profile indication Rsiz=3), for the simplified
+distribution of digital content to cinemas. It can also be used to transcode to other formats for delivery to end-users. For
+more information, see below.
+Cinematic content usually consists not only of image sequences but also of additional data of various types. Typically,
+these are one or more sets of single or multi-channel audio data, timed text for subtitles and technical as well as descriptive
+metadata of different levels of details. All of this data should be stored together in one place, as described by the asset
+store approach standardized within the "open archival information system – Reference model" standardized as ISO
+14721:2003.
+
+
+
+
+208        Rec. ITU-T T.800 (11/2015)
+                                                                                               ISO/IEC 15444-1:2016 (E)
+
+J.15.3.2 Digital cinema archives
+This clause provides practical guidelines for the use and application of the motion picture archive formats. The following
+paragraphs describe procedures that are meant to help in creating archive package files and how to use them to disseminate
+archived cinematic content to end users and to exchange archived materials between two or more archiving institutions.
+Implementations should be strict when writing, and tolerant when reading the described formats.
+As an alternative, the material exchange format, specified in SMPTE ST 377-1 [61], can also be considered to store
+JPEG 2000 motion picture content.
+
+J.15.3.2.1 Ingesting into cinematic archives
+Several ways exist to convert cinematic content to the motion picture archive formats. The content may come directly
+from various stages of an uncompressed digital production process or it can be a compressed digital distribution format,
+e.g., a digital cinema package (DCP).
+It is also possible to ingest images originating from scanned film material, as well as access copies that were created
+through transferring original film images to another type of analogue or digital media, e.g., analogue or digital video
+tapes, DVD, etc.
+
+J.15.3.2.1.1   Ingesting uncompressed digitally produced material
+Digitally produced material includes images that were recorded with an electronic camera and did not undergo any further
+processing, as well as the results of different processing steps during post-production to the final cinematic product. This
+also includes scanned films that were subject of a digital restoration process. Common formats for this type of imagery
+are DPX, TIFF or TGA sequences. This type of material may also have its origin in a digital HDTV video tape format
+that has been ingested into a computer system. This type of material should be compressed using the JPEG 2000 profile
+for the long-term storage of cinematic content. To be able to preserve the material in its original quality, lossless
+compression with the 5-3 reversible filter should be used. The original colourspace and bit depth should not be changed.
+
+J.15.3.2.1.2   Ingesting compressed digital cinema packages (DCPs)
+The digital cinema package, as described in the different parts of SMPTE ST 429 [66], can be regarded as the digital
+equivalent to the release print on film material. Archival institutions in some cases may only be able to acquire a DCP of
+a certain production and not the uncompressed material originally used to create the DCP. The DCP should be converted
+without the decoding and re-encoding of the contained JPEG 2000 images to the motion picture preservation storage
+format or the motion picture access format. All structural information of the DCP should be preserved in the metadata
+section to be able to exactly reconstruct the original DCP.
+Direct archival of encrypted DCPs is discouraged because of the risks of loss of the encryption keys. Instead, the content
+of encrypted DCPs should be decrypted and stored as described above, in order to ensure future accessibility. Security
+should be enforced by other means (e.g., physical security of storage media).
+
+J.15.3.2.1.3   Ingesting scanned film material
+The formats standardized in this Recommendation | International Standard can also be used to store cinematic content
+that is scanned from original film material. However, the choice of format and profile will usually depend on the
+preservation strategy for the original film. For digital long-term preservation, the original film material should be scanned
+at the highest reasonable spatial resolution and bit depth. These digital images should then be stored using the motion
+picture preservation format with the 5-3 reversible transform. Image data should be stored in the colourspace that the film
+scanner had used. All available technical data of the film scanner should be stored as metadata. It is also possible to store
+additional image components (colour channels), e.g., infrared for scratch removal. This package can then be also used as
+a starting point for digital restoration procedures. For ingesting digitally restored images originating from film material,
+see J.15.3.2.1.1.
+In many cases, it is desirable to keep the original film as a long-term preservation element and to create digitized versions
+to facilitate access to the cinematic content. Depending on the requirements of the archival institutions, there are two main
+routes. For lower requirements, the film should be scanned and encoded according to the specifications for the motion
+picture access format. For higher requirements, the specifications for the motion picture preservation format should be
+used with parameters appropriate for the prospective use.
+
+J.15.3.2.2 Disseminating cinematic archives
+In the context of this Recommendation | International Standard dissemination means the delivery of archived cinematic
+content to end users. This does not necessarily mean that end users are required to have software and systems to decode
+and interpret the formats described in this Recommendation | International Standard. To create a format that can be utilized
+by end users, a conversion process is necessary. The details and target formats of this conversion process largely depend
+
+
+
+                                                                                   Rec. ITU-T T.800 (11/2015)            209
+ISO/IEC 15444-1:2016 (E)
+
+on the requirements of each user group. Possible user groups may be digital cinemas, TV and movie production
+companies, schools and universities, scientists and others.
+There may be a number of dissemination formats in consideration of the end user's many different requirements, such as:
+          –      Digital cinema package (DCP) format as specified in the following documents:
+                 •   SMPTE ST 429-3:2006 – D-Cinema Packaging – Sound and Picture Track File
+                 •   SMPTE ST 429-4:2006 – D-Cinema Packaging – MXF JPEG 2000 Application
+                 •   SMPTE ST 429-5:2009 – D-Cinema Packaging – Timed Text Track File
+                 •   SMPTE ST 429-6:2006 – D-Cinema Packaging – MXF Track File Essence Encryption
+                 •   SMPTE ST 429-7:2006 – D-Cinema Packaging – Composition Playlist
+                 •   SMPTE ST 429-8:2007 – D-Cinema Packaging – Packing List
+                 •   SMPTE ST 429-9:2007 – D-Cinema Packaging – Asset Mapping and File Segmentation
+                 •   SMPTE ST 430-1:2006 – D-Cinema Operations – Key Delivery Message
+                 •   SMPTE ST 430-2:2006 – D-Cinema Operations – Digital Certificate
+          –      MPEG-4/Part-10 (Rec. ITU-T H.264/AVC) as specified in ISO/IEC 14496-10
+          –      MPEG-2 as specified in ISO/IEC 13818 (including Rec. ITU-T H.222.0 | ISO/IEC 13818-1 and
+                 Rec. ITU-T H.262 | ISO/IEC 13818-2).
+Usually, the motion picture access format is used as a starting point for the dissemination process because the compressed
+image data can be directly converted into a digital cinema package. It is also possible to create small-sized preview movies
+easily from this format by decoding only the lower resolution layers.
+In special cases also, the motion picture preservation format may be used as a starting point for the creation of a
+dissemination package. The high quality contained in this format is, for example, needed to create uncompressed image
+sequences for digital restoration or re-mastering procedures.
+
+J.15.3.2.3 Exchange of content between cinematic archives
+To exchange cinematic content between different archival institutions both motion picture formats specified in this
+document can be used depending on the requirements of the institutions. Generally the motion picture access format
+should be preferred due to its stricter parameter set.
+It is also possible to create new packages for exchange that, for example, contain only a subset of the image, audio,
+metadata or other content of the source format.
+
+J.15.3.2.4 Use of the SMPTE material exchange format for motion picture preservation and access
+For the access to and exchange of cinematic content, the MXF file format, as specified in SMPTE ST 377-1 [61], can be
+used as an alternative to the Motion JPEG 2000 format. The MXF operational pattern should be as simple as possible, but
+as complex as necessary. That is, elementary compositions should make use of the simplest operational pattern applicable,
+e.g., OP1a (SMPTE ST 378 [62]) for simple single-language files. However, complex compositions up to OP3c (SMPTE
+ST 408 [64]) can be used. The files should use the MXF generic container (GC) (SMPTE ST 379-1 [63]) with a frame-
+based essence mapping. Due to the asset store approach, all essence data should be contained within one single file. The
+JPEG 2000 codestreams should be mapped into the GC according to SMPTE ST 429-4 [66]. Audio data should be coded
+as described in Table 17 in SMPTE ST 377-1 [61]. It should be mapped into the MXF file format, according to the
+corresponding mapping document SMPTE ST 382 [65].
+
+J.15.3.2.4.1     Application specification for the motion picture preservation format
+There is no restriction on frame rates. All colourspaces can be used, as long as they can be described with the picture
+essence descriptors, specified in SMPTE ST 377-1 [61].
+
+J.15.3.2.4.2     Application specification for the motion picture access format
+There is no restriction on frame rates. If distribution to digital cinema is intended, then frame rates of 24 fps or 48 fps are
+recommended. The X'Y'Z' colourspace as defined in SMPTE ST 428-1 [67] should be used and signalled in the RGBA
+picture essence descriptor defined in SMPTE ST 377-1 [61]. The values are defined in 6.4 of SMPTE ST 429-4 [66].
+
+J.15.3.2.5 General procedures and archive management
+The archival system used to handle and store the formats described in this Recommendation | International Standard
+should adhere to the OAIS reference model (ISO 14721:2003).
+
+
+
+210           Rec. ITU-T T.800 (11/2015)
+                                                                                       ISO/IEC 15444-1:2016 (E)
+

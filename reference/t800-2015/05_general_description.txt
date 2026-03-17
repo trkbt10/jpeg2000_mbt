@@ -1,0 +1,151 @@
+5         General description
+This Recommendation | International Standard describes an image compression system that allows great flexibility, not
+only for the compression of images, but also for the access into the codestream. The codestream provides a number of
+mechanisms for locating and extracting portions of the compressed image data for the purpose of retransmission, storage,
+display or editing. This access allows storage and retrieval of compressed image data appropriate for a given application,
+without decoding.
+The division of both the original image data and the compressed image data in a number of ways leads to the ability to
+extract image data from the compressed image data to form a reconstructed image with a lower resolution or lower
+precision, or regions of the original image. This allows the matching of a codestream to the transmission channel, storage
+device or display device, regardless of the size, number of components and sample precision of the original image. The
+codestream can be manipulated without decoding to achieve a more efficient arrangement for a given application.
+Thus, the sophisticated features of this Recommendation | International Standard allow a single codestream to be used
+efficiently by a number of applications. The largest image source devices can provide a codestream that is easily processed
+for the smallest image display device, for example.
+In general, this Recommendation | International Standard deals with three domains: spatial (samples), transformed
+(coefficients) and compressed image data. Some entities (e.g., tile-component) have meaning in all three domains. Other
+entities (e.g., code-block or packet) have meaning in only one domain (e.g., transformed or compressed image data,
+respectively). The splitting of an entity into other entities in the same domain (e.g., component to tile-components) is
+described separately for each of the domains.
+
+5.1       Purpose
+There are four main elements described in this Recommendation | International Standard:
+          –      Encoder: An embodiment of an encoding process. An encoder takes as input digital source image data and
+                 parameter specifications, and by means of a set of procedures generates as output a codestream.
+          –      Decoder: An embodiment of a decoding process. A decoder takes as input compressed image data and
+                 parameter specifications, and by means of a specified set of procedures generates as output digital
+                 reconstructed image data.
+          –      Codestream syntax: A representation of the compressed image data that includes all parameter
+                 specifications required by the decoding process.
+          –      Optional file format: The optional file format is for exchange between application environments. The
+                 codestream can be used by other file formats or stand-alone without this file format.
+
+5.2       Codestream
+The codestream is a linear stream of bits from the first bit to the last bit. For convenience, it can be divided into (8-bit)
+bytes, starting with the first bit of the codestream, with the "earlier" bit in a byte viewed as the most significant bit of the
+byte when given e.g., a hexadecimal representation. This byte stream may be divided into groups of consecutive bytes.
+The hexadecimal value representation is sometimes implicitly assumed in the text when describing bytes or a group of
+bytes that do not have a "natural" numeric value representation.
+
+
+
+
+8             Rec. ITU-T T.800 (11/2015)
+                                                                                                             ISO/IEC 15444-1:2016 (E)
+
+5.3              Coding principles
+The main procedures for this Recommendation | International Standard are shown in Figure 5-1. This shows the decoding
+order only. The compressed image data is already conceptually assigned to portions of the image data. Procedures are
+presented in the annexes in the order of the decoding process. The coding process is summarized below.
+          NOTE 1 – Annexes A to I are considered normative to this Recommendation | International Standard. However, certain denoted
+          subclauses and notes and all examples are informative.
+
+Many images have multiple components. This Recommendation | International Standard has a multiple component
+transformation to decorrelate three components. This is the only function in this Recommendation | International Standard
+that relates components to each other (see Annex G).
+The image components may be divided into tiles. These tile-components are rectangular arrays that relate to the same
+portion of each of the components that make up the image. Thus, tiling of the image actually creates tile-components that
+can be extracted or decoded independently of each other. This tile independence provides one of the methods for
+extracting a region of the image (see Annex B).
+The tile-components are decomposed into different decomposition levels using a wavelet transformation. These
+decomposition levels contain a number of sub-bands populated with coefficients that describe the horizontal and vertical
+spatial frequency characteristics of the original tile-components. The coefficients provide frequency information about a
+local area, rather than across the entire image like the Fourier transformation. That is, a small number of coefficients
+completely describe a single sample. A decomposition level is related to the next decomposition level by a spatial factor
+of two. That is, each successive decomposition level of the sub-bands has approximately half the horizontal and half the
+vertical resolution of the previous one. Images of lower resolution than the original are generated by decoding a selected
+subset of these sub-bands (see Annex F).
+Although there are as many coefficients as there are samples, the information content tends to be concentrated in just a
+few coefficients. Through quantization, the information content of a large number of small-magnitude coefficients is
+further reduced (Annex E). Additional processing by the entropy coder reduces the number of bits required to represent
+these quantized coefficients, sometimes significantly compared to the original image (see Annexes C, D and B).
+
+                                                          Codestream syntax (Annex A)
+
+
+
+
+                                                                                                                                         Reconstructed and rendered image
+                                                                            ROI
+                                                                         (Annex H)
+
+
+
+ Codestream
+                                      Arithmetic          Coefficient                                                DC, comp.
+                 Data ordering                                               Quantization      Transformation
+                                        coding           bit modelling                                             transformation
+                  (Annex B)                                                   (Annex E)          (Annex F)
+                                      (Annex C)           (Annex D)                                                  (Annex G)
+
+
+
+                                                          File format (optional, Annex I)
+                                                                                                                         T.800_F5-1
+
+
+                                                   Figure 5-1 – Specification block diagram
+The individual sub-bands of a tile-component are further divided into code-blocks. These rectangular arrays of
+coefficients can be extracted independently. The individual bit-planes of the coefficients in a code-block are coded with
+three coding passes. Each of these coding passes collects contextual information about the bit-plane compressed image
+data (see Annex D). An arithmetic coder uses this contextual information, and its internal state, to decode a compressed
+bit stream (see Annex C.) Different termination mechanisms allow different levels of independent extraction of this coding
+pass compressed image data.
+The bit stream compressed image data created from these coding passes is grouped in layers. Layers are arbitrary
+groupings of coding passes from code-blocks (see Annex B).
+          NOTE 2 – Although there is great flexibility in layering, the premise is that each successive layer contributes to a higher quality
+          image.
+
+Sub-band coefficients at each resolution level are partitioned into rectangular areas called precincts (see Annex B).
+Packets are a fundamental unit of the compressed codestream. A packet contains compressed image data from one layer
+of a precinct of one resolution level of one tile-component. Packets provide another method for extracting a spatial region
+
+
+                                                                                                Rec. ITU-T T.800 (11/2015)                                                  9
+ISO/IEC 15444-1:2016 (E)
+
+independently from the codestream. These packets are interleaved in the codestream using a few different methods
+(see Annex B).
+A mechanism is provided that allows the compressed image data corresponding to regions of interest in the original tile-
+components to be coded and placed earlier in the bit stream (see Annex H).
+Several mechanisms are provided to allow the detection and concealment of bit errors that might occur over a noisy
+transmission channel (see D.5 and J.7).
+The codestream relating to a tile organized in packets, are arranged in one or more tile-parts. A tile-part header, comprised
+of a series of markers and marker segments, contains information about the various mechanisms and coding styles that
+are needed to locate, extract, decode and reconstruct every tile-component. At the beginning of the entire codestream is a
+main header, comprised of markers and marker segments that offers similar information, as well as information about the
+original image (see Annex A).
+The codestream is optionally wrapped in a file format that allows applications to interpret the meaning of, and other
+information about the image. The file format may contain data besides the codestream (see Annex I).
+In review, procedures that divide the original image are the following:
+          –      The components of the image are divided into rectangular tiles. The tile-component is the basic unit of the
+                 original or reconstructed image.
+          –      Performing the wavelet transformation on a tile-component creates decomposition levels.
+          –      These decomposition levels are made up of sub-bands of coefficients that describe the frequency
+                 characteristics of local areas (rather than across the entire tile-component) of the tile-component.
+          –      The sub-bands of coefficients are quantized and collected into rectangular arrays of code-blocks.
+          –      Each bit-plane of the coefficients in a code-block is entropy coded in three types of coding passes.
+          –      Some of the coefficients can be coded first to provide a region of interest.
+At this point the image data is fully converted to compressed image data. The procedures that reassemble these bit stream
+units into the codestream are the following:
+          –      The compressed image data from the coding passes are collected in layers.
+          –      Packets are composed compressed image data from one precinct of a single layer of a single resolution
+                 level of a single tile-component. The packets are the basic unit of the compressed image data.
+          –      All the packets from a tile are interleaved in one of several orders and placed in one or more tile-parts.
+          –      The tile-parts have a descriptive tile-part header and can be interleaved in some orders.
+          –      The codestream has a main header at the beginning that describes the original image and the various
+                 decomposition and coding styles.
+          –      The optional file format describes the meaning of the image and its components in the context of the
+                 application.
+
+

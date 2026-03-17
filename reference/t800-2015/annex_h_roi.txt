@@ -1,0 +1,213 @@
+                                                          Annex H
+
+                                    Coding of images with regions of interest
+                    (This annex forms an integral part of this Recommendation | International Standard.)
+
+
+In this annex, the flow charts and tables are normative only in the sense that they are defining an output that alternative
+implementations shall duplicate.
+This annex describes the region of interest (ROI) technology. An ROI is a part of an image that is coded earlier in the
+codestream than the rest of the image (the background). The coding is also done in such a way that the information
+associated with the ROI precedes the information associated with the background. The method used (and described in
+this annex) is the Maxshift method.
+
+H.1       Decoding of ROI
+The procedure specified in this clause is applied only in the case of the presence of an RGN marker segment (indicating
+the presence of an ROI).
+The procedure realigns the significant bits of ROI coefficients and background coefficients. It is defined using the
+following steps:
+          1)   Get the scaling value, s, from the SPrgn parameter of the RGN marker segment in the codestream
+               (see A.6.3). The following steps (2, 3 and 4) are applied to each coefficient (u, v) of sub-band b.
+          2)   If Nb(u, v) < Mb (see definition of Nb(u, v) in D.2.1 and of Mb in Equation (E-2)), then no modification
+               takes place.
+          3)   If Nb(u, v)  Mb and if at least one of the first Mb (see definition in E.1) MSBs (i = 1, ..., Mb) is non-zero,
+               then the value of Nb(u, v) is updated as Nb(u, v) = Mb.
+          4)   If Nb(u, v)  Mb and if all first Mb MSBs are equal to zero, then the following modifications are made:
+               a)    discard the first s MSBs and shift the remaining MSBs s places, as described in Equation (H-1), for
+                     i = 1, ..., Mb:
+
+                                                      MSBi  s b, u, v  if i  s  Nb u, v 
+                                   MSBi b, u, v                                                                    (H-1)
+                                                               0          if i  s  Nb u, v 
+
+               b)    update the value of Nb(u, v) as given in Equation (H-2):
+
+                                              Nb u, v   max 0, Nb u, v   s                                     (H-2)
+
+H.2       Description of the Maxshift method
+H.2.1     Encoding of ROI (informative)
+The encoding of the quantized transform coefficients is done in a similar way to encoding without any ROIs. At the
+encoder side an ROI mask is created describing which quantized transform coefficients must be encoded with better
+quality (even up to losslessly) in order to encode the ROI with better quality (up to lossless). The ROI mask is a bit map
+describing these coefficients. See H.3 for details on how the mask is generated.
+The quantized transform coefficients outside of the ROI mask, called background coefficients, are scaled down so that
+the bits associated with the ROI are placed in higher bit-planes than the background. This means that when the entropy
+coder encodes the quantized transform coefficients, the bit-planes associated with the ROI are coded before the
+information associated with the background.
+The method can be described using the following steps:
+          1)   Generate ROI mask, M(x, y) (see H.3).
+          2)   Find the scaling value s (see H.2.2).
+          3)   Add s LSBs to each coefficient qb u, v  . The number M´b of magnitude bit-planes will then be:
+
+                                                        M ´b  M b  s                                                 (H-3)
+
+
+134        Rec. ITU-T T.800 (11/2015)
+                                                                                               ISO/IEC 15444-1:2016 (E)
+
+               where Mb is given by Equation (E-2) and the new value of each coefficient is given by:
+
+                                                  qb u, v   qb u, v   2 s                                       (H-4)
+
+          4)   Scale down all background coefficients given by M(x, y) using the scaling value s (see H.3). Thus, if
+                qb u, v  is a background coefficient given by M(x, y), then:
+
+                                                                q u, v 
+                                                    qb u, v   b                                                    (H-5)
+                                                                   2s
+
+          5)   Write the scaling value s into the codestream using the SPrgn parameter of the RGN marker segment.
+After these steps the quantized transform coefficients are entropy coded as usual.
+
+H.2.2     Selection of scaling value, s, at encoder side (informative)
+The scaling value, s, may be chosen so that Equation (H-6) holds, where max(Mb) is the largest number of magnitude bit-
+planes, see Equation (E-1), for any background coefficient, qBG(x, y) in any code-block in the current component.
+
+                                                       s  maxM b                                                   (H-6)
+
+This guarantees that the scaling value used will be sufficiently large to ensure all the significant bits associated with the
+ROI will be in higher bit-planes than all the significant bits associated with the background.
+
+H.3       Remarks on region of interest coding (informative)
+The ROI functionality described in H.2 depends only on the scaling value chosen on the encoder side and hence only on
+the amplitude of the coefficients on the decoder side. It is up to the encoder to generate a mask that corresponds to the
+coefficients that need to be encoded with better quality to yield an ROI with better quality than the background.
+Clause H.3.1 describes how to generate the ROI mask for a particular region in the image. Clause H.3.2 describes how to
+generate the mask in the case of multi-component images and H.3.3 describes how to generate the ROI mask for disjoint
+regions. Clause H.3.4 describes a possible way to deal with the increase of coefficient bit depth. Clause H.3.5 describes
+how the ROI mask can be extended so as to not correspond exactly to a region in the image domain and how the Maxshift
+method may be used to encode the ROI and the background with different quality.
+
+H.3.1     Region of interest mask generation (informative)
+To achieve an ROI with better quality than the rest of the image while maintaining a fair amount of compression, bits
+need to be saved by sending less information for the background. To do this an ROI mask is calculated. The mask is a
+bit-plane indicating a set of quantized transform coefficients whose coding is sufficient in order for the receiver to
+reconstruct the desired region with better quality than the background (up to lossless).
+To illustrate the concept of ROI mask generation, let us restrict ourselves to a single ROI and a single image component,
+and identify the samples that belong to the ROI in the image domain by a binary mask, M(x, y), where:
+
+                                     1            wavelet coefficien t x, y  is needed
+                         M x, y                                                                                   (H-7)
+                                     0 accuracy on x, y  can be sacrificed without affecting ROI
+The mask is a map of the ROI in the wavelet domain so that it has a non-zero value inside the ROI and 0 outside. In each
+step the LL sub-band of the mask is then updated row by row and then column by column. The mask will then indicate
+which coefficients are needed at this step so that the inverse wavelet transformation will reproduce the coefficients of the
+previous mask.
+For example, the last step of the inverse wavelet transformation is a composition of two sub-bands into one. Then to trace
+this step backwards, one finds the coefficients of both sub-bands that are needed. The step before that is a composition of
+four sub-bands into two. To trace this step backwards, the coefficients in the four sub-bands that are needed to give a
+perfect reconstruction of the coefficients included in the mask for two sub-bands are found.
+All steps are then traced backwards to give the mask. If the coefficients corresponding to the mask are transmitted and
+received, and the inverse wavelet transformation calculated on them, the desired ROI will be reconstructed with better
+quality than the rest of the image (up to lossless if the ROI coefficients were coded losslessly).
+
+
+
+
+                                                                                   Rec. ITU-T T.800 (11/2015)            135
+ISO/IEC 15444-1:2016 (E)
+
+Given below is a description of how the expansion of the mask is acquired from the various filters. Similar methods can
+be used for other filters.
+
+H.3.1.1 Region of interest mask generation using the 5-3 reversible filter (informative)
+In order to get the optimal set of quantized coefficients to be scaled, the following equations described in this clause
+should be used.
+To see what coefficients need to be in the mask, the inverse wavelet transformation is studied. Equations (F-5) and (F-6)
+give the coefficients needed to reconstruct X(2n) and X(2n + 1) losslessly. It can immediately be seen that these are L(n),
+L(n + 1), H(n – 1), H(n), H(n + 1) (see Figure H.1). Hence if X(2n) and X(2n + 1) are in the ROI, the listed low and high
+sub-band coefficients are in the mask. Notice that X(2n) and X(2n + 1) are even and odd indexed points respectively,
+relative to the origin of the reference grid.
+
+                                        Low                                     High
+
+                         n–1        n         n+1                 n–1       n      n+1
+
+
+
+
+                                              2n    2n + 1
+                                                                                             T.800_FH-1
+                                                     X:s
+
+                   Figure H.1 – The inverse wavelet transformation with the 5-3 reversible filter
+
+H.3.1.2 Region of interest mask generation using the 9-7 irreversible filter (informative)
+Successful decoding does not depend upon the selection of samples to be scaled. In order to get the optimal set of
+quantized coefficients to be scaled the following equations described in this clause should be used.
+To see what coefficients need to be in the mask, the inverse wavelet transformation is studied as in H.3.1.1. Figure H.2
+shows this X(2n) and X(2n + 1) are even and odd indexed points respectively, related to the origin of the reference grid.
+
+                          Low                                                                  High
+
+          n–2     n–1       n     n+1     n+2                       n–3     n–2        n–1       n          n+1        n+2   n+3
+
+
+
+
+                                                             2n    2n + 1
+                                                                                                          T.800_FH-2
+                                                                    X:s
+
+                  Figure H.2 – The inverse wavelet transformation with the 9-7 irreversible filter
+
+
+
+
+136        Rec. ITU-T T.800 (11/2015)
+                                                                                                 ISO/IEC 15444-1:2016 (E)
+
+The coefficients needed to reconstruct X(2n) and X(2n + 1) losslessly can immediately be seen to be L(n – 1) to L(n + 2)
+and H(n – 2) to H(n + 2). Hence if X(2n) and X(2n + 1) are in the ROI, these low and high sub-band coefficients are in
+the mask.
+
+H.3.2     Multi-component remark (informative)
+For the case of colour images, the method applies separately in each colour component. If some of the colour components
+are down-sampled, the mask for the down-sampled components is created in the same way as the mask for the non-down-
+sampled components.
+
+H.3.3     Disjoint regions remark (informative)
+If the ROI consists of disjoint parts, then all parts have the same scaling value s.
+
+H.3.4     Implementation precision remark (informative)
+This ROI coding method might in some cases create situations where the dynamic range is exceeded. This is however
+easily solved by simply discarding the least significant bit-planes that exceed the limit due to the down-scaling operation.
+The effect will be that the ROI will have better quality than the background, even though the entire bit stream is decoded.
+It might however create problems when the image is coded with ROIs in a lossless mode. Discarding least significant
+bit-planes for the background might result in the background not being coded losslessly and in the worst case not being
+reconstructed at all. This depends on the dynamic range available.
+
+H.3.5     An example of the usage of the Maxshift method (informative)
+The Maxshift method, as described above, allows the user/application to specify multiple regions of arbitrary shape, which
+will be assigned higher priority compared to the rest of the image. The method does not require encoding or decoding of
+the ROI shape.
+The Maxshift method allows the implementers of an encoder to exploit a number of functionalities that are supported by
+a compliant decoder. For example, it is possible to use the Maxshift method to encode an image with different quality for
+the ROI and the background. The image is quantized so that the ROI gets the desired quality (lossy or lossless) and then
+the Maxshift method is applied. If the image is encoded progressively by layer, not all of the layers of the wavelet
+coefficients belonging to the background need be encoded. This corresponds to using different quantization steps for the
+ROI and the background.
+If the ROI is to be encoded losslessly, the most optimal set of wavelet coefficients giving a lossless result for the ROI is
+described by the mask generated using the algorithms described in H.3.1 However, the Maxshift method supports the use
+of any mask since the decoder does not need to generate the mask. Thus, it is possible for the encoder to include an entire
+sub-band, e.g. the low-low sub-band, in the ROI mask and thus send a low-resolution version of the background at an
+early stage of the progressive transmission. This is done by scaling all the quantized transform coefficients of the entire
+sub-band. In other words, the user can decide in which sub-band he will start coding ROI and thus, it is not necessary to
+wait for the entire ROI before receiving any information for the background.
+
+
+
+
+                                                                                       Rec. ITU-T T.800 (11/2015)       137
+ISO/IEC 15444-1:2016 (E)
+

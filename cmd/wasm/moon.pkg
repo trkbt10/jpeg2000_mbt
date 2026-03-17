@@ -1,8 +1,10 @@
 import {
   "moonbitlang/core/env",
+  "trkbt10/jpeg2000/internal/cli" @cli,
   "trkbt10/jpeg2000" @lib,
 }
 
 options(
   "is-main": true,
+  link: { "native": { "cc": "clang" } },
 )

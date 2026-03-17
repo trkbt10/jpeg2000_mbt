@@ -1,0 +1,9 @@
+// T.800-2015 Annex H: Region of Interest
+import {
+  "trkbt10/jpeg2000/internal/bytes" @bytes,
+  "trkbt10/jpeg2000/internal/core" @core,
+}
+
+options(
+  link: { "native": { "cc": "clang" } },
+)
