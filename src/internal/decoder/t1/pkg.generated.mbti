@@ -24,9 +24,6 @@ pub fn tier1_normative_single_coeff_debug(Tier1StagedPassState) -> String
 
 pub fn tier1_normative_single_coeff_value(Tier1StagedPassState) -> Int
 
-
-
-
 pub fn tier1_staged_apply_passes(Int, Int, Array[Int]) -> Result[Tier1StagedPassState, String]
 
 pub fn tier1_staged_pass_state_debug(Tier1StagedPassState) -> String
