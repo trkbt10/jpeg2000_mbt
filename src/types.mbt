@@ -13,7 +13,7 @@ pub(all) suberror DecodeError {
   InvalidCodestream(String)
   UnsupportedFeature(String)
   DecodeFailed(String)
-}
+} derive(Show)
 
 ///|
 struct DecodeSamplesResult {

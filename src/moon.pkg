@@ -13,8 +13,8 @@ import {
 options(
   link: { "native": { "cc": "clang" } },
   targets: {
-    "jpeg2000_corpus_native_wbtest.mbt": [ "native" ],
-    "jpeg2000_corpus_wbtest.mbt": [ "native" ],
+    "corpus_native_wbtest.mbt": [ "native" ],
+    "corpus_wbtest.mbt": [ "native" ],
     "corpus_test_helpers_wbtest.mbt": [ "native" ],
   },
 )

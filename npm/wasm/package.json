@@ -1,7 +1,12 @@
 {
   "name": "@trkbt10/jpeg2000-wasm",
   "version": "0.1.0",
-  "description": "WASM artifact package for trkbt10/jpeg2000",
+  "description": "T.800-2015 JPEG 2000 decoder (WASM)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trkbt10/jpeg2000_mbt"
+  },
+  "keywords": ["jpeg2000", "j2k", "image", "decoder", "wasm"],
   "license": "Apache-2.0",
   "type": "module",
   "main": "./index.cjs",

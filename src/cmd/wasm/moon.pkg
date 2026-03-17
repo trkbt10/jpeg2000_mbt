@@ -1,5 +1,7 @@
 import {
+  "moonbitlang/core/encoding/base64" @base64,
   "moonbitlang/core/env",
+  "trkbt10/jpeg2000" @lib,
   "trkbt10/jpeg2000/internal/cli" @cli,
 }
 
