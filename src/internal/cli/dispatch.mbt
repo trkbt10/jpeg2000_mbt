@@ -3,7 +3,7 @@
 // Returns true if a command was handled, false if none matched.
 pub fn dispatch_shared_commands(args : Array[String]) -> Bool {
   if find_arg_index(args, "list-samples") is Some(_) {
-    for name in @lib.sample_codestream_names() {
+    for name in @core.sample_codestream_names() {
       println(name)
     }
     return true

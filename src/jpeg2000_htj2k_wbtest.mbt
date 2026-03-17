@@ -123,7 +123,7 @@ fn htj2k_like_minimal_single_codeblock_multi_packet_codestream(
   code_block_style? : Int = 0x40,
 ) -> Bytes {
   guard packets.length() > 0 else { panic() }
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x51) is Some(siz_at) else { panic() }
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   guard marker_index(data, 0xFF, 0xD9) is Some(eoc_at) else { panic() }
@@ -166,7 +166,7 @@ fn baseline_like_minimal_single_codeblock_codestream(
   precision_bits? : Int = 8,
   code_block_style? : Int = 0x00,
 ) -> Bytes {
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x51) is Some(siz_at) else { panic() }
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   guard marker_index(data, 0xFF, 0x90) is Some(sot_at) else { panic() }
@@ -204,7 +204,7 @@ fn htj2k_like_minimal_two_tile_single_codeblock_codestream(
   if tile0_packets.length() == 0 && tile1_packets.length() == 0 {
     panic()
   }
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x51) is Some(siz_at) else { panic() }
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   patch_u32_be(data, siz_at + 6, 2)
@@ -419,7 +419,7 @@ fn htj2k_like_minimal_multi_codeblock_codestream(
   precision_bits? : Int = 8,
   code_block_style? : Int = 0x40,
 ) -> Bytes {
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x51) is Some(siz_at) else { panic() }
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   patch_u32_be(data, siz_at + 6, width)
@@ -462,7 +462,7 @@ fn htj2k_like_minimal_multi_codeblock_multi_packet_codestream(
   code_block_style? : Int = 0x40,
 ) -> Bytes {
   guard packets.length() > 0 else { panic() }
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x51) is Some(siz_at) else { panic() }
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   patch_u32_be(data, siz_at + 6, width)
@@ -498,7 +498,7 @@ fn htj2k_like_minimal_two_tile_multi_codeblock_multi_packet_codestream(
   if tile0_packets.length() == 0 && tile1_packets.length() == 0 {
     panic()
   }
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x51) is Some(siz_at) else { panic() }
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   let total_width = tile_width * 2
@@ -722,7 +722,7 @@ fn htj2k_fixture_bytes(path : String) -> Bytes? {
 
 ///|
 fn htj2k_like_minimal_codestream() -> Bytes {
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x52) is Some(cod_at) else { panic() }
   data[cod_at + 12] = 0x40
   let with_cap = insert_bytes_at(data, cod_at, [
@@ -733,7 +733,7 @@ fn htj2k_like_minimal_codestream() -> Bytes {
 
 ///|
 fn htj2k_like_minimal_tile_cleanup_codestream() -> Bytes {
-  let data = @jpeg2000.sample_codestream_minimal()
+  let data = sample_codestream_minimal()
   guard marker_index(data, 0xFF, 0x90) is Some(sot_at) else { panic() }
   guard marker_index(data, 0xFF, 0x93) is Some(sod_at) else { panic() }
   let tile_cod = [
@@ -747,7 +747,7 @@ fn htj2k_like_minimal_tile_cleanup_codestream() -> Bytes {
 
 ///|
 test "decode_samples accepts empty-payload HTJ2K codestream via zero recon" {
-  let decoded = @jpeg2000.decode_samples(htj2k_like_minimal_codestream())
+  let decoded = decode_samples(htj2k_like_minimal_codestream())
   guard decoded is Ok(result) else {
     fail("empty-payload HTJ2K should use zero reconstruction")
   }
@@ -758,7 +758,7 @@ test "decode_samples accepts empty-payload HTJ2K codestream via zero recon" {
 
 ///|
 test "decode_samples accepts tile-header HTJ2K codestream via zero recon" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_tile_cleanup_codestream(),
   )
   guard decoded is Ok(result) else {
@@ -771,7 +771,7 @@ test "decode_samples accepts tile-header HTJ2K codestream via zero recon" {
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT cleanup codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -788,7 +788,7 @@ test "decode_samples accepts synthetic single-codeblock HT cleanup codestream" {
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT cleanup codestream with main-header RGN" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_rgn(
       htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
         0xE3, 0x00, 0x07, 0x74, 0x00,
@@ -796,7 +796,7 @@ test "decode_samples accepts synthetic single-codeblock HT cleanup codestream wi
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -834,13 +834,13 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT codestrea
       codeword: [0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_rgn(
       htj2k_like_minimal_single_codeblock_multi_packet_codestream(packets),
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream(packets),
   )
   guard decoded is Ok(result) else {
@@ -858,7 +858,7 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT codestrea
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT cleanup codestream with tile-header RGN" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_rgn(
       htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
         0xE3, 0x00, 0x07, 0x74, 0x00,
@@ -866,7 +866,7 @@ test "decode_samples accepts synthetic single-codeblock HT cleanup codestream wi
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -906,13 +906,13 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT codestrea
       codeword: [0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_rgn(
       htj2k_like_minimal_single_codeblock_multi_packet_codestream(packets),
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream(packets),
   )
   guard decoded is Ok(result) else {
@@ -932,7 +932,7 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT codestrea
 
 ///|
 test "decode_samples assembles synthetic no-dwt multi-tile HT cleanup codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_two_tile_single_codeblock_codestream(
       [
         {
@@ -956,7 +956,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile HT cleanup codestream
       ],
     ),
   )
-  let single_v = @jpeg2000.decode_samples(
+  let single_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -1011,12 +1011,12 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-layer HT codest
       codeword: [0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_two_tile_single_codeblock_codestream(
       tile_packets, tile_packets,
     ),
   )
-  let single_v = @jpeg2000.decode_samples(
+  let single_v = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream(tile_packets),
   )
   guard decoded is Ok(result) else {
@@ -1071,14 +1071,14 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-layer HT codest
       codeword: [0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_rgn_at_tile_part(
       htj2k_like_minimal_two_tile_single_codeblock_codestream([], tile1_packets),
       1,
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream(tile1_packets),
   )
   guard decoded is Ok(result) else {
@@ -1129,7 +1129,7 @@ test "decode_samples assembles synthetic mixed baseline and tile1-header HT code
       codeword: [0xE3, 0x00, 0x07, 0x74, 0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_two_tile_single_codeblock_codestream(
         [tile0_packet],
@@ -1140,10 +1140,10 @@ test "decode_samples assembles synthetic mixed baseline and tile1-header HT code
       replace_main_qcd=false,
     ),
   )
-  let baseline_v = @jpeg2000.decode_samples(
+  let baseline_v = decode_samples(
     baseline_like_minimal_single_codeblock_codestream(tile0_packet),
   )
-  let expected_ht_v = @jpeg2000.decode_samples(
+  let expected_ht_v = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_single_codeblock_codestream(
         1,
@@ -1214,7 +1214,7 @@ test "decode_samples assembles synthetic mixed baseline and tile1-header multi-l
       codeword: [0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_two_tile_single_codeblock_codestream(
         [tile0_packet],
@@ -1225,10 +1225,10 @@ test "decode_samples assembles synthetic mixed baseline and tile1-header multi-l
       replace_main_qcd=false,
     ),
   )
-  let baseline_v = @jpeg2000.decode_samples(
+  let baseline_v = decode_samples(
     baseline_like_minimal_single_codeblock_codestream(tile0_packet),
   )
-  let expected_ht_v = @jpeg2000.decode_samples(
+  let expected_ht_v = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_single_codeblock_multi_packet_codestream(
         tile1_packets,
@@ -1274,7 +1274,7 @@ test "decode_samples assembles synthetic mixed baseline and tile1-header multi-l
 
 ///|
 test "decode_samples assembles synthetic no-dwt multi-tile HT via tile1-header COC/QCC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_two_tile_single_codeblock_codestream(
         [],
@@ -1294,7 +1294,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile HT via tile1-header C
       replace_main_qcd=false,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_single_codeblock_codestream(
         1,
@@ -1355,7 +1355,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-layer HT via ti
       codeword: [0x00],
     },
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_two_tile_single_codeblock_codestream(
         [],
@@ -1366,7 +1366,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-layer HT via ti
       replace_main_qcd=false,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_single_codeblock_multi_packet_codestream(
         tile1_packets,
@@ -1428,7 +1428,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-codeblock HT vi
       },
     ],
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_two_tile_multi_codeblock_multi_packet_codestream(
         5,
@@ -1441,7 +1441,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-codeblock HT vi
       replace_main_qcd=false,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_multi_codeblock_multi_packet_codestream(
         5,
@@ -1530,7 +1530,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-codeblock multi
       },
     ],
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_two_tile_multi_codeblock_multi_packet_codestream(
         5,
@@ -1543,7 +1543,7 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-codeblock multi
       replace_main_qcd=false,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override_at_tile_part(
       htj2k_like_minimal_multi_codeblock_multi_packet_codestream(
         5,
@@ -1594,14 +1594,14 @@ test "decode_samples assembles synthetic no-dwt multi-tile multi-codeblock multi
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT cleanup via main-header COC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_coc_ht_override(
       htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
         0xE3, 0x00, 0x07, 0x74, 0x00,
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -1621,7 +1621,7 @@ test "decode_samples accepts synthetic single-codeblock HT cleanup via main-head
 
 ///|
 test "decode_samples accepts synthetic single-codeblock multi-layer HT via main-header COC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_coc_ht_override(
       htj2k_like_minimal_single_codeblock_multi_packet_codestream([
         {
@@ -1643,7 +1643,7 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT via main-
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream([
       {
         first_inclusion: true,
@@ -1680,14 +1680,14 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT via main-
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT cleanup via main-header COC/QCC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_coc_qcc_ht_override(
       htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
         0xE3, 0x00, 0x07, 0x74, 0x00,
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -1707,14 +1707,14 @@ test "decode_samples accepts synthetic single-codeblock HT cleanup via main-head
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT cleanup via tile-header COC/QCC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override(
       htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
         0xE3, 0x00, 0x07, 0x74, 0x00,
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -1734,7 +1734,7 @@ test "decode_samples accepts synthetic single-codeblock HT cleanup via tile-head
 
 ///|
 test "decode_samples accepts synthetic single-codeblock multi-layer HT via tile-header COC/QCC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override(
       htj2k_like_minimal_single_codeblock_multi_packet_codestream([
         {
@@ -1756,7 +1756,7 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT via tile-
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream([
       {
         first_inclusion: true,
@@ -1795,12 +1795,12 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT via tile-
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT MagRef codestream" {
-  let cleanup_v = @jpeg2000.decode_samples(
+  let cleanup_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
   )
-  let refined_v = @jpeg2000.decode_samples(
+  let refined_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(3, [5, 1], [1, 2], [
       0xE3, 0x00, 0x07, 0x74, 0x00, 0x00,
     ]),
@@ -1820,7 +1820,7 @@ test "decode_samples accepts synthetic single-codeblock HT MagRef codestream" {
 
 ///|
 test "decode_samples accepts synthetic single-codeblock multi-layer HT MagRef codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream([
       {
         first_inclusion: true,
@@ -1840,7 +1840,7 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT MagRef co
       },
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(3, [5, 1], [1, 2], [
       0xE3, 0x00, 0x07, 0x74, 0x00, 0x00,
     ]),
@@ -1860,12 +1860,12 @@ test "decode_samples accepts synthetic single-codeblock multi-layer HT MagRef co
 
 ///|
 test "decode_samples accepts synthetic single-codeblock HT zero-length refinement segment" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(2, [5, 0], [1, 1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(1, [5], [1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
@@ -1882,12 +1882,12 @@ test "decode_samples accepts synthetic single-codeblock HT zero-length refinemen
 
 ///|
 test "decode_samples selects trailing synthetic HT set" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(4, [5, 1, 5], [1, 2, 1], [
       0xE3, 0x00, 0x07, 0x74, 0x00, 0x00, 0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       1,
       [5],
@@ -1909,7 +1909,7 @@ test "decode_samples selects trailing synthetic HT set" {
 
 ///|
 test "decode_samples applies synthetic multi-packet HT placeholder skip" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream([
       {
         first_inclusion: true,
@@ -1929,7 +1929,7 @@ test "decode_samples applies synthetic multi-packet HT placeholder skip" {
       },
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       1,
       [5],
@@ -1961,7 +1961,7 @@ test "decode_samples applies synthetic multi-packet HT placeholder skip" {
 
 ///|
 test "decode_samples selects trailing synthetic full HT set" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       6,
       [5, 1, 5, 1],
@@ -1970,7 +1970,7 @@ test "decode_samples selects trailing synthetic full HT set" {
       zbp=5,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       3,
       [5, 1],
@@ -1997,7 +1997,7 @@ test "decode_samples selects trailing synthetic full HT set" {
 
 ///|
 test "decode_samples selects trailing synthetic multi-packet full HT set" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_multi_packet_codestream([
       {
         first_inclusion: true,
@@ -2017,7 +2017,7 @@ test "decode_samples selects trailing synthetic multi-packet full HT set" {
       },
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       3,
       [5, 1],
@@ -2047,12 +2047,12 @@ test "decode_samples selects trailing synthetic multi-packet full HT set" {
 
 ///|
 test "decode_samples applies synthetic HT placeholder set skip" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(4, [0, 0, 5], [1, 2, 1], [
       0xE3, 0x00, 0x07, 0x74, 0x00,
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       1,
       [5],
@@ -2079,7 +2079,7 @@ test "decode_samples applies synthetic single-codeblock HT SigProp codestream" {
   ]
   let refined_codeword = cleanup_codeword.copy()
   refined_codeword.push(0x01)
-  let cleanup_v = @jpeg2000.decode_samples(
+  let cleanup_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       1,
       [25],
@@ -2091,7 +2091,7 @@ test "decode_samples applies synthetic single-codeblock HT SigProp codestream" {
       precision_bits=11,
     ),
   )
-  let refined_v = @jpeg2000.decode_samples(
+  let refined_v = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       2,
       [25, 1],
@@ -2139,7 +2139,7 @@ test "decode_samples accepts synthetic single-codeblock HT causal SigProp codest
   ]
   let refined_codeword = cleanup_codeword.copy()
   refined_codeword.push(0x01)
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_single_codeblock_codestream(
       2,
       [25, 1],
@@ -2163,7 +2163,7 @@ test "decode_samples accepts synthetic single-codeblock HT causal SigProp codest
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock HT cleanup codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_multi_codeblock_codestream(2, 1, [
       {
         included: true,
@@ -2194,7 +2194,7 @@ test "decode_samples accepts synthetic multi-codeblock HT cleanup codestream" {
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock HT MagRef via main-header COC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_coc_ht_override(
       htj2k_like_minimal_multi_codeblock_codestream(2, 1, [
         {
@@ -2216,7 +2216,7 @@ test "decode_samples accepts synthetic multi-codeblock HT MagRef via main-header
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_multi_codeblock_codestream(2, 1, [
       {
         included: true,
@@ -2255,7 +2255,7 @@ test "decode_samples accepts synthetic multi-codeblock HT MagRef via main-header
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock HT MagRef via tile-header COC/QCC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override(
       htj2k_like_minimal_multi_codeblock_codestream(2, 1, [
         {
@@ -2277,7 +2277,7 @@ test "decode_samples accepts synthetic multi-codeblock HT MagRef via tile-header
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_multi_codeblock_codestream(2, 1, [
       {
         included: true,
@@ -2316,7 +2316,7 @@ test "decode_samples accepts synthetic multi-codeblock HT MagRef via tile-header
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock HT MagRef codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_multi_codeblock_codestream(5, 1, [
       {
         included: true,
@@ -2347,7 +2347,7 @@ test "decode_samples accepts synthetic multi-codeblock HT MagRef codestream" {
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock multi-layer HT MagRef codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_multi_codeblock_multi_packet_codestream(5, 1, [
       [
         {
@@ -2387,7 +2387,7 @@ test "decode_samples accepts synthetic multi-codeblock multi-layer HT MagRef cod
       ],
     ]),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_multi_codeblock_codestream(5, 1, [
       {
         included: true,
@@ -2468,13 +2468,13 @@ test "decode_samples accepts synthetic multi-codeblock multi-layer HT codestream
       },
     ],
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_main_header_rgn(
       htj2k_like_minimal_multi_codeblock_multi_packet_codestream(2, 1, packets),
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_multi_codeblock_multi_packet_codestream(2, 1, packets),
   )
   guard decoded is Ok(result) else {
@@ -2536,13 +2536,13 @@ test "decode_samples accepts synthetic multi-codeblock multi-layer HT codestream
       },
     ],
   ]
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_rgn(
       htj2k_like_minimal_multi_codeblock_multi_packet_codestream(2, 1, packets),
       1,
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_multi_codeblock_multi_packet_codestream(2, 1, packets),
   )
   guard decoded is Ok(result) else {
@@ -2566,7 +2566,7 @@ test "decode_samples accepts synthetic multi-codeblock multi-layer HT codestream
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock multi-layer HT via tile-header COC/QCC override" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_with_tile_header_coc_qcc_ht_override(
       htj2k_like_minimal_multi_codeblock_multi_packet_codestream(2, 1, [
         [
@@ -2608,7 +2608,7 @@ test "decode_samples accepts synthetic multi-codeblock multi-layer HT via tile-h
       ]),
     ),
   )
-  let expected_v = @jpeg2000.decode_samples(
+  let expected_v = decode_samples(
     htj2k_like_minimal_multi_codeblock_multi_packet_codestream(2, 1, [
       [
         {
@@ -2667,7 +2667,7 @@ test "decode_samples accepts synthetic multi-codeblock multi-layer HT via tile-h
 
 ///|
 test "decode_samples accepts synthetic multi-codeblock HT causal MagRef codestream" {
-  let decoded = @jpeg2000.decode_samples(
+  let decoded = decode_samples(
     htj2k_like_minimal_multi_codeblock_codestream(
       2,
       1,
@@ -2707,7 +2707,7 @@ test "decode_samples decodes Bretagne1_ht fixture when available" {
     "samples/corpus/Bretagne1_ht.j2k",
   )
   guard fixture is Some(bytes) else { return }
-  let decoded = @jpeg2000.decode_samples(bytes)
+  let decoded = decode_samples(bytes)
   guard decoded is Ok(result) else {
     fail("Bretagne1_ht should decode in cleanup-only subset")
   }
@@ -2724,7 +2724,7 @@ test "decode_samples decodes Bretagne1_ht_lossy fixture when available" {
     "samples/corpus/Bretagne1_ht_lossy.j2k",
   )
   guard fixture is Some(bytes) else { return }
-  let decoded = @jpeg2000.decode_samples(bytes)
+  let decoded = decode_samples(bytes)
   guard decoded is Ok(result) else {
     fail("Bretagne1_ht_lossy should decode in cleanup-only subset")
   }
@@ -2751,7 +2751,7 @@ test "decode_samples matches byte.jph component0 prefix when available" {
     "samples/corpus/byte.jph",
   )
   guard fixture is Some(bytes) else { return }
-  let decoded = @jpeg2000.decode_samples(bytes)
+  let decoded = decode_samples(bytes)
   guard decoded is Ok(result) else {
     fail("byte.jph should decode in cleanup-only subset")
   }
@@ -2775,7 +2775,7 @@ test "decode_samples matches byte_causal.jhc component0 prefix when available" {
     "samples/corpus/byte_causal.jhc",
   )
   guard fixture is Some(bytes) else { return }
-  let decoded = @jpeg2000.decode_samples(bytes)
+  let decoded = decode_samples(bytes)
   guard decoded is Ok(result) else {
     fail("byte_causal.jhc should decode in cleanup-only subset")
   }

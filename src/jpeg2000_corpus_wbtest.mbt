@@ -38,8 +38,8 @@ fn corpus_bytes_slice_to_int_array(
 
 ///|
 fn corpus_decode_samples_eq(
-  lhs : @jpeg2000.DecodeSamplesResult,
-  rhs : @jpeg2000.DecodeSamplesResult,
+  lhs : DecodeSamplesResult,
+  rhs : DecodeSamplesResult,
 ) -> Bool {
   lhs.width == rhs.width &&
   lhs.height == rhs.height &&
@@ -83,7 +83,7 @@ test "corpus files parse with default parser" {
       }
       fail("failed to read corpus file")
     }
-    let parsed = @jpeg2000.parse_codestream(@bytes.bytes_to_int_array(bytes))
+    let parsed = parse_codestream(@bytes.bytes_to_int_array(bytes))
     guard parsed is Ok(_) else {
       if parsed is Err(msg) {
         fail("parse_codestream failed for \{name}: \{msg}")
@@ -111,8 +111,8 @@ test "decode_samples is deterministic on corpus files" {
       }
       fail("failed to read corpus file")
     }
-    let first = @jpeg2000.decode_samples(bytes)
-    let second = @jpeg2000.decode_samples(bytes)
+    let first = decode_samples(bytes)
+    let second = decode_samples(bytes)
     if first is Ok(a) {
       guard second is Ok(b) else {
         fail("decode_samples became non-deterministic for \{name}")
@@ -151,7 +151,7 @@ test "decode_samples exposes normalized metadata on corpus files" {
       }
       fail("failed to read corpus file")
     }
-    let decoded = @jpeg2000.decode_samples(bytes)
+    let decoded = decode_samples(bytes)
     guard decoded is Ok(result) else {
       if decoded is Err(msg) {
         fail("decode_samples failed for \{name}: \{msg}")
@@ -187,7 +187,7 @@ test "decode_samples_all_components_debug preserves component0 contract on repre
       }
       fail("failed to read corpus file")
     }
-    let public_decoded_v = @jpeg2000.decode_samples(bytes)
+    let public_decoded_v = decode_samples(bytes)
     guard public_decoded_v is Ok(public_decoded) else {
       if public_decoded_v is Err(msg) {
         fail("decode_samples failed for \{name}: \{msg}")
@@ -256,7 +256,7 @@ test "parse_codestream_bytes keeps both p0_13 main-header POC entries" {
     }
     fail("failed to read p0_13.j2k")
   }
-  let parsed_v = @jpeg2000.parse_codestream_bytes(bytes)
+  let parsed_v = parse_codestream_bytes(bytes)
   guard parsed_v is Ok(stream) else {
     if parsed_v is Err(msg) {
       fail("parse_codestream_bytes failed for p0_13.j2k: \{msg}")
@@ -341,7 +341,7 @@ test "p1_05 decode_samples keeps styled lossy tile slice stable" {
     }
     fail("failed to read p1_05.j2k")
   }
-  let decoded = @jpeg2000.decode_samples(bytes)
+  let decoded = decode_samples(bytes)
   guard decoded is Ok(result) else {
     if decoded is Err(msg) {
       fail("decode_samples failed for p1_05.j2k: \{msg}")
@@ -373,7 +373,7 @@ test "p1_05 roundtrip codestream preserves decode_samples result" {
     }
     fail("failed to read p1_05.j2k")
   }
-  let roundtripped_v = @jpeg2000.roundtrip_bytes(
+  let roundtripped_v = roundtrip_bytes(
     @bytes.bytes_to_int_array(bytes),
   )
   guard roundtripped_v is Ok(roundtripped) else {
@@ -382,14 +382,14 @@ test "p1_05 roundtrip codestream preserves decode_samples result" {
     }
     fail("roundtrip_bytes failed for p1_05.j2k")
   }
-  let original_decoded_v = @jpeg2000.decode_samples(bytes)
+  let original_decoded_v = decode_samples(bytes)
   guard original_decoded_v is Ok(original_decoded) else {
     if original_decoded_v is Err(msg) {
       fail("decode_samples failed for original p1_05.j2k: \{msg}")
     }
     fail("decode_samples failed for original p1_05.j2k")
   }
-  let roundtrip_decoded_v = @jpeg2000.decode_samples(
+  let roundtrip_decoded_v = decode_samples(
     @bytes.int_array_to_bytes(roundtripped),
   )
   guard roundtrip_decoded_v is Ok(roundtrip_decoded) else {

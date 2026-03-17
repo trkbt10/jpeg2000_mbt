@@ -9,43 +9,43 @@ fn map_byte_result(
 }
 
 ///|
-pub fn parse_codestream(data : Array[Int]) -> Result[Codestream, String] {
+fn parse_codestream(data : Array[Int]) -> Result[@core.Codestream, String] {
   @core.parse_codestream(@bytes.int_array_to_bytes(data))
 }
 
 ///|
-pub fn parse_codestream_bytes(data : Bytes) -> Result[Codestream, String] {
+fn parse_codestream_bytes(data : Bytes) -> Result[@core.Codestream, String] {
   @core.parse_codestream_bytes(data)
 }
 
 ///|
-pub fn parse_codestream_strict(data : Array[Int]) -> Result[Codestream, String] {
+fn parse_codestream_strict(data : Array[Int]) -> Result[@core.Codestream, String] {
   @core.parse_codestream_strict(@bytes.int_array_to_bytes(data))
 }
 
 ///|
-pub fn parse_codestream_strict_bytes(
+fn parse_codestream_strict_bytes(
   data : Bytes,
-) -> Result[Codestream, String] {
+) -> Result[@core.Codestream, String] {
   @core.parse_codestream_strict(data)
 }
 
 ///|
-pub fn encode_codestream(stream : Codestream) -> Result[Array[Int], String] {
+fn encode_codestream(stream : @core.Codestream) -> Result[Array[Int], String] {
   @core.encode_codestream(stream)
 }
 
 ///|
-pub fn encode_codestream_bytes(stream : Codestream) -> Result[Bytes, String] {
+fn encode_codestream_bytes(stream : @core.Codestream) -> Result[Bytes, String] {
   map_byte_result(@core.encode_codestream(stream))
 }
 
 ///|
-pub fn roundtrip_bytes(data : Array[Int]) -> Result[Array[Int], String] {
+fn roundtrip_bytes(data : Array[Int]) -> Result[Array[Int], String] {
   @core.roundtrip_bytes(@bytes.int_array_to_bytes(data))
 }
 
 ///|
-pub fn roundtrip_codestream_bytes(data : Bytes) -> Result[Bytes, String] {
+fn roundtrip_codestream_bytes(data : Bytes) -> Result[Bytes, String] {
   map_byte_result(@core.roundtrip_bytes(data))
 }

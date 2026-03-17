@@ -4,6 +4,7 @@
   "deps": {
     "moonbitlang/x": "0.4.40"
   },
+  "source": "src",
   "readme": "README.mbt.md",
   "repository": "",
   "license": "Apache-2.0",

@@ -1,7 +1,0 @@
-import {
-  "trkbt10/jpeg2000" @lib,
-}
-
-options(
-  link: { "native": { "cc": "clang" } },
-)

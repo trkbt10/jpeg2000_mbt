@@ -1,4 +1,20 @@
 ///|
+pub fn decode(data : Bytes) -> ImageData raise DecodeError {
+  match @decoder.decode_samples(data) {
+    Ok(result) =>
+      {
+        width: result.width,
+        height: result.height,
+        num_components: result.num_components,
+        bits_per_component: result.bits_per_component,
+        is_signed: result.is_signed,
+        data: result.samples,
+      }
+    Err(msg) => raise DecodeFailed(msg)
+  }
+}
+
+///|
 fn wrap_decode_samples_result(
   result : @orchestrate.DecodeSamplesResult,
 ) -> DecodeSamplesResult {
@@ -14,7 +30,7 @@ fn wrap_decode_samples_result(
 }
 
 ///|
-pub fn decode_samples(data : Bytes) -> Result[DecodeSamplesResult, String] {
+fn decode_samples(data : Bytes) -> Result[DecodeSamplesResult, String] {
   match @decoder.decode_samples(data) {
     Ok(result) => Ok(wrap_decode_samples_result(result))
     Err(msg) => Err(msg)
@@ -22,7 +38,7 @@ pub fn decode_samples(data : Bytes) -> Result[DecodeSamplesResult, String] {
 }
 
 ///|
-pub fn decode_samples_audit(
+fn decode_samples_audit(
   data : Bytes,
   packet_audit_limit? : Int = 300,
   force_relocated_ppt? : Bool = false,

@@ -45,14 +45,14 @@ fn read_file_arg_bytes(args : Array[String], at : Int) -> Bytes? {
 
 ///|
 fn print_decoded_result(
-  decoded : Result[@lib.DecodeSamplesResult, String],
+  decoded : Result[@orchestrate.DecodeSamplesResult, String],
   ok_prefix : String,
   include_samples_hex : Bool,
 ) -> Unit {
   match decoded {
     Ok(result) =>
       if include_samples_hex {
-        let hex = @lib.bytes_to_hex(@bytes.bytes_to_int_array(result.samples))
+        let hex = @core.bytes_to_hex(@bytes.bytes_to_int_array(result.samples))
         println(
           "\{ok_prefix}: w=\{result.width} h=\{result.height} comps=\{result.num_components} bits=\{result.bits_per_component} signed=\{result.is_signed} layout=\{result.sample_layout} bytes=\{result.samples.length()} samples_hex=\{hex}",
         )
@@ -67,13 +67,13 @@ fn print_decoded_result(
 
 ///|
 fn print_decode_samples_result(data : Bytes) -> Unit {
-  print_decoded_result(@lib.decode_samples(data), "ok", false)
+  print_decoded_result(@decoder.decode_samples(data), "ok", false)
 }
 
 ///|
 fn decode_samples_results_match(
-  a : @lib.DecodeSamplesResult,
-  b : @lib.DecodeSamplesResult,
+  a : @orchestrate.DecodeSamplesResult,
+  b : @orchestrate.DecodeSamplesResult,
 ) -> Bool {
   a.width == b.width &&
   a.height == b.height &&
@@ -86,7 +86,7 @@ fn decode_samples_results_match(
 
 ///|
 fn print_decode_samples_dump_result(data : Bytes) -> Unit {
-  print_decoded_result(@lib.decode_samples(data), "ok-dump", true)
+  print_decoded_result(@decoder.decode_samples(data), "ok-dump", true)
 }
 
 ///|
@@ -99,7 +99,7 @@ fn print_decode_all_components_dump_result(data : Bytes) -> Unit {
       )
       for i in 0..<result.components.length() {
         let component = result.components[i]
-        let hex = @lib.bytes_to_hex(
+        let hex = @core.bytes_to_hex(
           @bytes.bytes_to_int_array(component.samples),
         )
         println(
@@ -136,7 +136,7 @@ fn print_decode_samples_audit_result(
   force_relocated_ppt : Bool,
 ) -> Unit {
   print_decoded_result(
-    @lib.decode_samples_audit(data, packet_audit_limit~, force_relocated_ppt~),
+    @decoder.decode_samples_audit(data, packet_audit_limit~, force_relocated_ppt~),
     "ok-audit",
     true,
   )
@@ -144,8 +144,7 @@ fn print_decode_samples_audit_result(
 
 ///|
 fn print_decode_roundtrip_verify_result(data : Bytes) -> Unit {
-  let original = @bytes.bytes_to_int_array(data)
-  let roundtripped_v = @lib.roundtrip_bytes(original)
+  let roundtripped_v = @core.roundtrip_bytes(data)
   guard roundtripped_v is Ok(roundtripped) else {
     if roundtripped_v is Err(msg) {
       println("error: \{msg}")
@@ -155,7 +154,7 @@ fn print_decode_roundtrip_verify_result(data : Bytes) -> Unit {
     return
   }
   let roundtripped_bytes = @bytes.int_array_to_bytes(roundtripped)
-  let decoded_original_v = @lib.decode_samples(data)
+  let decoded_original_v = @decoder.decode_samples(data)
   guard decoded_original_v is Ok(decoded_original) else {
     if decoded_original_v is Err(msg) {
       println("error: decode original failed: \{msg}")
@@ -164,7 +163,7 @@ fn print_decode_roundtrip_verify_result(data : Bytes) -> Unit {
     println("error: decode original failed")
     return
   }
-  let decoded_roundtrip_v = @lib.decode_samples(roundtripped_bytes)
+  let decoded_roundtrip_v = @decoder.decode_samples(roundtripped_bytes)
   guard decoded_roundtrip_v is Ok(decoded_roundtrip) else {
     if decoded_roundtrip_v is Err(msg) {
       println("error: decode roundtrip failed: \{msg}")
@@ -262,7 +261,7 @@ fn main {
     guard read_file_arg_bytes(args, i) is Some(bytes) else { return }
     let rt = @input.roundtrip_decode_input_bytes(bytes)
     if rt is Ok(out) {
-      println(@lib.bytes_to_hex(@bytes.bytes_to_int_array(out)))
+      println(@core.bytes_to_hex(@bytes.bytes_to_int_array(out)))
       return
     }
     if rt is Err(msg) {

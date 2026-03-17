@@ -4,10 +4,10 @@ import {
   "moonbitlang/x/fs",
   "trkbt10/jpeg2000/internal/bytes" @bytes,
   "trkbt10/jpeg2000/internal/cli" @cli,
+  "trkbt10/jpeg2000/internal/core" @core,
   "trkbt10/jpeg2000/internal/decoder" @decoder,
   "trkbt10/jpeg2000/internal/decoder/input" @input,
   "trkbt10/jpeg2000/internal/decoder/orchestrate" @orchestrate,
-  "trkbt10/jpeg2000" @lib,
 }
 
 options(

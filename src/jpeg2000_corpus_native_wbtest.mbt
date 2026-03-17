@@ -15,7 +15,7 @@ test "native corpus decode smoke" {
       }
       fail("failed to read corpus file")
     }
-    let decoded = @jpeg2000.decode_samples(bytes)
+    let decoded = decode_samples(bytes)
     guard decoded is Ok(result) else {
       if decoded is Err(msg) {
         fail("decode_samples failed for \{name}: \{msg}")
@@ -45,8 +45,8 @@ test "native corpus decode deterministic smoke" {
       }
       fail("failed to read corpus file")
     }
-    let first = @jpeg2000.decode_samples(bytes)
-    let second = @jpeg2000.decode_samples(bytes)
+    let first = decode_samples(bytes)
+    let second = decode_samples(bytes)
     if first is Ok(a) {
       guard second is Ok(b) else {
         fail("decode_samples became non-deterministic for \{name}")
